@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true">
+  <!-- Favicon — Jeelani dome simplified for small sizes -->
+  <defs>
+    <linearGradient id="fDome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#218EB6"/>
+      <stop offset="100%" stop-color="#103E79"/>
+    </linearGradient>
+  </defs>
+  <!-- Dome -->
+  <path d="M4 24 Q4 10 16 4 Q28 10 28 24 Z" fill="url(#fDome)"/>
+  <!-- Drum -->
+  <rect x="3" y="24" width="26" height="4" rx="0.5" fill="#103E79"/>
+  <!-- Finial -->
+  <line x1="16" y1="4" x2="16" y2="1" stroke="#FFC800" stroke-width="1.5"/>
+  <circle cx="16" cy="1" r="1" fill="#FFC800"/>
+  <!-- Lattice on dome -->
+  <path d="M16 7 Q19 11 18 16 Q16 13 14 16 Q13 11 16 7Z" fill="#F8F5EF" opacity="0.25"/>
+  <!-- Base arches -->
+  <path d="M7 28 Q9.5 25 12 28" fill="none" stroke="#FFC800" stroke-width="0.6"/>
+  <path d="M13 28 Q16 25 19 28" fill="none" stroke="#FFC800" stroke-width="0.6"/>
+  <path d="M20 28 Q22.5 25 25 28" fill="none" stroke="#FFC800" stroke-width="0.6"/>
+</svg>
