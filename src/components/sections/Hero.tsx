@@ -22,7 +22,7 @@ export function Hero() {
       />
 
       {/* Dome image — parallax-ready */}
-      <motion.div
+      {/* <motion.div
         className="absolute top-[5%] left-1/2 -translate-x-1/2 w-[280px] md:w-[380px] lg:w-[450px] opacity-30"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 0.3 }}
@@ -37,7 +37,7 @@ export function Hero() {
           priority
           className="w-full h-auto"
         />
-      </motion.div>
+      </motion.div> */}
 
       {/* Floating glints */}
       {[...Array(6)].map((_, i) => (
@@ -76,13 +76,13 @@ export function Hero() {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="mb-6"
         >
-          {/* <Image
+          <Image
             src="/dars-typo.svg"
             alt="الدرس بجامع النور بادري"
             width={300}
             height={60}
             className="w-[180px] md:w-[260px] h-auto mx-auto invert opacity-100"
-          /> */}
+          />
         </motion.div>
         
         {/* Scalloped badge with wordmark */}
