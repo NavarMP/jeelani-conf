@@ -68,6 +68,23 @@ export function Hero() {
 
       {/* Main content */}
       <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+
+        {/* Dars calligraphy */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="mb-6"
+        >
+          {/* <Image
+            src="/dars-typo.svg"
+            alt="الدرس بجامع النور بادري"
+            width={300}
+            height={60}
+            className="w-[180px] md:w-[260px] h-auto mx-auto invert opacity-100"
+          /> */}
+        </motion.div>
+        
         {/* Scalloped badge with wordmark */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -75,7 +92,7 @@ export function Hero() {
           transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
           className="mb-6"
         >
-          <div className="inline-block bg-[var(--color-black)] rounded-lg px-8 py-5 md:px-12 md:py-7 shadow-2xl" style={{ clipPath: "url(#scallopClip)" }}>
+          <div className="inline-block rounded-lg px-8 py-5 md:px-12 md:py-7" style={{ clipPath: "url(#scallopClip)" }}>
             <Image
               src="/wordmark-en.svg"
               alt="Grand Jeelani Conference"
@@ -85,22 +102,6 @@ export function Hero() {
               className="w-[220px] md:w-[320px] lg:w-[380px] h-auto invert brightness-200"
             />
           </div>
-        </motion.div>
-
-        {/* Dars calligraphy */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="mb-6"
-        >
-          <Image
-            src="/dars-typo.svg"
-            alt="الدرس بجامع النور بادري"
-            width={300}
-            height={60}
-            className="w-[180px] md:w-[260px] h-auto mx-auto invert opacity-60"
-          />
         </motion.div>
 
         {/* Tagline */}
