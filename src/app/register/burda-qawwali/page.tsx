@@ -91,6 +91,51 @@ export default function BurdaQawwaliRegistration() {
     }
   };
 
+  const [copyQRSuccess, setCopyQRSuccess] = useState(false);
+
+  const handleDownloadQR = async () => {
+    try {
+      const res = await fetch("/upi-qr.png");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "burda-qawwali-upi-qr.png";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Failed to download QR code:", err);
+      const a = document.createElement("a");
+      a.href = "/upi-qr.png";
+      a.download = "burda-qawwali-upi-qr.png";
+      a.target = "_blank";
+      a.click();
+    }
+  };
+
+  const handleCopyQR = async () => {
+    try {
+      const res = await fetch("/upi-qr.png");
+      const blob = await res.blob();
+      if (typeof window !== "undefined" && navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "image/png": blob,
+          }),
+        ]);
+        setCopyQRSuccess(true);
+        setTimeout(() => setCopyQRSuccess(false), 2000);
+      } else {
+        throw new Error("ClipboardItem API not supported");
+      }
+    } catch (err) {
+      console.error("Failed to copy QR code image:", err);
+      alert("Direct image copying is not supported on this browser. Please use 'Download QR' instead.");
+    }
+  };
+
   const handleMemberChange = (index: number, value: string) => {
     const newMembers = [...formData.members];
     newMembers[index] = value;
@@ -245,7 +290,44 @@ export default function BurdaQawwaliRegistration() {
               <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
                 <div className="flex flex-col items-center mb-5 pb-5 border-b border-gray-200">
                   <div className="w-40 h-40 bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center relative group">
-                    <img src="/upi-qr.svg" alt="UPI QR Code" className="w-full h-full object-contain rounded-lg" />
+                    <img src="/upi-qr.png" alt="UPI QR Code" className="w-full h-full object-contain rounded-lg" />
+                  </div>
+
+                  {/* QR Action Buttons */}
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={handleDownloadQR}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 shadow-sm transition-all active:scale-95 cursor-pointer"
+                      title="Download QR code as PNG"
+                    >
+                      <svg className="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download QR
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyQR}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 shadow-sm transition-all active:scale-95 cursor-pointer"
+                      title="Copy QR code image to clipboard"
+                    >
+                      {copyQRSuccess ? (
+                        <>
+                          <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="text-emerald-600 font-medium">Copied QR!</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Copy QR
+                        </>
+                      )}
+                    </button>
                   </div>
                   <div className="mt-4 w-full max-w-xs space-y-2 text-center">
                     <div className="text-sm font-bold text-gray-900">Scan to Pay ₹300</div>
