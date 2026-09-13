@@ -2,18 +2,14 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 
 export function About() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const t = useTranslations("About");
 
-  const paragraphs = [
-    "The Jeelani Conference is a commemorative, academic, and spiritual assembly organized to honor the life, teachings, and enduring legacy of the revered 12th-century scholar and Sufi master, Shaykh ʿAbd al-Qādir al-Jīlānī.",
-    "Moving beyond a conventional devotional gathering, it serves as a dynamic forum that unites sacred tradition, scholastic discourse, and student research — emphasizing inner purification (tasawwuf) alongside orthodox scholarship.",
-    "The event draws its creative inspiration from the Ottoman and Persian arabesque tilework adorning Shaykh Jīlānī's shrine in Baghdad. Following the Ottoman conquest of Baghdad in 1534, these artisans adorned the shrine with turquoise-and-cobalt geometric patterns that became a visual language of spiritual devotion.",
-    "Just as the arabesque travelled across regions, cultures, and generations while retaining its essential identity, the teachings of Shaykh al-Jīlānī transcended geographical boundaries — from Baghdad to the shores of Malabar — inspiring communities across the Muslim world.",
-    "Organized by the Alathoorpadi Students Association, the conference connects historical learning with the living Dars tradition, affirming this generation as custodians of a centuries-old knowledge system.",
-  ];
+  const paragraphs = [t("p1"), t("p2"), t("p3"), t("p4"), t("p5")];
 
   return (
     <section id="about" className="relative py-20 md:py-28 overflow-hidden">
@@ -37,13 +33,13 @@ export function About() {
           className="text-center mb-12"
         >
           <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">
-            The Central Idea
+            {t("eyebrow")}
           </span>
           <h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold mt-3 text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            What Is Jeelani Conference?
+            {t("heading")}
           </h2>
         </motion.div>
 

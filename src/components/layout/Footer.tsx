@@ -1,9 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getSiteSettings } from "@/lib/data";
+import { getTranslations } from "next-intl/server";
 
 export async function Footer() {
   const siteSettings = await getSiteSettings();
+  const t = await getTranslations("Footer");
 
   const socialLinks = [
     { href: siteSettings.social?.website || "", label: "Website", icon: "🌐" },
@@ -38,10 +40,10 @@ export async function Footer() {
             className="text-2xl md:text-3xl font-bold text-[var(--color-ivory)] mb-2"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            People. Ideas. Heritage. A Brighter Tomorrow.
+            {t("tagline")}
           </h3>
           <p className="text-[var(--color-ivory)]/60 text-sm mt-4">
-            Exploring the spiritual geometry that connects the sands of Persia to the shores of Malabar
+            {t("subtitle")}
           </p>
         </div>
 
@@ -52,28 +54,28 @@ export async function Footer() {
             <div className="flex items-center gap-3 mb-4">
               <Image src="/adsa-logo.png" alt="ADSA Logo" width={40} height={40} className="rounded" />
               <div>
-                <p className="font-semibold text-sm">Organized by</p>
-                <p className="text-[var(--color-brass)] text-sm">Alathoorpadi Students Association</p>
+                <p className="font-semibold text-sm">{t("organizedBy")}</p>
+                <p className="text-[var(--color-brass)] text-sm">{t("organizerName")}</p>
               </div>
             </div>
             <p className="text-sm text-[var(--color-ivory)]/50 leading-relaxed">
-              A commemorative, academic, and spiritual assembly honoring Shaykh Abd al-Qadir al-Jilani.
+              {t("organizerDesc")}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-[var(--color-turquoise)]">Quick Links</h4>
+            <h4 className="font-semibold text-sm mb-4 text-[var(--color-turquoise)]">{t("quickLinks")}</h4>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { href: "/#about", label: "About" },
-                { href: "/#schedule", label: "Schedule" },
-                { href: "/#speakers", label: "Speakers" },
-                { href: "/#gallery", label: "Gallery" },
-                { href: "/live", label: "Watch Live" },
-                { href: "/#location", label: "Location" },
-                { href: "/#register", label: "Register" },
-                { href: "/#countdown", label: "Event Date" },
+                { href: "/#about", label: t("about") },
+                { href: "/#schedule", label: t("schedule") },
+                { href: "/#speakers", label: t("speakers") },
+                { href: "/#gallery", label: t("gallery") },
+                { href: "/live", label: t("watchLive") },
+                { href: "/#location", label: t("location") },
+                { href: "/#register", label: t("register") },
+                { href: "/#countdown", label: t("eventDate") },
               ].map((link) => (
                 <Link
                   key={link.href}
@@ -88,7 +90,7 @@ export async function Footer() {
 
           {/* Social */}
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-[var(--color-turquoise)]">Connect</h4>
+            <h4 className="font-semibold text-sm mb-4 text-[var(--color-turquoise)]">{t("connect")}</h4>
             <div className="flex flex-wrap gap-2">
               {socialLinks.map((link) => (
                 <a
@@ -109,9 +111,9 @@ export async function Footer() {
 
         {/* Bottom bar */}
         <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-[var(--color-ivory)]/40">
-          <p>© {new Date().getFullYear()} Grand Jeelani Conference. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {t("copyright")}</p>
           <p className="text-[var(--color-brass)]/50">
-            From Baghdad to Malabar — Persian Artistry. Malabar Soul.
+            {t("bottomTagline")}
           </p>
         </div>
       </div>

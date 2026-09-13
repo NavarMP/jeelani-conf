@@ -4,18 +4,19 @@ import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { type Session, type Speaker } from "@/lib/data";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
-function SessionCard({ session, index }: { session: Session; index: number }) {
+function SessionCard({ session, index, t }: { session: Session; index: number; t: (key: string) => string }) {
   const speakerList = session.speakers || [];
   const typeColors: Record<string, string> = {
     talk: "bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]",
-    ceremony: "bg-[var(--color-navy)]/10 text-[var(--color-navy)]",
+    ceremony: "bg-[var(--color-navy)]/10 text-[var(--color-navy)] dark:bg-[var(--color-turquoise)]/10 dark:text-[var(--color-turquoise)]",
     meal: "bg-[var(--color-rose)]/10 text-[var(--color-rose)]",
     mawlid: "bg-[var(--color-brass)]/10 text-[var(--color-brass)]",
     meeting: "bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]",
     paid_session: "bg-[var(--color-rose)]/10 text-[var(--color-rose)]",
-    paper_presentation: "bg-[var(--color-navy)]/10 text-[var(--color-navy)]",
-    closing: "bg-[var(--color-black)]/10 text-[var(--color-black)]",
+    paper_presentation: "bg-[var(--color-navy)]/10 text-[var(--color-navy)] dark:bg-[var(--color-turquoise)]/10 dark:text-[var(--color-turquoise)]",
+    closing: "bg-[var(--text-muted)]/10 text-[var(--text-secondary)]",
   };
 
   return (
@@ -51,7 +52,7 @@ function SessionCard({ session, index }: { session: Session; index: number }) {
           </span>
           {session.is_paid && (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-brass)]/10 text-[var(--color-brass)]">
-              paid
+              {t("paid")}
             </span>
           )}
         </div>
@@ -71,7 +72,7 @@ function SessionCard({ session, index }: { session: Session; index: number }) {
             href={`/sessions/${session.slug}`}
             className="inline-flex items-center text-xs font-medium text-[var(--color-turquoise)] hover:text-[var(--hover-turquoise)] mt-2 transition-colors"
           >
-            View details →
+            {t("viewDetails")}
           </Link>
         ) : null}
       </div>
@@ -83,6 +84,7 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
   const [activeStage, setActiveStage] = useState<string>("stage1");
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const t = useTranslations("Schedule");
 
   const stageSessions = sessions.filter((s) => s.stage === activeStage);
 
@@ -97,16 +99,16 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
           className="text-center mb-10"
         >
           <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">
-            Program
+            {t("eyebrow")}
           </span>
           <h2
             className="text-3xl md:text-4xl font-bold mt-2 text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            Conference Schedule
+            {t("heading")}
           </h2>
           <p className="text-[var(--text-secondary)] mt-3 max-w-xl mx-auto text-sm">
-            A full day of scholarly discourse, spiritual gathering, and academic exchange across two stages.
+            {t("description")}
           </p>
         </motion.div>
 
@@ -127,7 +129,7 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
                   : "bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--color-turquoise)]/30"
               }`}
             >
-              {stage === "stage1" ? "Stage 1" : "Stage 2"}
+              {stage === "stage1" ? t("stage1") : t("stage2")}
               {activeStage === stage && (
                 <motion.div
                   layoutId="stage-tab"
@@ -143,7 +145,7 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
         {/* Session list */}
         <div className="max-w-2xl mx-auto space-y-2">
           {stageSessions.map((session, i) => (
-            <SessionCard key={session.id} session={session} index={i} />
+            <SessionCard key={session.id} session={session} index={i} t={t} />
           ))}
         </div>
 
@@ -153,7 +155,7 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
             href="/schedule"
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
           >
-            View Full Schedule →
+            {t("viewFullSchedule")}
           </Link>
         </div>
       </div>

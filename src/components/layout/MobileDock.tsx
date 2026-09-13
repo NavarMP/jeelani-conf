@@ -3,22 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-
-const dockItems = [
-  { href: "/", icon: "🕌", label: "Home" },
-  { href: "/#schedule", icon: "📅", label: "Schedule" },
-  { href: "/#register", icon: "🎫", label: "Register" },
-  { href: "/#gallery", icon: "🖼", label: "Gallery" },
-  { href: "/live", icon: "📺", label: "Live" },
-];
+import { useTranslations } from "next-intl";
 
 export function MobileDock() {
   const pathname = usePathname();
+  const t = useTranslations("MobileDock");
+
+  const dockItems = [
+    { href: "/", icon: "🕌", label: t("home") },
+    { href: "/#schedule", icon: "📅", label: t("schedule") },
+    { href: "/#register", icon: "🎫", label: t("register") },
+    { href: "/#gallery", icon: "🖼", label: t("gallery") },
+    { href: "/live", icon: "📺", label: t("live") },
+  ];
 
   return (
     <div className="lg:hidden fixed bottom-0 inset-x-0 z-50 pb-[env(safe-area-inset-bottom)]">
       <nav
-        className="mx-3 mb-2 rounded-2xl border border-white/10 bg-[var(--surface)]/80 backdrop-blur-xl shadow-lg"
+        className="mx-3 mb-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-xl shadow-lg"
         role="navigation"
         aria-label="Mobile navigation"
       >

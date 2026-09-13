@@ -2,10 +2,12 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 export function Location({ locationMapUrl }: { locationMapUrl: string }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const t = useTranslations("Location");
 
   /* Use OpenStreetMap free embed instead of Google Maps API */
   /* Coordinates for Alathoorpadi, Melmuri — approx 10.9°N, 76.0°E */
@@ -22,13 +24,13 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
           className="text-center mb-10"
         >
           <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">
-            Find Us
+            {t("eyebrow")}
           </span>
           <h2
             className="text-3xl md:text-4xl font-bold mt-2 text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            Location & Directions
+            {t("heading")}
           </h2>
         </motion.div>
 
@@ -65,9 +67,9 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
                   📍
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[var(--text-primary)] text-sm">Venue</h3>
+                  <h3 className="font-semibold text-[var(--text-primary)] text-sm">{t("venue")}</h3>
                   <p className="text-[var(--text-secondary)] text-sm mt-0.5">
-                    Alathoorpadi, Melmuri, Malappuram, Kerala
+                    {t("venueAddress")}
                   </p>
                 </div>
               </div>
@@ -78,12 +80,12 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
                   🕐
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[var(--text-primary)] text-sm">Date & Time</h3>
+                  <h3 className="font-semibold text-[var(--text-primary)] text-sm">{t("dateTime")}</h3>
                   <p className="text-[var(--text-secondary)] text-sm mt-0.5">
-                    Sunday, September 27, 2026
+                    {t("dateValue")}
                   </p>
                   <p className="text-[var(--text-muted)] text-xs mt-0.5">
-                    10:00 AM – 10:00 PM IST
+                    {t("timeValue")}
                   </p>
                 </div>
               </div>
@@ -94,9 +96,9 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
                   🎤
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[var(--text-primary)] text-sm">Two Stages</h3>
+                  <h3 className="font-semibold text-[var(--text-primary)] text-sm">{t("twoStages")}</h3>
                   <p className="text-[var(--text-secondary)] text-sm mt-0.5">
-                    Stage 1: Main Conference Hall · Stage 2: Parallel Sessions
+                    {t("stagesDesc")}
                   </p>
                 </div>
               </div>
@@ -109,7 +111,7 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-all"
                 >
-                  📍 Get Directions
+                  📍 {t("getDirections")}
                 </a>
                 <a
                   href={`https://www.google.com/maps/dir/?api=1&destination=10.9,76.01`}
@@ -117,7 +119,7 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
                 >
-                  🗺 Navigate with Maps
+                  🗺 {t("navigateMaps")}
                 </a>
               </div>
             </div>

@@ -5,14 +5,13 @@ import {
   Noto_Sans_Malayalam,
   Noto_Naskh_Arabic,
   Reem_Kufi, Geist } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MobileDock } from "@/components/layout/MobileDock";
 import { AmbientAudioPlayer } from "@/components/ui/AmbientAudioPlayer";
 import { CustomCursor } from "@/components/ui/CustomCursor";
-import { Preloader } from "@/components/ui/Preloader";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -107,7 +106,26 @@ const themeScript = `
 `;
 
 /* ── Root Layout ─────────────────────────────────────────────────────── */
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, setRequestLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { locales } from '@/i18n';
+
+export default async function RootLayout(props: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const params = await props.params;
+  const { locale } = params;
+  const { children } = props;
+
+  if (!locales.includes(locale as any)) notFound();
+
+  setRequestLocale(locale);
+
+  const messages = await getMessages();
+  const dir = locale === 'ar' ? 'rtl' : 'ltr';
+
   const fontVars = [
     inter.variable,
     bodoniModa.variable,
@@ -117,7 +135,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   ].join(" ");
 
   return (
-    <html lang="en" className={cn("h-full", "antialiased", fontVars, "font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang={locale} dir={dir} className={cn("h-full", "antialiased", fontVars, "font-sans", geist.variable)} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -164,15 +182,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>
-          <Preloader />
-          <CustomCursor />
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <MobileDock />
-          <AmbientAudioPlayer />
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider>
+            <CustomCursor />
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <MobileDock />
+            <AmbientAudioPlayer />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

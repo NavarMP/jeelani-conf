@@ -3,8 +3,14 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 
 export function Hero() {
+  const t = useTranslations("Hero");
+  const locale = useLocale();
+
+  const wordmarkSrc = locale === "ar" ? "/wordmark-ar.svg" : locale === "ml" ? "/wordmark-ml.svg" : "/wordmark-en.svg";
+
   return (
     <section id="hero" className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
       {/* Background gradient */}
@@ -20,24 +26,6 @@ export function Hero() {
         }}
         aria-hidden="true"
       />
-
-      {/* Dome image — parallax-ready */}
-      {/* <motion.div
-        className="absolute top-[5%] left-1/2 -translate-x-1/2 w-[280px] md:w-[380px] lg:w-[450px] opacity-30"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 0.3 }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-        aria-hidden="true"
-      >
-        <Image
-          src="/jeelani-dome.png"
-          alt=""
-          width={450}
-          height={450}
-          priority
-          className="w-full h-auto"
-        />
-      </motion.div> */}
 
       {/* Floating glints */}
       {[...Array(6)].map((_, i) => (
@@ -94,7 +82,7 @@ export function Hero() {
         >
           <div className="inline-block rounded-lg px-8 py-5 md:px-12 md:py-7" style={{ clipPath: "url(#scallopClip)" }}>
             <Image
-              src="/wordmark-en.svg"
+              src={wordmarkSrc}
               alt="Grand Jeelani Conference"
               width={400}
               height={140}
@@ -111,7 +99,7 @@ export function Hero() {
           transition={{ delay: 0.5, duration: 0.6 }}
           className="text-[var(--color-brass)] text-sm md:text-base font-medium tracking-[0.15em] uppercase mb-4"
         >
-          From Baghdad to Malabar — Persian Artistry. Malabar Soul.
+          {t("tagline")}
         </motion.p>
 
         {/* Date & Venue */}
@@ -122,10 +110,10 @@ export function Hero() {
           className="mb-8"
         >
           <p className="text-white/90 text-lg md:text-xl font-semibold" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
-            Sunday, September 27
+            {t("date")}
           </p>
           <p className="text-white/60 text-sm mt-1">
-            Alathoorpadi, Melmuri
+            {t("venue")}
           </p>
         </motion.div>
 
@@ -140,20 +128,20 @@ export function Hero() {
             href="/#register"
             className="inline-flex items-center px-7 py-3 rounded-full text-sm font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all hover:shadow-lg hover:shadow-[var(--color-brass)]/25 active:scale-95"
           >
-            Register Now
+            {t("registerNow")}
           </Link>
           <Link
             href="/#schedule"
             className="inline-flex items-center px-7 py-3 rounded-full text-sm font-semibold bg-white/10 text-white border border-white/20 hover:bg-white/15 backdrop-blur-sm transition-all active:scale-95"
           >
-            View Schedule
+            {t("viewSchedule")}
           </Link>
           <Link
             href="/live"
             className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 backdrop-blur-sm transition-all active:scale-95"
           >
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            Watch Live
+            {t("watchLive")}
           </Link>
         </motion.div>
       </div>

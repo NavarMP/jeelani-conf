@@ -3,46 +3,48 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
-
-const registrationFlows = [
-  {
-    id: "grand-assembly",
-    title: "Grand Assembly",
-    titleMl: "മഹാ സമ്മേളനം",
-    description: "Join the main conference gathering. Private registration for community members and invited guests.",
-    type: "Private (Invite Only)",
-    price: "Free",
-    icon: "🕌",
-    color: "var(--color-navy)",
-    href: "/register/grand-assembly",
-  },
-  {
-    id: "musthafa-darimi",
-    title: "Musthafa Darimi Session",
-    titleMl: "മുസ്തഫ ദരീമി സെഷൻ",
-    description: "A paid specialized session by Dr. Musthafa Darimi Karippur that continues as an ongoing course.",
-    type: "Public (Paid)",
-    price: "Paid",
-    icon: "📚",
-    color: "var(--color-rose)",
-    href: "/register/musthafa-darimi",
-  },
-  {
-    id: "paper-presentation",
-    title: "Paper Presentation",
-    titleMl: "പേപ്പർ പ്രസന്റേഷൻ",
-    description: "Submit your research paper on 'Muhyiddin Mala and the Social Life of Malabar Muslims.'",
-    type: "Public (Free)",
-    price: "Free",
-    icon: "📝",
-    color: "var(--color-turquoise)",
-    href: "/register/paper-presentation",
-  },
-];
+import { useTranslations } from "next-intl";
 
 export function Registration() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const t = useTranslations("Registration");
+
+  const registrationFlows = [
+    {
+      id: "grand-assembly",
+      title: t("grandAssembly"),
+      titleMl: t("grandAssemblyMl"),
+      description: t("grandAssemblyDesc"),
+      type: t("grandAssemblyType"),
+      price: t("free"),
+      icon: "🕌",
+      color: "var(--color-navy)",
+      href: "/register/grand-assembly",
+    },
+    {
+      id: "musthafa-darimi",
+      title: t("mustafaDarimi"),
+      titleMl: t("mustafaDarimiMl"),
+      description: t("mustafaDarimiDesc"),
+      type: t("mustafaDarimiType"),
+      price: t("paidLabel"),
+      icon: "📚",
+      color: "var(--color-rose)",
+      href: "/register/musthafa-darimi",
+    },
+    {
+      id: "paper-presentation",
+      title: t("paperPresentation"),
+      titleMl: t("paperPresentationMl"),
+      description: t("paperPresentationDesc"),
+      type: t("paperPresentationType"),
+      price: t("free"),
+      icon: "📝",
+      color: "var(--color-turquoise)",
+      href: "/register/paper-presentation",
+    },
+  ];
 
   return (
     <section id="register" className="relative py-20 md:py-28 overflow-hidden" ref={ref}>
@@ -66,16 +68,16 @@ export function Registration() {
           className="text-center mb-12"
         >
           <span className="text-[var(--color-brass)] text-xs font-semibold tracking-[0.2em] uppercase">
-            Be Part of the Legacy
+            {t("eyebrow")}
           </span>
           <h2
             className="text-3xl md:text-4xl font-bold mt-2 text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            Register Now
+            {t("heading")}
           </h2>
           <p className="text-[var(--text-secondary)] mt-3 max-w-lg mx-auto text-sm">
-            Choose from three registration options based on your interest and participation.
+            {t("description")}
           </p>
         </motion.div>
 
@@ -121,7 +123,7 @@ export function Registration() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-[var(--color-brass)]">{flow.price}</span>
                   <span className="text-xs font-medium text-[var(--color-turquoise)] group-hover:translate-x-1 transition-transform">
-                    Register →
+                    {t("registerCta")}
                   </span>
                 </div>
               </Link>

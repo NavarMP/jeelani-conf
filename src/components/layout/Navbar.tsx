@@ -5,21 +5,31 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
-
-const navLinks = [
-  { href: "/#about", label: "About" },
-  { href: "/#schedule", label: "Schedule" },
-  { href: "/#speakers", label: "Speakers" },
-  { href: "/#gallery", label: "Gallery" },
-  { href: "/live", label: "Live" },
-  { href: "/#location", label: "Location" },
-];
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 export function Navbar() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const t = useTranslations("Nav");
+
+  const navLinks = [
+    { href: "/#about", label: t("about") },
+    { href: "/#schedule", label: t("schedule") },
+    { href: "/#speakers", label: t("speakers") },
+    { href: "/#gallery", label: t("gallery") },
+    { href: "/live", label: t("live") },
+    { href: "/#location", label: t("location") },
+  ];
+
+  // Pages that start with a dark hero background (homepage only)
+  const hasDarkHero = pathname === "/" || /^\/(en|ml|ar)\/?$/.test(pathname);
+  // Use scrolled/solid styling when scrolled OR when the page doesn't have a dark hero
+  const solid = scrolled || !hasDarkHero;
 
   useEffect(() => {
     setMounted(true);
@@ -35,7 +45,7 @@ export function Navbar() {
     <>
       <nav
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-          scrolled
+          solid
             ? "bg-[var(--surface)]/95 backdrop-blur-lg border-b border-[var(--border)] shadow-sm"
             : "bg-transparent"
         }`}
@@ -48,11 +58,11 @@ export function Navbar() {
             </div>
             <span
               className={`font-[var(--font-display)] text-lg font-bold hidden sm:inline transition-colors ${
-                scrolled ? "text-[var(--color-navy)]" : "text-white"
+                solid ? "text-[var(--color-navy)] dark:text-[var(--color-ivory)]" : "text-white"
               }`}
               style={{ fontFamily: "var(--font-bodoni-moda)" }}
             >
-              Jeelani Conference
+              {t("brandName")}
             </span>
           </Link>
 
@@ -63,7 +73,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={`text-sm font-medium transition-colors hover:text-[var(--color-turquoise)] ${
-                  scrolled ? "text-[var(--text-secondary)]" : "text-white/80 hover:text-white"
+                  solid ? "text-[var(--text-secondary)]" : "text-white/80 hover:text-white"
                 }`}
               >
                 {link.label}
@@ -72,12 +82,15 @@ export function Navbar() {
           </div>
 
           {/* Right controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Language switcher */}
+            <LanguageSwitcher scrolled={solid} />
+
             {/* Theme toggle */}
             <button
               onClick={() => setTheme(nextTheme)}
               className={`w-9 h-9 flex items-center justify-center rounded-full transition-all text-lg ${
-                scrolled
+                solid
                   ? "text-[var(--text-secondary)] hover:bg-[var(--border)]"
                   : "text-white/70 hover:text-white hover:bg-white/10"
               }`}
@@ -91,14 +104,14 @@ export function Navbar() {
               href="/#register"
               className="hidden md:inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all hover:shadow-lg hover:shadow-[var(--color-brass)]/20 active:scale-95"
             >
-              Register
+              {t("register")}
             </Link>
 
             {/* Mobile hamburger — hidden on lg+, visible on smaller screens but nav handled by MobileDock */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className={`lg:hidden w-9 h-9 flex items-center justify-center rounded-full transition-all ${
-                scrolled
+                solid
                   ? "text-[var(--text-primary)] hover:bg-[var(--border)]"
                   : "text-white hover:bg-white/10"
               }`}
@@ -166,7 +179,7 @@ export function Navbar() {
                   onClick={() => setMenuOpen(false)}
                   className="inline-flex items-center px-8 py-3 rounded-full text-base font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all"
                 >
-                  Register Now
+                  {t("registerNow")}
                 </Link>
               </motion.div>
             </div>

@@ -3,20 +3,21 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
-
-/* Placeholder gallery images — these will be replaced with real event photography */
-const galleryItems = [
-  { id: 1, aspect: "4/5", color: "from-[#103E79] to-[#218EB6]", label: "Conference Hall" },
-  { id: 2, aspect: "3/4", color: "from-[#218EB6] to-[#103E79]", label: "Stage Design" },
-  { id: 3, aspect: "1/1", color: "from-[#BA6473] to-[#103E79]", label: "Arabesque Details" },
-  { id: 4, aspect: "3/4", color: "from-[#103E79] to-[#2B2A29]", label: "Scholarly Discourse" },
-  { id: 5, aspect: "4/5", color: "from-[#218EB6] to-[#BA6473]", label: "Calligraphy" },
-  { id: 6, aspect: "1/1", color: "from-[#2B2A29] to-[#103E79]", label: "Mawlid Gathering" },
-];
+import { useTranslations } from "next-intl";
 
 export function Gallery() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const t = useTranslations("Gallery");
+
+  const galleryItems = [
+    { id: 1, aspect: "4/5", color: "from-[#103E79] to-[#218EB6]", labelKey: "conferenceHall" },
+    { id: 2, aspect: "3/4", color: "from-[#218EB6] to-[#103E79]", labelKey: "stageDesign" },
+    { id: 3, aspect: "1/1", color: "from-[#BA6473] to-[#103E79]", labelKey: "arabesqueDetails" },
+    { id: 4, aspect: "3/4", color: "from-[#103E79] to-[#2B2A29]", labelKey: "scholarlyDiscourse" },
+    { id: 5, aspect: "4/5", color: "from-[#218EB6] to-[#BA6473]", labelKey: "calligraphy" },
+    { id: 6, aspect: "1/1", color: "from-[#2B2A29] to-[#103E79]", labelKey: "mawlidGathering" },
+  ];
 
   return (
     <section id="gallery" className="relative py-20 md:py-28 bg-[var(--surface)]" ref={ref}>
@@ -29,16 +30,16 @@ export function Gallery() {
           className="text-center mb-10"
         >
           <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">
-            Visual Heritage
+            {t("eyebrow")}
           </span>
           <h2
             className="text-3xl md:text-4xl font-bold mt-2 text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            Gallery
+            {t("heading")}
           </h2>
           <p className="text-[var(--text-secondary)] mt-3 max-w-md mx-auto text-sm">
-            Capturing the beauty of Islamic artistry, scholarly gatherings, and the spiritual atmosphere.
+            {t("description")}
           </p>
         </motion.div>
 
@@ -80,7 +81,7 @@ export function Gallery() {
 
                 {/* Label */}
                 <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/50">
-                  <p className="text-xs text-white/80 font-medium">{item.label}</p>
+                  <p className="text-xs text-white/80 font-medium">{t(item.labelKey)}</p>
                 </div>
 
                 {/* Hover expand icon */}
@@ -98,7 +99,7 @@ export function Gallery() {
             href="/gallery"
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
           >
-            View Full Gallery →
+            {t("viewFullGallery")}
           </Link>
         </div>
       </div>

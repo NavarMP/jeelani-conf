@@ -7,8 +7,11 @@ import { Registration } from "@/components/sections/Registration";
 import { Gallery } from "@/components/sections/Gallery";
 import { Location } from "@/components/sections/Location";
 import { getSiteSettings, getSessions, getSpeakers } from "@/lib/data";
+import { setRequestLocale } from 'next-intl/server';
 
-export default async function HomePage() {
+export default async function HomePage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
+  setRequestLocale(params.locale);
   const [siteSettings, sessions, speakers] = await Promise.all([
     getSiteSettings(),
     getSessions(),

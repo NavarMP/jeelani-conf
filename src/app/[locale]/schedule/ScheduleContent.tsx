@@ -4,8 +4,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { type Session, type Speaker } from "@/lib/data";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
-function FullSessionCard({ session }: { session: Session }) {
+function FullSessionCard({ session, t }: { session: Session; t: (key: string) => string }) {
   const speakerList = session.speakers || [];
   const typeColors: Record<string, string> = {
     talk: "bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)] border-[var(--color-turquoise)]/20",
@@ -28,7 +29,7 @@ function FullSessionCard({ session }: { session: Session }) {
       <div className="flex items-start gap-4">
         <div className="shrink-0 text-center pt-1 min-w-[70px]">
           <p className="text-base font-bold text-[var(--color-navy)] dark:text-[var(--color-turquoise)]">{session.start_time}</p>
-          <p className="text-xs text-[var(--text-muted)]">to {session.end_time}</p>
+          <p className="text-xs text-[var(--text-muted)]">{t("to")} {session.end_time}</p>
         </div>
         <div className="flex-1">
           <div className="flex items-start gap-2 mb-2 flex-wrap">
@@ -65,6 +66,7 @@ function FullSessionCard({ session }: { session: Session }) {
 export function ScheduleContent({ sessions }: { sessions: Session[] }) {
   const [activeStage, setActiveStage] = useState<string>("stage1");
   const [searchQuery, setSearchQuery] = useState("");
+  const t = useTranslations("SchedulePage");
 
   const filteredSessions = sessions
     .filter((s) => s.stage === activeStage)
@@ -80,10 +82,10 @@ export function ScheduleContent({ sessions }: { sessions: Session[] }) {
         {/* Page header */}
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
-            Conference Schedule
+            {t("heading")}
           </h1>
           <p className="text-[var(--text-secondary)] text-sm mt-2 max-w-lg mx-auto">
-            Sunday, September 27, 2026 — Two stages, one transformative day of knowledge, spirituality, and community.
+            {t("description")}
           </p>
         </div>
 
@@ -100,13 +102,13 @@ export function ScheduleContent({ sessions }: { sessions: Session[] }) {
                     : "bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--color-turquoise)]/30"
                 }`}
               >
-                {stage === "stage1" ? "Stage 1" : "Stage 2"}
+                {stage === "stage1" ? t("stage1") : t("stage2")}
               </button>
             ))}
           </div>
           <input
             type="search"
-            placeholder="Search sessions..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="px-4 py-2.5 rounded-full border border-[var(--border)] bg-[var(--surface)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]/40 w-full sm:w-60 placeholder:text-[var(--text-muted)]"
@@ -116,10 +118,10 @@ export function ScheduleContent({ sessions }: { sessions: Session[] }) {
         {/* Sessions */}
         <div className="max-w-3xl mx-auto space-y-3">
           {filteredSessions.map((session) => (
-            <FullSessionCard key={session.id} session={session} />
+            <FullSessionCard key={session.id} session={session} t={t} />
           ))}
           {filteredSessions.length === 0 && (
-            <p className="text-center text-[var(--text-muted)] py-12 text-sm">No sessions found matching your search.</p>
+            <p className="text-center text-[var(--text-muted)] py-12 text-sm">{t("noResults")}</p>
           )}
         </div>
       </div>

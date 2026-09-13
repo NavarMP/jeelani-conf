@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { type Speaker } from "@/lib/data";
+import { useTranslations } from "next-intl";
 
 function SpeakerCard({ speaker, index }: { speaker: Speaker; index: number }) {
   return (
@@ -36,13 +37,6 @@ function SpeakerCard({ speaker, index }: { speaker: Speaker; index: number }) {
 
       {/* Name & title */}
       <div>
-        {/*
-        {speaker.honorific && (
-          <p className="text-[10px] text-[var(--color-turquoise)] font-medium uppercase tracking-wider">
-            {speaker.honorific}
-          </p>
-        )}
-        */}
         <h3 className="text-sm font-semibold text-[var(--text-primary)] leading-snug mt-0.5">
           {speaker.name}
         </h3>
@@ -57,6 +51,7 @@ function SpeakerCard({ speaker, index }: { speaker: Speaker; index: number }) {
 export function Speakers({ speakers }: { speakers: Speaker[] }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const t = useTranslations("Speakers");
 
   return (
     <section id="speakers" className="relative py-20 md:py-28 bg-[var(--surface)]" ref={ref}>
@@ -69,16 +64,16 @@ export function Speakers({ speakers }: { speakers: Speaker[] }) {
           className="text-center mb-12"
         >
           <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">
-            Guests & Scholars
+            {t("eyebrow")}
           </span>
           <h2
             className="text-3xl md:text-4xl font-bold mt-2 text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            Distinguished Speakers
+            {t("heading")}
           </h2>
           <p className="text-[var(--text-secondary)] mt-3 max-w-lg mx-auto text-sm">
-            Scholars, spiritual leaders, and academics who carry the torch of the Jilani tradition.
+            {t("description")}
           </p>
         </motion.div>
 

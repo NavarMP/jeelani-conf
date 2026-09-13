@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 function getTimeRemaining(targetDate: string) {
   const total = new Date(targetDate).getTime() - Date.now();
@@ -19,7 +20,7 @@ function CountdownDigit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
-        <div className="bg-[var(--color-navy)] dark:bg-[var(--surface)] rounded-xl px-4 py-3 md:px-6 md:py-4 min-w-[64px] md:min-w-[80px] text-center border border-[var(--color-turquoise)]/20 shadow-lg">
+        <div className="bg-[var(--color-navy)] dark:bg-[var(--surface-elevated)] rounded-xl px-4 py-3 md:px-6 md:py-4 min-w-[64px] md:min-w-[80px] text-center border border-[var(--color-turquoise)]/20 shadow-lg">
           <span
             className="text-3xl md:text-5xl font-bold text-[var(--color-brass)] tabular-nums"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
@@ -39,6 +40,7 @@ export function Countdown({ targetDate }: { targetDate: string }) {
   const [time, setTime] = useState(getTimeRemaining(targetDate));
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const t = useTranslations("Countdown");
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -63,13 +65,13 @@ export function Countdown({ targetDate }: { targetDate: string }) {
           transition={{ duration: 0.6 }}
         >
           <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">
-            Mark Your Calendar
+            {t("eyebrow")}
           </span>
           <h2
             className="text-2xl md:text-3xl font-bold mt-2 mb-8 text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            The Conference Begins In
+            {t("heading")}
           </h2>
         </motion.div>
 
@@ -80,13 +82,13 @@ export function Countdown({ targetDate }: { targetDate: string }) {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex items-center justify-center gap-3 md:gap-5 mb-10"
         >
-          <CountdownDigit value={time.days} label="Days" />
+          <CountdownDigit value={time.days} label={t("days")} />
           <span className="text-2xl text-[var(--color-turquoise)] font-bold mt-[-1rem]">:</span>
-          <CountdownDigit value={time.hours} label="Hours" />
+          <CountdownDigit value={time.hours} label={t("hours")} />
           <span className="text-2xl text-[var(--color-turquoise)] font-bold mt-[-1rem]">:</span>
-          <CountdownDigit value={time.minutes} label="Min" />
+          <CountdownDigit value={time.minutes} label={t("min")} />
           <span className="text-2xl text-[var(--color-turquoise)] font-bold mt-[-1rem]">:</span>
-          <CountdownDigit value={time.seconds} label="Sec" />
+          <CountdownDigit value={time.seconds} label={t("sec")} />
         </motion.div>
 
         {/* Add to calendar buttons */}
@@ -102,13 +104,13 @@ export function Countdown({ targetDate }: { targetDate: string }) {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-all"
           >
-            📅 Add to Google Calendar
+            📅 {t("addGoogle")}
           </a>
           <a
             href="/api/calendar"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
           >
-            📅 Download .ics
+            📅 {t("downloadIcs")}
           </a>
         </motion.div>
       </div>

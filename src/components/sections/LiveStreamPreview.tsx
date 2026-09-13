@@ -3,10 +3,12 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export function LiveStreamPreview({ liveStreams }: { liveStreams: any }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const t = useTranslations("LiveStream");
 
   return (
     <section id="live" className="relative py-20 md:py-28" ref={ref}>
@@ -19,24 +21,24 @@ export function LiveStreamPreview({ liveStreams }: { liveStreams: any }) {
           className="text-center mb-10"
         >
           <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">
-            Witness from Anywhere
+            {t("eyebrow")}
           </span>
           <h2
             className="text-3xl md:text-4xl font-bold mt-2 text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            Watch Live
+            {t("heading")}
           </h2>
           <p className="text-[var(--text-secondary)] mt-3 max-w-md mx-auto text-sm">
-            Can&apos;t make it in person? Watch the conference live on YouTube.
+            {t("description")}
           </p>
         </motion.div>
 
         {/* Live stream cards */}
         <div className="grid md:grid-cols-2 gap-5 max-w-3xl mx-auto">
           {([
-            { stage: "Stage 1", key: "stage1" as const, description: "Main conference hall — Grand Assembly, keynotes, and mawlid" },
-            { stage: "Stage 2", key: "stage2" as const, description: "Parallel sessions — Dars Management, academic talks, and paper presentations" },
+            { stage: t("stage1"), key: "stage1" as const, description: t("stage1Desc") },
+            { stage: t("stage2"), key: "stage2" as const, description: t("stage2Desc") },
           ]).map((item, i) => (
             <motion.div
               key={item.key}
@@ -69,7 +71,7 @@ export function LiveStreamPreview({ liveStreams }: { liveStreams: any }) {
                   {liveStreams[item.key].isLive && (
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-semibold">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      LIVE NOW
+                      {t("liveNow")}
                     </div>
                   )}
                 </div>
