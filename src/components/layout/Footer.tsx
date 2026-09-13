@@ -1,19 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
-import { siteSettings } from "@/lib/data";
+import { getSiteSettings } from "@/lib/data";
 
-const socialLinks = [
-  { href: siteSettings.social.website, label: "Website", icon: "🌐" },
-  { href: `mailto:${siteSettings.social.email}`, label: "Email", icon: "✉" },
-  { href: siteSettings.social.whatsappDirect, label: "WhatsApp", icon: "💬" },
-  { href: siteSettings.social.whatsappChannel, label: "WhatsApp Channel", icon: "📢" },
-  { href: siteSettings.social.instagram, label: "Instagram", icon: "📷" },
-  { href: siteSettings.social.facebook, label: "Facebook", icon: "📘" },
-  { href: siteSettings.social.twitter, label: "X (Twitter)", icon: "𝕏" },
-  { href: siteSettings.social.youtube, label: "YouTube", icon: "▶" },
-];
+export async function Footer() {
+  const siteSettings = await getSiteSettings();
 
-export function Footer() {
+  const socialLinks = [
+    { href: siteSettings.social?.website || "", label: "Website", icon: "🌐" },
+    { href: `mailto:${siteSettings.social?.email || ""}`, label: "Email", icon: "✉" },
+    { href: siteSettings.social?.whatsappDirect || "", label: "WhatsApp", icon: "💬" },
+    { href: siteSettings.social?.whatsappChannel || "", label: "WhatsApp Channel", icon: "📢" },
+    { href: siteSettings.social?.instagram || "", label: "Instagram", icon: "📷" },
+    { href: siteSettings.social?.facebook || "", label: "Facebook", icon: "📘" },
+    { href: siteSettings.social?.twitter || "", label: "X (Twitter)", icon: "𝕏" },
+    { href: siteSettings.social?.youtube || "", label: "YouTube", icon: "▶" },
+  ].filter(link => link.href);
   return (
     <footer className="bg-[var(--color-black)] text-[var(--color-ivory)] relative overflow-hidden">
       {/* Subtle arabesque pattern overlay */}

@@ -1,10 +1,24 @@
 import React from "react";
+import { getAdminDashboardStats, getRecentRegistrations } from "@/lib/data";
 
 export const metadata = {
   title: "Admin Dashboard | Grand Jeelani Conference",
 };
 
-export default function AdminDashboard() {
+// Helper to calculate relative time
+function timeAgo(dateString: string) {
+  const diff = Date.now() - new Date(dateString).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes} mins ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hours ago`;
+  return `${Math.floor(hours / 24)} days ago`;
+}
+
+export default async function AdminDashboard() {
+  const stats = await getAdminDashboardStats();
+  const recentRegistrations = await getRecentRegistrations();
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-end">
@@ -23,38 +37,47 @@ export default function AdminDashboard() {
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Registrations</h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-900">2,541</span>
-            <span className="text-xs text-green-500 font-medium">+12% this week</span>
+            <span className="text-3xl font-bold text-gray-900">{stats.totalRegistrations}</span>
+            <span className="text-xs text-green-500 font-medium">Active</span>
           </div>
         </div>
         
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Grand Assembly Zones</h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-900">84%</span>
+            <span className="text-3xl font-bold text-gray-900">{stats.assemblyCapacityPercentage}%</span>
             <span className="text-xs text-gray-400 font-medium">Capacity</span>
           </div>
           <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div className="bg-[var(--color-turquoise)] h-full w-[84%]"></div>
+            <div className={`bg-[var(--color-turquoise)] h-full w-[${stats.assemblyCapacityPercentage}%]`}></div>
           </div>
         </div>
         
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Paper Submissions</h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-900">142</span>
-            <span className="text-xs text-amber-500 font-medium">38 pending review</span>
+            <span className="text-3xl font-bold text-gray-900">{stats.totalPaperSubmissions}</span>
+            <span className="text-xs text-amber-500 font-medium">{stats.pendingPaperReviews} pending review</span>
           </div>
         </div>
         
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-2 h-full bg-red-500"></div>
+          <div className={`absolute top-0 right-0 w-2 h-full ${stats.isAnyLive ? 'bg-red-500' : 'bg-gray-300'}`}></div>
           <h3 className="text-sm font-medium text-gray-500 mb-2">Live Stream</h3>
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-            <span className="text-lg font-bold text-gray-900">OFFLINE</span>
+            {stats.isAnyLive ? (
+              <>
+                <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                <span className="text-lg font-bold text-gray-900">LIVE</span>
+              </>
+            ) : (
+              <>
+                <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                <span className="text-lg font-bold text-gray-400">OFFLINE</span>
+              </>
+            )}
           </div>
-          <p className="text-xs text-gray-400 mt-2">Stage 1 & 2 idle</p>
+          <p className="text-xs text-gray-400 mt-2">{stats.isAnyLive ? 'Active Streams' : 'Stage 1 & 2 idle'}</p>
         </div>
       </div>
 
@@ -74,30 +97,28 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">Abdullah K</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-medium">Grand Assembly</span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">Malappuram</td>
-                  <td className="px-4 py-3 text-gray-400">10 mins ago</td>
-                </tr>
-                <tr className="border-b border-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">Ibrahim Moulavi</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded text-xs font-medium">Darimi Session</span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">Kozhikode</td>
-                  <td className="px-4 py-3 text-gray-400">1 hour ago</td>
-                </tr>
-                <tr className="border-b border-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">Mohammed Shafeeq</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-green-50 text-green-600 rounded text-xs font-medium">Paper Present.</span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">Wayanad</td>
-                  <td className="px-4 py-3 text-gray-400">2 hours ago</td>
-                </tr>
+                {recentRegistrations.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-gray-500">No registrations found</td>
+                  </tr>
+                ) : (
+                  recentRegistrations.map((reg) => (
+                    <tr key={reg.id} className="border-b border-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{reg.name}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          reg.type === 'Grand Assembly' ? 'bg-blue-50 text-blue-600' :
+                          reg.type === 'Darimi Session' ? 'bg-purple-50 text-purple-600' :
+                          'bg-green-50 text-green-600'
+                        }`}>
+                          {reg.type}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">{reg.place}</td>
+                      <td className="px-4 py-3 text-gray-400">{timeAgo(reg.created_at)}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -125,7 +146,7 @@ export default function AdminDashboard() {
               <span>→</span>
             </button>
             <button className="w-full text-left px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg text-sm font-medium transition-colors border border-red-500/30 flex justify-between items-center mt-6">
-              Go Live (Stage 1)
+              Manage Live Stream
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
             </button>
           </div>

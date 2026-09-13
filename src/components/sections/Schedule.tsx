@@ -2,11 +2,11 @@
 
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { sessions, getSpeakersForSession, type Session } from "@/lib/data";
+import { type Session, type Speaker } from "@/lib/data";
 import Link from "next/link";
 
 function SessionCard({ session, index }: { session: Session; index: number }) {
-  const speakerList = getSpeakersForSession(session.id);
+  const speakerList = session.speakers || [];
   const typeColors: Record<string, string> = {
     talk: "bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]",
     ceremony: "bg-[var(--color-navy)]/10 text-[var(--color-navy)]",
@@ -29,9 +29,9 @@ function SessionCard({ session, index }: { session: Session; index: number }) {
       {/* Time column */}
       <div className="shrink-0 text-center min-w-[65px]">
         <p className="text-sm font-bold text-[var(--color-navy)] dark:text-[var(--color-turquoise)]">
-          {session.startTime}
+          {session.start_time}
         </p>
-        <p className="text-xs text-[var(--text-muted)]">{session.endTime}</p>
+        <p className="text-xs text-[var(--text-muted)]">{session.end_time}</p>
       </div>
 
       {/* Timeline dot + line */}
@@ -49,7 +49,7 @@ function SessionCard({ session, index }: { session: Session; index: number }) {
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${typeColors[session.type] || ""}`}>
             {session.type.replace("_", " ")}
           </span>
-          {session.isPaid && (
+          {session.is_paid && (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-brass)]/10 text-[var(--color-brass)]">
               paid
             </span>
@@ -58,7 +58,7 @@ function SessionCard({ session, index }: { session: Session; index: number }) {
 
         {speakerList.length > 0 && (
           <p className="text-xs text-[var(--text-muted)] mt-1">
-            {speakerList.map((s) => `${s.honorific ? s.honorific + " " : ""}${s.name}`).join(", ")}
+            {speakerList.map((s) => s.name).join(", ")}
           </p>
         )}
 
@@ -79,8 +79,8 @@ function SessionCard({ session, index }: { session: Session; index: number }) {
   );
 }
 
-export function Schedule() {
-  const [activeStage, setActiveStage] = useState<1 | 2>(1);
+export function Schedule({ sessions }: { sessions: Session[] }) {
+  const [activeStage, setActiveStage] = useState<string>("stage1");
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
@@ -117,7 +117,7 @@ export function Schedule() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex items-center justify-center gap-2 mb-8"
         >
-          {([1, 2] as const).map((stage) => (
+          {["stage1", "stage2"].map((stage) => (
             <button
               key={stage}
               onClick={() => setActiveStage(stage)}
@@ -127,7 +127,7 @@ export function Schedule() {
                   : "bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--color-turquoise)]/30"
               }`}
             >
-              Stage {stage}
+              {stage === "stage1" ? "Stage 1" : "Stage 2"}
               {activeStage === stage && (
                 <motion.div
                   layoutId="stage-tab"

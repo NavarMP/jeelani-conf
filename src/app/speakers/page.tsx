@@ -1,4 +1,4 @@
-import { speakers, sessions, getSpeakersForSession } from "@/lib/data";
+import { getSpeakers, getSessions } from "@/lib/data";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -7,7 +7,10 @@ export const metadata: Metadata = {
   description: "Distinguished scholars, spiritual leaders, and academics at the Grand Jeelani Conference.",
 };
 
-export default function SpeakersPage() {
+export default async function SpeakersPage() {
+  const speakers = await getSpeakers();
+  const sessions = await getSessions();
+
   return (
     <div className="min-h-[100dvh] pt-24 pb-32">
       <div className="container-site">
@@ -27,8 +30,9 @@ export default function SpeakersPage() {
         {/* Speakers grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
           {speakers.map((speaker) => {
+            // Find sessions this speaker is part of
             const speakerSessions = sessions.filter((s) =>
-              s.speakerIds.includes(speaker.id)
+              s.speakers?.some(sp => sp.id === speaker.id)
             );
 
             return (
@@ -52,9 +56,9 @@ export default function SpeakersPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    {speaker.honorific && (
+                    {speaker.title && (
                       <p className="text-[10px] text-[var(--color-turquoise)] font-medium uppercase tracking-wider">
-                        {speaker.honorific}
+                        {speaker.title}
                       </p>
                     )}
                     <h2 className="text-sm font-semibold text-[var(--text-primary)] leading-snug">

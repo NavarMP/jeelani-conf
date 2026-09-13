@@ -4,14 +4,19 @@ import {
   Bodoni_Moda,
   Noto_Sans_Malayalam,
   Noto_Naskh_Arabic,
-  Reem_Kufi,
-} from "next/font/google";
+  Reem_Kufi, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MobileDock } from "@/components/layout/MobileDock";
 import { AmbientAudioPlayer } from "@/components/ui/AmbientAudioPlayer";
+import { CustomCursor } from "@/components/ui/CustomCursor";
+import { Preloader } from "@/components/ui/Preloader";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 /* ── Font Configuration ──────────────────────────────────────────────── */
 const inter = Inter({
@@ -112,7 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   ].join(" ");
 
   return (
-    <html lang="en" className={`${fontVars} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" className={cn("h-full", "antialiased", fontVars, "font-sans", geist.variable)} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -160,6 +165,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
+          <Preloader />
+          <CustomCursor />
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />

@@ -2,9 +2,8 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { siteSettings } from "@/lib/data";
 
-export function Location() {
+export function Location({ locationMapUrl }: { locationMapUrl: string }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
@@ -105,7 +104,7 @@ export function Location() {
               {/* Get Directions */}
               <div className="flex flex-wrap gap-3 pt-2">
                 <a
-                  href={siteSettings.locationMapUrl}
+                  href={locationMapUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-all"

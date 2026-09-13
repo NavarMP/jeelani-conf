@@ -1,4 +1,4 @@
-import { speakers, sessions } from "@/lib/data";
+import { getSpeakers, getSessions } from "@/lib/data";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata, ResolvingMetadata } from "next";
@@ -7,17 +7,14 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateStaticParams() {
-  return speakers.map((s) => ({
-    slug: s.slug,
-  }));
-}
+
 
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
+  const speakers = await getSpeakers();
   const speaker = speakers.find((s) => s.slug === slug);
   if (!speaker) return { title: "Not Found" };
   return {
@@ -28,14 +25,16 @@ export async function generateMetadata(
 
 export default async function SpeakerPage({ params }: Props) {
   const { slug } = await params;
+  const speakers = await getSpeakers();
   const speaker = speakers.find((s) => s.slug === slug);
 
   if (!speaker) {
     notFound();
   }
 
+  const sessions = await getSessions();
   const speakerSessions = sessions.filter((s) =>
-    s.speakerIds.includes(speaker.id)
+    s.speakers?.some((sp) => sp.id === speaker.id)
   );
 
   return (
@@ -78,9 +77,9 @@ export default async function SpeakerPage({ params }: Props) {
           </div>
 
           <div className="flex-1">
-            {speaker.honorific && (
+            {speaker.title && (
               <p className="text-sm text-[var(--color-turquoise)] font-medium uppercase tracking-wider mb-2">
-                {speaker.honorific}
+                {speaker.title}
               </p>
             )}
             <h1
@@ -116,7 +115,7 @@ export default async function SpeakerPage({ params }: Props) {
                       Stage {session.stage}
                     </span>
                     <span className="text-sm text-[var(--text-muted)] font-medium">
-                      {session.startTime} - {session.endTime}
+                      {session.start_time} - {session.end_time}
                     </span>
                   </div>
                   <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--color-turquoise)] transition-colors">

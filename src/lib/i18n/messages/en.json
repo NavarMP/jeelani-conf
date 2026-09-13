@@ -1,0 +1,33 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "schedule": "Schedule",
+    "speakers": "Speakers",
+    "gallery": "Gallery",
+    "register": "Register"
+  },
+  "Hero": {
+    "title": "Grand Jeelani Conference",
+    "tagline": "From Baghdad to Malabar — Persian Artistry. Malabar Soul.",
+    "date": "September 27",
+    "venue": "Alathoorpadi, Melmuri",
+    "ctaRegister": "Register Now",
+    "ctaSchedule": "View Schedule",
+    "ctaLive": "Watch Live"
+  },
+  "About": {
+    "title": "Central Idea",
+    "content": "A commemorative, academic, and spiritual event honoring the 12th-century Sufi scholar Shaykh Abd al-Qadir al-Jilani."
+  },
+  "Registration": {
+    "title": "Registration",
+    "assembly": "Grand Assembly",
+    "darimi": "Darimi Session",
+    "paper": "Paper Presentation",
+    "submit": "Submit Registration"
+  },
+  "Footer": {
+    "organizer": "Alathoorpadi Students Association",
+    "tagline": "People. Ideas. Heritage. A Brighter Tomorrow."
+  }
+}

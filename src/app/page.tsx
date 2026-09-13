@@ -5,21 +5,27 @@ import { Schedule } from "@/components/sections/Schedule";
 import { Speakers } from "@/components/sections/Speakers";
 import { Registration } from "@/components/sections/Registration";
 import { Gallery } from "@/components/sections/Gallery";
-import { LiveStreamPreview } from "@/components/sections/LiveStreamPreview";
 import { Location } from "@/components/sections/Location";
+import { getSiteSettings, getSessions, getSpeakers } from "@/lib/data";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [siteSettings, sessions, speakers] = await Promise.all([
+    getSiteSettings(),
+    getSessions(),
+    getSpeakers(),
+  ]);
+
   return (
     <>
       <Hero />
       <About />
-      <Countdown />
-      <Schedule />
-      <Speakers />
+      <Countdown targetDate={siteSettings.eventDate} />
+      <Schedule sessions={sessions} />
+      <Speakers speakers={speakers} />
       <Registration />
       <Gallery />
       {/* <LiveStreamPreview /> */}
-      <Location />
+      <Location locationMapUrl={siteSettings.locationMapUrl} />
     </>
   );
 }

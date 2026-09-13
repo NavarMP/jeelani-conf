@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { siteSettings } from "@/lib/data";
 
 function getTimeRemaining(targetDate: string) {
   const total = new Date(targetDate).getTime() - Date.now();
@@ -36,17 +35,17 @@ function CountdownDigit({ value, label }: { value: number; label: string }) {
   );
 }
 
-export function Countdown() {
-  const [time, setTime] = useState(getTimeRemaining(siteSettings.eventDate));
+export function Countdown({ targetDate }: { targetDate: string }) {
+  const [time, setTime] = useState(getTimeRemaining(targetDate));
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTime(getTimeRemaining(siteSettings.eventDate));
+      setTime(getTimeRemaining(targetDate));
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [targetDate]);
 
   const calendarTitle = encodeURIComponent("Grand Jeelani Conference");
   const calendarDetails = encodeURIComponent("From Baghdad to Malabar — Persian Artistry. Malabar Soul. At Alathoorpadi, Melmuri.");

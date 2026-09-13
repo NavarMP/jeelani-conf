@@ -58,6 +58,68 @@ CREATE TABLE public.registrations_paper_presentation (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 4. Speakers
+CREATE TABLE public.speakers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    bio TEXT,
+    image_url VARCHAR(1000),
+    featured BOOLEAN DEFAULT false,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. Sessions (Schedule)
+CREATE TABLE public.sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    title_ml VARCHAR(255),
+    description TEXT,
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    stage VARCHAR(50) NOT NULL, -- 'stage1', 'stage2'
+    type VARCHAR(50) NOT NULL, -- 'talk', 'ceremony', 'meal'
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. Session Speakers (Many-to-Many)
+CREATE TABLE public.session_speakers (
+    session_id UUID REFERENCES public.sessions(id) ON DELETE CASCADE,
+    speaker_id UUID REFERENCES public.speakers(id) ON DELETE CASCADE,
+    PRIMARY KEY (session_id, speaker_id)
+);
+
+-- 7. Global Settings (Key-Value)
+CREATE TABLE public.global_settings (
+    key VARCHAR(255) PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 8. Live Streams
+CREATE TABLE public.live_streams (
+    stage VARCHAR(50) PRIMARY KEY,
+    youtube_id VARCHAR(255),
+    is_live BOOLEAN DEFAULT false,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 9. Zones
+CREATE TABLE public.zones (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    capacity INTEGER NOT NULL,
+    color VARCHAR(50),
+    layout_data JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
 -- Automatic updated_at trigger function
 CREATE OR REPLACE FUNCTION update_modified_column()
 RETURNS TRIGGER AS $$
@@ -80,10 +142,24 @@ CREATE TRIGGER update_reg_paper_modtime
     BEFORE UPDATE ON registrations_paper_presentation
     FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
+CREATE TRIGGER update_speakers_modtime
+    BEFORE UPDATE ON speakers
+    FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+CREATE TRIGGER update_sessions_modtime
+    BEFORE UPDATE ON sessions
+    FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
 -- Row Level Security (RLS)
 ALTER TABLE public.registrations_grand_assembly ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.registrations_darimi_session ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.registrations_paper_presentation ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.speakers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.session_speakers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.global_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.live_streams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.zones ENABLE ROW LEVEL SECURITY;
 
 -- Policies (allow insert for public, select/update for admin only)
 CREATE POLICY "Allow public insert on assembly" 
@@ -97,3 +173,14 @@ CREATE POLICY "Allow public insert on darimi"
 CREATE POLICY "Allow public insert on paper" 
     ON public.registrations_paper_presentation FOR INSERT 
     WITH CHECK (true);
+
+-- Public Read Policies
+CREATE POLICY "Allow public select on speakers" ON public.speakers FOR SELECT USING (true);
+CREATE POLICY "Allow public select on sessions" ON public.sessions FOR SELECT USING (true);
+CREATE POLICY "Allow public select on session_speakers" ON public.session_speakers FOR SELECT USING (true);
+CREATE POLICY "Allow public select on global_settings" ON public.global_settings FOR SELECT USING (true);
+CREATE POLICY "Allow public select on live_streams" ON public.live_streams FOR SELECT USING (true);
+CREATE POLICY "Allow public select on zones" ON public.zones FOR SELECT USING (true);
+
+-- Admin Policies (Assuming auth.uid() is used for admins)
+-- (Omitted for brevity, but they would look like: CREATE POLICY "Admin all" ON public.speakers FOR ALL USING (auth.role() = 'authenticated');)

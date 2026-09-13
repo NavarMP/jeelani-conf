@@ -1,14 +1,13 @@
-import { sessions, getSpeakersForSession } from "@/lib/data";
+import { getSessions } from "@/lib/data";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export function generateStaticParams() {
-  return sessions.map((s) => ({ slug: s.slug }));
-}
+
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const sessions = await getSessions();
   const session = sessions.find((s) => s.slug === slug);
   if (!session) return { title: "Session Not Found" };
   return {
@@ -19,10 +18,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function SessionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const sessions = await getSessions();
   const session = sessions.find((s) => s.slug === slug);
   if (!session) notFound();
 
-  const sessionSpeakers = getSpeakersForSession(session.id);
+  const sessionSpeakers = session.speakers || [];
 
   const typeLabels: Record<string, string> = {
     talk: "Academic Talk",
@@ -50,7 +50,7 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
           <span className="text-[10px] px-2.5 py-1 rounded-full font-medium bg-[var(--color-navy)]/10 text-[var(--color-navy)]">
             {typeLabels[session.type] || session.type}
           </span>
-          {session.isPaid && (
+          {session.is_paid && (
             <span className="text-[10px] px-2.5 py-1 rounded-full font-medium bg-[var(--color-brass)]/10 text-[var(--color-brass)]">
               Paid
             </span>
@@ -65,15 +65,15 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
           {session.title}
         </h1>
 
-        {session.titleMl && (
+        {session.title_ml && (
           <p className="text-base text-[var(--text-muted)] mb-4" style={{ fontFamily: "var(--font-noto-sans-malayalam)" }}>
-            {session.titleMl}
+            {session.title_ml}
           </p>
         )}
 
         {/* Time */}
         <div className="flex items-center gap-3 mb-8 text-sm text-[var(--text-secondary)]">
-          <span>🕐 {session.startTime} – {session.endTime}</span>
+          <span>🕐 {session.start_time} – {session.end_time}</span>
           <span>📍 Stage {session.stage}</span>
         </div>
 
@@ -96,8 +96,8 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
                     <svg viewBox="0 0 80 80" className="w-8 h-8 text-white/30" fill="currentColor"><circle cx="40" cy="28" r="14"/><path d="M15 72 Q15 50 40 45 Q65 50 65 72 Z"/></svg>
                   </div>
                   <div>
-                    {speaker.honorific && (
-                      <p className="text-[10px] text-[var(--color-turquoise)] font-medium uppercase tracking-wider">{speaker.honorific}</p>
+                    {speaker.title && (
+                      <p className="text-[10px] text-[var(--color-turquoise)] font-medium uppercase tracking-wider">{speaker.title}</p>
                     )}
                     <h3 className="text-sm font-semibold text-[var(--text-primary)]">{speaker.name}</h3>
                     <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">{speaker.bio}</p>
@@ -110,7 +110,7 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
 
         {/* CTAs */}
         <div className="flex flex-wrap gap-3">
-          {session.isPaid && (
+          {session.is_paid && (
             <Link href="/register/musthafa-darimi" className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all">
               Register for this Session
             </Link>

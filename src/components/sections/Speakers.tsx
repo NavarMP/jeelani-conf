@@ -2,9 +2,9 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { speakers } from "@/lib/data";
+import { type Speaker } from "@/lib/data";
 
-function SpeakerCard({ speaker, index }: { speaker: typeof speakers[number]; index: number }) {
+function SpeakerCard({ speaker, index }: { speaker: Speaker; index: number }) {
   return (
     <motion.div
       initial={{ y: 30, opacity: 0 }}
@@ -36,11 +36,13 @@ function SpeakerCard({ speaker, index }: { speaker: typeof speakers[number]; ind
 
       {/* Name & title */}
       <div>
+        {/*
         {speaker.honorific && (
           <p className="text-[10px] text-[var(--color-turquoise)] font-medium uppercase tracking-wider">
             {speaker.honorific}
           </p>
         )}
+        */}
         <h3 className="text-sm font-semibold text-[var(--text-primary)] leading-snug mt-0.5">
           {speaker.name}
         </h3>
@@ -52,7 +54,7 @@ function SpeakerCard({ speaker, index }: { speaker: typeof speakers[number]; ind
   );
 }
 
-export function Speakers() {
+export function Speakers({ speakers }: { speakers: Speaker[] }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 

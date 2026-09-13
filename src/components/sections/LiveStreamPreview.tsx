@@ -3,9 +3,8 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
-import { liveStreams } from "@/lib/data";
 
-export function LiveStreamPreview() {
+export function LiveStreamPreview({ liveStreams }: { liveStreams: any }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
-import { sessions } from "@/lib/data";
+import { getSessions } from "@/lib/data";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://gjc.alathurpadidars.in";
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -11,6 +11,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/gallery`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
     { url: `${baseUrl}/live`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
   ];
+
+  const sessions = await getSessions();
 
   const sessionPages: MetadataRoute.Sitemap = sessions.map((session) => ({
     url: `${baseUrl}/sessions/${session.slug}`,

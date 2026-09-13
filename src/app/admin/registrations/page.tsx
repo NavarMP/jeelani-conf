@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -12,7 +12,7 @@ const MOCK_REGISTRATIONS = [
   { id: "REG-2026-D4W", name: "Mohammed Shafeeq", phone: "9876543213", email: "", place: "Wayanad", type: "paper", status: "confirmed", date: "2026-09-04" },
 ];
 
-export default function RegistrationsPage() {
+function RegistrationsContent() {
   const searchParams = useSearchParams();
   const typeFilter = searchParams.get("type") || "all";
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,8 +24,8 @@ export default function RegistrationsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-end">
+    <>
+      <div className="flex justify-between items-end mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Registrations</h2>
           <p className="text-gray-500 text-sm mt-1">Manage attendees across all events</p>
@@ -41,7 +41,7 @@ export default function RegistrationsPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
         <div className="flex gap-2">
           <Link
             href="/admin/registrations"
@@ -161,6 +161,16 @@ export default function RegistrationsPage() {
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function RegistrationsPage() {
+  return (
+    <div className="space-y-6">
+      <Suspense fallback={<div>Loading registrations...</div>}>
+        <RegistrationsContent />
+      </Suspense>
     </div>
   );
 }

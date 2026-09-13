@@ -1,10 +1,9 @@
 import { ImageResponse } from "next/og";
-import { siteSettings } from "@/lib/data";
-
-export const runtime = "edge";
+import { getSiteSettings } from "@/lib/data";
 
 export async function GET(request: Request) {
   try {
+    const siteSettings = await getSiteSettings();
     const { searchParams } = new URL(request.url);
     
     // Dynamic values from URL params
