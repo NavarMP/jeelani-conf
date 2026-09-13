@@ -69,7 +69,7 @@ export default function BurdaQawwaliRegistration() {
         .from('dynamic_registrations')
         .insert({
           registration_id,
-          session_slug: 'burda',
+          session_slug: 'burda-qawwali',
           name: formData.teamName, // Store team name in main name field
           phone: formData.phone,
           status: 'pending',
@@ -244,12 +244,26 @@ export default function BurdaQawwaliRegistration() {
               {/* Payment Details & Upload */}
               <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
                 <div className="flex flex-col items-center mb-5 pb-5 border-b border-gray-200">
-                  <div className="w-32 h-32 bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center relative group">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=7034585359@okbizaxis&pn=Jeelani%20Conference&am=300.00&cu=INR" alt="UPI QR Code" className="w-full h-full object-cover rounded-lg" />
+                  <div className="w-40 h-40 bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center relative group">
+                    <img src="/upi-qr.svg" alt="UPI QR Code" className="w-full h-full object-contain rounded-lg" />
                   </div>
-                  <div className="mt-3 text-center">
+                  <div className="mt-4 w-full max-w-xs space-y-2 text-center">
                     <div className="text-sm font-bold text-gray-900">Scan to Pay ₹300</div>
-                    <div className="text-xs text-gray-500 font-mono mt-1">UPI: 7034585359@upi</div>
+                    <div className="text-xs text-gray-700 font-medium bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => { navigator.clipboard.writeText('300'); alert('Amount copied!'); }}>
+                      <span>Amount: <span className="font-bold text-[var(--color-navy)]">₹300</span></span>
+                      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    </div>
+                    <div className="text-xs text-gray-700 font-medium bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm flex justify-between items-center">
+                      <span>Name: <span className="font-bold">Muhammed Sinan</span></span>
+                    </div>
+                    <div className="text-xs text-gray-700 font-medium bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => { navigator.clipboard.writeText('sinanvettam@okicici'); alert('UPI ID copied!'); }}>
+                      <span>UPI ID: <span className="font-mono text-[var(--color-navy)]">sinanvettam@okicici</span></span>
+                      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    </div>
+                    <div className="text-xs text-gray-700 font-medium bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => { navigator.clipboard.writeText('7034585359'); alert('Phone number copied!'); }}>
+                      <span>Phone: <span className="font-mono text-[var(--color-navy)]">7034585359</span></span>
+                      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    </div>
                   </div>
                 </div>
 
