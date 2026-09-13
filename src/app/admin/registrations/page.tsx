@@ -2,24 +2,39 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
-// Mock data
-const MOCK_REGISTRATIONS = [
-  { id: "REG-2026-A1X", name: "Abdullah K", phone: "9876543210", email: "abd@example.com", place: "Malappuram", type: "assembly", status: "confirmed", date: "2026-09-01" },
-  { id: "REG-2026-B2Y", name: "Ibrahim Moulavi", phone: "9876543211", email: "", place: "Kozhikode", type: "darimi", status: "confirmed", date: "2026-09-02" },
-  { id: "REG-2026-C3Z", name: "Hassan", phone: "9876543212", email: "has@example.com", place: "Kannur", type: "assembly", status: "pending", date: "2026-09-03" },
-  { id: "REG-2026-D4W", name: "Mohammed Shafeeq", phone: "9876543213", email: "", place: "Wayanad", type: "paper", status: "confirmed", date: "2026-09-04" },
-];
+import { useSearchParams } from "next/navigation";
+import { useSessions } from "@/lib/useSessions";
+import { createClient } from "@/lib/supabase/client";
 
 function RegistrationsContent() {
   const searchParams = useSearchParams();
   const typeFilter = searchParams.get("type") || "all";
   const [searchTerm, setSearchTerm] = useState("");
+  const { activeSessions, sessions } = useSessions();
+  
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const supabase = createClient();
 
-  const filteredRegistrations = MOCK_REGISTRATIONS.filter((r) => {
-    if (typeFilter !== "all" && r.type !== typeFilter) return false;
-    if (searchTerm && !r.name.toLowerCase().includes(searchTerm.toLowerCase()) && !r.id.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+  React.useEffect(() => {
+    const fetchRegistrations = async () => {
+      const { data, error } = await supabase
+        .from('dynamic_registrations')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        setRegistrations(data);
+      } else {
+        console.error(error);
+      }
+    };
+    fetchRegistrations();
+  }, []);
+
+  const filteredRegistrations = registrations.filter((r) => {
+    if (typeFilter !== "all" && r.session_slug !== typeFilter) return false;
+    if (searchTerm && !r.name?.toLowerCase().includes(searchTerm.toLowerCase()) && !r.registration_id?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
   });
 
@@ -42,31 +57,22 @@ function RegistrationsContent() {
 
       {/* Filters and Search */}
       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Link
             href="/admin/registrations"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'all' || !typeFilter ? 'bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]' : 'text-gray-600 hover:bg-gray-100'}`}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'all' ? 'bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]' : 'text-gray-600 hover:bg-gray-100'}`}
           >
             All
           </Link>
-          <Link
-            href="/admin/registrations?type=assembly"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'assembly' ? 'bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]' : 'text-gray-600 hover:bg-gray-100'}`}
-          >
-            Grand Assembly
-          </Link>
-          <Link
-            href="/admin/registrations?type=darimi"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'darimi' ? 'bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]' : 'text-gray-600 hover:bg-gray-100'}`}
-          >
-            Darimi Session
-          </Link>
-          <Link
-            href="/admin/registrations?type=paper"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'paper' ? 'bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]' : 'text-gray-600 hover:bg-gray-100'}`}
-          >
-            Paper Pres.
-          </Link>
+          {activeSessions.map(event => (
+            <Link
+              key={event.id}
+              href={`/admin/registrations?type=${event.id}`}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === event.id ? 'bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]' : 'text-gray-600 hover:bg-gray-100'}`}
+            >
+              {event.label}
+            </Link>
+          ))}
         </div>
         
         <div className="relative w-full md:w-64">
@@ -111,9 +117,9 @@ function RegistrationsContent() {
                     {reg.place}
                   </td>
                   <td className="px-6 py-4">
-                    {reg.type === "assembly" && <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium border border-blue-100">Assembly</span>}
-                    {reg.type === "darimi" && <span className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-medium border border-purple-100">Darimi</span>}
-                    {reg.type === "paper" && <span className="px-2.5 py-1 bg-green-50 text-green-700 rounded-md text-xs font-medium border border-green-100">Paper</span>}
+                    <span className="px-2.5 py-1 bg-gray-50 text-gray-700 rounded-md text-xs font-medium border border-gray-200">
+                      {sessions.find(e => e.id === reg.type)?.label || reg.type}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     {reg.status === "confirmed" ? (

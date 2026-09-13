@@ -184,3 +184,82 @@ CREATE POLICY "Allow public select on zones" ON public.zones FOR SELECT USING (t
 
 -- Admin Policies (Assuming auth.uid() is used for admins)
 -- (Omitted for brevity, but they would look like: CREATE POLICY "Admin all" ON public.speakers FOR ALL USING (auth.role() = 'authenticated');)
+
+-- ==============================================================================
+-- DYNAMIC REGISTRATIONS (Added for Burda and Future Events)
+-- ==============================================================================
+
+CREATE TABLE public.registration_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    slug VARCHAR(255) UNIQUE NOT NULL, -- e.g. 'burda', 'assembly'
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    is_open BOOLEAN DEFAULT false,
+    is_archived BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE public.dynamic_registrations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    registration_id VARCHAR(50) UNIQUE NOT NULL, -- Auto-generated like REG-BURDA-123
+    session_slug VARCHAR(255) REFERENCES public.registration_sessions(slug) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    email VARCHAR(255),
+    status registration_status DEFAULT 'pending',
+    form_data JSONB NOT NULL DEFAULT '{}'::jsonb, -- Store dynamic fields here (e.g. 6 members, telegram link)
+    receipt_url VARCHAR(1000), -- for the payment screenshot
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Triggers for updated_at
+CREATE TRIGGER update_reg_sessions_modtime
+    BEFORE UPDATE ON registration_sessions
+    FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+CREATE TRIGGER update_dynamic_regs_modtime
+    BEFORE UPDATE ON dynamic_registrations
+    FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+-- RLS for dynamic tables
+ALTER TABLE public.registration_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.dynamic_registrations ENABLE ROW LEVEL SECURITY;
+
+-- Public can read active sessions
+CREATE POLICY "Allow public select on active sessions" 
+    ON public.registration_sessions FOR SELECT 
+    USING (is_archived = false);
+
+-- Public can insert registrations
+CREATE POLICY "Allow public insert on dynamic registrations" 
+    ON public.dynamic_registrations FOR INSERT 
+    WITH CHECK (true);
+
+-- Admin can manage sessions and read registrations
+CREATE POLICY "Admin manage sessions" 
+    ON public.registration_sessions FOR ALL 
+    USING (true); -- Replace true with admin auth check in prod
+
+CREATE POLICY "Admin read dynamic registrations" 
+    ON public.dynamic_registrations FOR SELECT 
+    USING (true); -- Replace true with admin auth check in prod
+
+-- ==============================================================================
+-- STORAGE BUCKETS
+-- ==============================================================================
+-- Note: You may need to run this part in the Supabase SQL Editor if buckets are not managed by migrations
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('receipts', 'receipts', true) 
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow public to upload to receipts bucket
+CREATE POLICY "Public can upload receipts"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'receipts');
+
+-- Allow public to view receipts
+CREATE POLICY "Public can view receipts"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'receipts');
