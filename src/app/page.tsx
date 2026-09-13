@@ -18,7 +18,7 @@ export default function HomePage() {
       <Speakers />
       <Registration />
       <Gallery />
-      <LiveStreamPreview />
+      {/* <LiveStreamPreview /> */}
       <Location />
     </>
   );
