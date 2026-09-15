@@ -66,7 +66,7 @@ function RegistrationsContent({ initialRegistrations }: Props) {
     assembly: "bg-blue-50 text-blue-700 border-blue-200",
     darimi: "bg-emerald-50 text-emerald-700 border-emerald-200",
     "burda-qawwali": "bg-amber-50 text-amber-700 border-amber-200",
-    "darimi-academic": "bg-purple-50 text-purple-700 border-purple-200",
+    "astro-ai-fiqh": "bg-purple-50 text-purple-700 border-purple-200",
     "dars-management-meet": "bg-cyan-50 text-cyan-700 border-cyan-200",
   };
 

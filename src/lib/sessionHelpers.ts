@@ -96,9 +96,9 @@ export function getSessionRegistration(
           isExternal: false,
           label: "Register Team",
         };
-      case "darimi-academic":
+      case "astro-ai-fiqh":
         return {
-          url: "/register/darimi-academic",
+          url: "/register/astro-ai-fiqh",
           isExternal: false,
           label: "Register for Session",
         };
@@ -127,7 +127,7 @@ export function getSessionRegistration(
   // 3. Paid sessions default to academic sessions pass
   if (session.is_paid || session.type === "paid_session") {
     return {
-      url: "/register/darimi-academic",
+      url: "/register/astro-ai-fiqh",
       isExternal: false,
       label: "Register for Session",
     };

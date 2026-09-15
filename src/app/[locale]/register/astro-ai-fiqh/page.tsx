@@ -30,7 +30,7 @@ export default function DarimiAcademicRegistration() {
 
       const { error: insertError } = await supabase.from("dynamic_registrations").insert({
         registration_id: registrationId,
-        session_slug: "darimi-academic",
+        session_slug: "astro-ai-fiqh",
         name: formData.name,
         phone: formData.phone,
         place: formData.place,

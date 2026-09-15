@@ -14,8 +14,8 @@ function getRegistrationHref(session: RegistrationSession): string {
   switch (session.slug) {
     case "burda-qawwali":
       return "/register/burda-qawwali";
-    case "darimi-academic":
-      return "/register/darimi-academic";
+    case "astro-ai-fiqh":
+      return "/register/astro-ai-fiqh";
     case "dars-management-meet":
       return "/register/dars-management";
     default:

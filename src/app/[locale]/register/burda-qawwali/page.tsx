@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
+import { BURDA_RULES_DATA, RULES_LANGUAGES, type RulesLanguage } from "./rulesData";
 
 export default function BurdaQawwaliRegistration() {
+  const [rulesLang, setRulesLang] = useState<RulesLanguage>("ml");
   const [formData, setFormData] = useState({ 
     teamName: "", 
     members: ["", "", "", "", ""], 
@@ -177,10 +179,38 @@ export default function BurdaQawwaliRegistration() {
     );
   }
 
-  const RULES = [
-    t("rule1"), t("rule2"), t("rule3"), t("rule4"), t("rule5"), t("rule6"), t("rule7"),
-    t("rule8"), t("rule9"), t("rule10"), t("rule11"), t("rule12"), t("rule13"), t("rule14")
-  ];
+  const renderWithTelegramLink = (text: string) => {
+    if (!text.includes("@adsadars") && !text.includes("t.me/adsadars")) {
+      return text;
+    }
+    const parts = text.split(/(@adsadars|https?:\/\/t\.me\/adsadars)/g);
+    return (
+      <>
+        {parts.map((part, index) => {
+          if (
+            part === "@adsadars" ||
+            part === "http://t.me/adsadars" ||
+            part === "https://t.me/adsadars"
+          ) {
+            return (
+              <a
+                key={index}
+                href="https://t.me/adsadars"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-turquoise)] font-bold underline hover:opacity-80 transition-opacity inline-flex items-center gap-0.5"
+              >
+                @adsadars
+              </a>
+            );
+          }
+          return part;
+        })}
+      </>
+    );
+  };
+
+  const currentRules = BURDA_RULES_DATA[rulesLang] || BURDA_RULES_DATA.ml;
 
   return (
     <div className="min-h-[100dvh] pt-24 pb-32 px-4 sm:px-6 relative overflow-hidden">
@@ -221,29 +251,66 @@ export default function BurdaQawwaliRegistration() {
           <div className="bg-[var(--surface)] rounded-3xl p-6 md:p-8 shadow-sm border border-[var(--border)] relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--surface-elevated)] rounded-bl-full -z-10" />
             
-            <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-[var(--color-brass)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              {t("rulesHeading")}
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--border)]/60">
+              <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center">
+                <svg className="w-5 h-5 mr-2 text-[var(--color-brass)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {currentRules.heading}
+              </h3>
+
+              {/* Language toggle for rules defaulting to Malayalam */}
+              <div className="inline-flex items-center p-1 bg-[var(--surface-elevated)] rounded-xl border border-[var(--border)] text-xs font-semibold self-start sm:self-auto shadow-inner">
+                {RULES_LANGUAGES.map((lang) => {
+                  const isActive = rulesLang === lang.code;
+                  return (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      onClick={() => setRulesLang(lang.code)}
+                      className={`relative px-3 py-1 rounded-lg text-xs transition-all cursor-pointer ${
+                        isActive
+                          ? "text-white dark:text-gray-900 font-bold"
+                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium"
+                      }`}
+                    >
+                      {isActive && (
+                        <motion.span
+                          layoutId="rules-lang-active"
+                          className="absolute inset-0 bg-[var(--color-navy)] dark:bg-[var(--color-turquoise)] rounded-lg shadow-sm"
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
+                        />
+                      )}
+                      <span className="relative z-10">{lang.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             
-            <ul className="space-y-4">
-              {RULES.map((rule, idx) => (
+            <ul className="space-y-4" dir={rulesLang === "ar" ? "rtl" : "ltr"}>
+              {currentRules.rules.map((rule, idx) => (
                 <li key={idx} className="flex items-start text-sm text-[var(--text-secondary)]">
-                  <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-[var(--surface-elevated)] text-[var(--text-muted)] text-xs font-bold mr-3 mt-0.5 border border-[var(--border)]">
+                  <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-[var(--surface-elevated)] text-[var(--text-muted)] text-xs font-bold mr-3 rtl:mr-0 rtl:ml-3 mt-0.5 border border-[var(--border)]">
                     {idx + 1}
                   </span>
-                  <span className="leading-relaxed">{rule}</span>
+                  <span className="leading-relaxed">{renderWithTelegramLink(rule)}</span>
                 </li>
               ))}
             </ul>
             
-            <div className="mt-8 p-4 bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border)] flex items-start gap-4">
+            <div className="mt-8 p-4 bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border)] flex items-start gap-4" dir={rulesLang === "ar" ? "rtl" : "ltr"}>
               <div className="w-10 h-10 rounded-full bg-[var(--color-turquoise)]/10 flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5 text-[var(--color-turquoise)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
               </div>
               <div>
-                <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1">{t("helpHeading")}</h4>
-                <p className="text-xs text-[var(--text-muted)]">{t("helpText")} <span className="font-semibold text-[var(--text-primary)]">9074525205</span> {t("or")} <span className="font-semibold text-[var(--text-primary)]">7034585359</span>.</p>
+                <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1">{currentRules.helpHeading}</h4>
+                <p className="text-xs text-[var(--text-muted)]">
+                  {currentRules.helpText}{" "}
+                  <a href="tel:9074525205" className="font-semibold text-[var(--text-primary)] hover:underline">9074525205</a>{" "}
+                  {currentRules.or}{" "}
+                  <a href="tel:7034585359" className="font-semibold text-[var(--text-primary)] hover:underline">7034585359</a>.
+                </p>
               </div>
             </div>
           </div>
@@ -310,7 +377,8 @@ export default function BurdaQawwaliRegistration() {
                 <label htmlFor="bq-telegram" className="block text-xs font-bold text-[var(--color-turquoise)] uppercase tracking-wide mb-2">{t("telegramLabel")}</label>
                 <input id="bq-telegram" type="text" required value={formData.telegramLink} onChange={(e) => setFormData({ ...formData, telegramLink: e.target.value })} placeholder={t("telegramPlaceholder")} className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]/30 focus:border-[var(--color-turquoise)] transition-all placeholder:text-[var(--text-muted)] font-medium mb-3" />
                 <div className="text-xs text-[var(--color-turquoise)]/80 leading-tight">
-                  <span className="font-bold">{t("telegramImportant")}</span> {t("telegramInstructions")}
+                  <span className="font-bold">{t("telegramImportant")}</span>{" "}
+                  {renderWithTelegramLink(t("telegramInstructions"))}
                 </div>
               </div>
 

@@ -58,9 +58,9 @@ INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time,
 -- Step 4: Insert Sessions — Stage 2
 INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time, end_time, stage, type, is_paid, registration_session_slug) VALUES
   ('b1000000-0000-0000-0000-000000000009', 'dars-management-meet', 'Dars Management Meet', 'ദർസ് മാനേജ്മെന്റ് മീറ്റ്', 'Palli Dars: We Are the Successors of Tradition. A meeting on managing and preserving the traditional Dars education system.', '2026-09-27T11:00:00+05:30', '2026-09-27T13:00:00+05:30', 'stage2', 'meeting', false, 'dars-management-meet'),
-  ('b1000000-0000-0000-0000-000000000010', 'astronomy-ai-fiqh', 'Astronomy and AI Fiqh', 'അസ്ട്രോണമി ആൻഡ് AI ഫിഖ്ഹ്', 'An exploration of the intersection of Astronomy, Artificial Intelligence, and Islamic Jurisprudence.', '2026-09-27T14:00:00+05:30', '2026-09-27T15:00:00+05:30', 'stage2', 'paid_session', true, 'darimi-academic'),
-  ('b1000000-0000-0000-0000-000000000011', 'darimi-session', 'Dr. Musthafa Darimi Session', 'ഡോ. മുസ്തഫ ദാരിമി സെഷൻ', 'A specialized paid session by Dr. Musthafa Darimi Karippur.', '2026-09-27T15:00:00+05:30', '2026-09-27T17:00:00+05:30', 'stage2', 'paid_session', true, 'darimi-academic'),
-  ('b1000000-0000-0000-0000-000000000012', 'ameer-husain-session', 'Ameer Husain Hudavi Session', 'അമീർ ഹുസൈൻ ഹുദവി സെഷൻ', 'Session by Ameer Husain Hudavi.', '2026-09-27T17:00:00+05:30', '2026-09-27T18:30:00+05:30', 'stage2', 'talk', false, 'darimi-academic');
+  ('b1000000-0000-0000-0000-000000000010', 'astronomy-ai-fiqh', 'Astronomy and AI Fiqh', 'അസ്ട്രോണമി ആൻഡ് AI ഫിഖ്ഹ്', 'An exploration of the intersection of Astronomy, Artificial Intelligence, and Islamic Jurisprudence.', '2026-09-27T14:00:00+05:30', '2026-09-27T15:00:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh'),
+  ('b1000000-0000-0000-0000-000000000011', 'darimi-session', 'Dr. Musthafa Darimi Session', 'ഡോ. മുസ്തഫ ദാരിമി സെഷൻ', 'A specialized paid session by Dr. Musthafa Darimi Karippur.', '2026-09-27T15:00:00+05:30', '2026-09-27T17:00:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh'),
+  ('b1000000-0000-0000-0000-000000000012', 'ameer-husain-session', 'Ameer Husain Hudavi Session', 'അമീർ ഹുസൈൻ ഹുദവി സെഷൻ', 'Session by Ameer Husain Hudavi.', '2026-09-27T17:00:00+05:30', '2026-09-27T18:30:00+05:30', 'stage2', 'talk', false, 'astro-ai-fiqh');
 
 -- Step 5: Link Speakers to Sessions
 INSERT INTO public.session_speakers (session_id, speaker_id) VALUES
@@ -89,7 +89,7 @@ INSERT INTO public.session_speakers (session_id, speaker_id) VALUES
 -- Step 6: Insert Registration Sessions (for dynamic registration cards)
 INSERT INTO public.registration_sessions (slug, title, title_ml, description, description_ml, icon, color, price_label, form_type, is_open, is_archived, order_index) VALUES
   ('burda-qawwali', 'Burda & Qawwali Competition', 'ബുർദ & ഖവ്വാലി മത്സരം', 'Register your team for the Burda & Qawwali Competition grand finale.', 'ബുർദ & ഖവ്വാലി മത്സരത്തിന്റെ ഗ്രാൻഡ് ഫിനാലെയ്ക്ക് നിങ്ങളുടെ ടീമിനെ രജിസ്റ്റർ ചെയ്യുക.', '🎤', 'var(--color-brass)', 'Paid', 'burda', true, false, 1),
-  ('darimi-academic', 'Academic Sessions', 'അക്കാദമിക് സെഷനുകൾ', 'Register for the academic block: Astronomy & AI Fiqh, Dr. Musthafa Darimi Session, and Ameer Husain Hudavi Session.', 'അക്കാദമിക് ബ്ലോക്കിലേക്ക് രജിസ്റ്റർ ചെയ്യുക: അസ്ട്രോണമി & AI ഫിഖ്ഹ്, ഡോ. മുസ്തഫ ദാരിമി സെഷൻ, അമീർ ഹുസൈൻ ഹുദവി സെഷൻ.', '📚', 'var(--color-rose)', 'Paid', 'standard', true, false, 2),
+  ('astro-ai-fiqh', 'Academic Sessions', 'അക്കാദമിക് സെഷനുകൾ', 'Register for the academic block: Astronomy & AI Fiqh, Dr. Musthafa Darimi Session, and Ameer Husain Hudavi Session.', 'അക്കാദമിക് ബ്ലോക്കിലേക്ക് രജിസ്റ്റർ ചെയ്യുക: അസ്ട്രോണമി & AI ഫിഖ്ഹ്, ഡോ. മുസ്തഫ ദാരിമി സെഷൻ, അമീർ ഹുസൈൻ ഹുദവി സെഷൻ.', '📚', 'var(--color-rose)', 'Paid', 'standard', true, false, 2),
   ('dars-management-meet', 'Dars Management Meet', 'ദർസ് മാനേജ്മെന്റ് മീറ്റ്', 'Register your mahall delegation for the Dars Management Meet. 1 to 5 members per mahall.', 'ദർസ് മാനേജ്മെന്റ് മീറ്റിലേക്ക് നിങ്ങളുടെ മഹല്ല് പ്രതിനിധി സംഘത്തെ രജിസ്റ്റർ ചെയ്യുക. ഒരു മഹല്ലിൽ നിന്ന് 1 മുതൽ 5 അംഗങ്ങൾ വരെ.', '🏛️', 'var(--color-navy)', 'Free', 'group', true, false, 3)
 ON CONFLICT (slug) DO UPDATE SET
   title = EXCLUDED.title,
