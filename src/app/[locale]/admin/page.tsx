@@ -33,7 +33,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Registrations</h3>
           <div className="flex items-baseline gap-2">
@@ -43,21 +43,10 @@ export default async function AdminDashboard() {
         </div>
         
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Grand Assembly Zones</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Dynamic Registrations</h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-900">{stats.assemblyCapacityPercentage}%</span>
-            <span className="text-xs text-gray-400 font-medium">Capacity</span>
-          </div>
-          <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div className={`bg-[var(--color-turquoise)] h-full w-[${stats.assemblyCapacityPercentage}%]`}></div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Paper Submissions</h3>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-900">{stats.totalPaperSubmissions}</span>
-            <span className="text-xs text-amber-500 font-medium">{stats.pendingPaperReviews} pending review</span>
+            <span className="text-3xl font-bold text-gray-900">{stats.dynamicRegistrations}</span>
+            <span className="text-xs text-purple-500 font-medium">Burda, Academic, Dars</span>
           </div>
         </div>
         
@@ -109,7 +98,7 @@ export default async function AdminDashboard() {
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
                           reg.type === 'Grand Assembly' ? 'bg-blue-50 text-blue-600' :
                           reg.type === 'Darimi Session' ? 'bg-purple-50 text-purple-600' :
-                          'bg-green-50 text-green-600'
+                          'bg-amber-50 text-amber-600'
                         }`}>
                           {reg.type}
                         </span>

@@ -10,7 +10,7 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
   const t = useTranslations("Location");
 
   /* Use OpenStreetMap free embed instead of Google Maps API */
-  /* Coordinates for Alathoorpadi, Melmuri — approx 10.9°N, 76.0°E */
+  /* Coordinates for Alathurpadi, Melmuri — approx 10.9°N, 76.0°E */
   const osmEmbedUrl = "https://www.openstreetmap.org/export/embed.html?bbox=76.0%2C10.89%2C76.02%2C10.91&layer=mapnik&marker=10.9%2C76.01";
 
   return (
@@ -48,7 +48,7 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
               height="350"
               style={{ border: 0 }}
               loading="lazy"
-              title="Conference Location - Alathoorpadi, Melmuri"
+              title="Conference Location - Alathurpadi, Melmuri"
               className="w-full"
             />
           </motion.div>

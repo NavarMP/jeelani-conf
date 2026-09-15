@@ -10,7 +10,7 @@ export function AmbientAudioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    audioRef.current = new Audio("/ambient-music.mp3");
+    audioRef.current = new Audio("/ambient-audio.mp3");
     audioRef.current.loop = true;
     audioRef.current.volume = volume;
 

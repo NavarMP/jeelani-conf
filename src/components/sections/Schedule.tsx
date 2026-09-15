@@ -15,9 +15,12 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
     mawlid: "bg-[var(--color-brass)]/10 text-[var(--color-brass)]",
     meeting: "bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)]",
     paid_session: "bg-[var(--color-rose)]/10 text-[var(--color-rose)]",
-    paper_presentation: "bg-[var(--color-navy)]/10 text-[var(--color-navy)] dark:bg-[var(--color-turquoise)]/10 dark:text-[var(--color-turquoise)]",
+    competition: "bg-[var(--color-brass)]/10 text-[var(--color-brass)]",
+    external_redirect: "bg-[var(--color-navy)]/10 text-[var(--color-navy)] dark:bg-[var(--color-turquoise)]/10 dark:text-[var(--color-turquoise)]",
     closing: "bg-[var(--text-muted)]/10 text-[var(--text-secondary)]",
   };
+
+  const isExternal = session.type === "external_redirect" && session.external_url;
 
   return (
     <motion.div
@@ -67,7 +70,16 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
           {session.description}
         </p>
 
-        {session.type === "talk" || session.type === "paid_session" || session.type === "paper_presentation" ? (
+        {isExternal ? (
+          <a
+            href={session.external_url!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-xs font-medium text-[var(--color-turquoise)] hover:text-[var(--hover-turquoise)] mt-2 transition-colors gap-1"
+          >
+            Visit Portal <span className="text-[10px]">↗</span>
+          </a>
+        ) : session.type === "talk" || session.type === "paid_session" || session.type === "meeting" ? (
           <Link
             href={`/sessions/${session.slug}`}
             className="inline-flex items-center text-xs font-medium text-[var(--color-turquoise)] hover:text-[var(--hover-turquoise)] mt-2 transition-colors"

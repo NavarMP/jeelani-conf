@@ -31,7 +31,7 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
     mawlid: "Mawlid Gathering",
     meeting: "Management Meet",
     paid_session: "Paid Session",
-    paper_presentation: "Paper Presentation",
+    // paper_presentation: "Paper Presentation",
     closing: "Closing Ceremony",
   };
 

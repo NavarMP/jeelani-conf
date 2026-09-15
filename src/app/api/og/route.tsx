@@ -116,7 +116,7 @@ export async function GET(request: Request) {
             >
               <span>Sept 27, 2026</span>
               <span style={{ opacity: 0.5 }}>|</span>
-              <span>Alathoorpadi, Melmuri</span>
+              <span>Alathurpadi, Melmuri</span>
             </div>
           </div>
         </div>

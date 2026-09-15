@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Location & Directions",
-  description: "Join us at Alathoorpadi, Melmuri for the Grand Jeelani Conference.",
+  description: "Join us at Alathurpadi, Melmuri for the Grand Jeelani Conference.",
 };
 
 export default async function LocationPage() {

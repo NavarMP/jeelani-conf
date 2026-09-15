@@ -90,7 +90,7 @@ export function LiveContent({ liveStreams }: { liveStreams: any }) {
           }`}>
             <h3 className="font-semibold text-[var(--color-ivory)] text-sm mb-1">Stage 2 — Parallel Sessions</h3>
             <p className="text-xs text-[var(--color-ivory)]/50 leading-relaxed">
-              Dars Management Meet, academic sessions, Musthafa Darimi course, and paper presentations.
+              Dars Management Meet, academic sessions, Musthafa Darimi course, and Ai Fiqh.I
             </p>
           </div>
         </div>

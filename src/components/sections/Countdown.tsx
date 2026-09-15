@@ -50,8 +50,8 @@ export function Countdown({ targetDate }: { targetDate: string }) {
   }, [targetDate]);
 
   const calendarTitle = encodeURIComponent("Grand Jeelani Conference");
-  const calendarDetails = encodeURIComponent("From Baghdad to Malabar — Persian Artistry. Malabar Soul. At Alathoorpadi, Melmuri.");
-  const calendarLocation = encodeURIComponent("Alathoorpadi, Melmuri, Kerala");
+  const calendarDetails = encodeURIComponent("From Baghdad to Malabar — Persian Artistry. Malabar Soul. At Alathurpadi, Melmuri.");
+  const calendarLocation = encodeURIComponent("Alathurpadi, Melmuri, Kerala");
   const startISO = "20260927T043000Z"; // 10:00 AM IST in UTC
   const endISO = "20260927T163000Z";   // 10:00 PM IST in UTC
   const googleCalUrl = `https://calendar.google.com/calendar/r/eventedit?text=${calendarTitle}&dates=${startISO}/${endISO}&details=${calendarDetails}&location=${calendarLocation}`;

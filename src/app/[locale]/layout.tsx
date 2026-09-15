@@ -60,11 +60,11 @@ export const metadata: Metadata = {
     template: "%s | Grand Jeelani Conference",
   },
   description:
-    "A commemorative, academic, and spiritual assembly honoring Shaykh Abd al-Qadir al-Jilani. Organized by Alathoorpadi Students Association on September 27, at Alathoorpadi, Melmuri. Persian Artistry. Malabar Soul.",
+    "A commemorative, academic, and spiritual assembly honoring Shaykh Abd al-Qadir al-Jilani. Organized by Alathurpadi Students Association on September 27, at Alathurpadi, Melmuri. Persian Artistry. Malabar Soul.",
   keywords: [
     "Jeelani Conference",
     "Shaykh Abd al-Qadir al-Jilani",
-    "Alathoorpadi",
+    "Alathurpadi",
     "SUFFA Dars",
     "Islamic conference",
     "Melmuri",
@@ -72,11 +72,11 @@ export const metadata: Metadata = {
     "ജീലാനി കോൺഫറൻസ്",
     "مؤتمر الجيلاني",
   ],
-  authors: [{ name: "Alathoorpadi Students Association" }],
+  authors: [{ name: "Alathurpadi Students Association" }],
   openGraph: {
     title: "Grand Jeelani Conference — From Baghdad to Malabar",
     description:
-      "A commemorative, academic, and spiritual assembly honoring Shaykh Abd al-Qadir al-Jilani. September 27, Alathoorpadi, Melmuri.",
+      "A commemorative, academic, and spiritual assembly honoring Shaykh Abd al-Qadir al-Jilani. September 27, Alathurpadi, Melmuri.",
     siteName: "Grand Jeelani Conference",
     locale: "en_IN",
     type: "website",
@@ -157,7 +157,7 @@ export default async function RootLayout(props: {
               location: [
                 {
                   "@type": "Place",
-                  name: "Alathoorpadi, Melmuri",
+                  name: "Alathurpadi, Melmuri",
                   address: {
                     "@type": "PostalAddress",
                     addressLocality: "Melmuri",
@@ -172,7 +172,7 @@ export default async function RootLayout(props: {
               ],
               organizer: {
                 "@type": "Organization",
-                name: "Alathoorpadi Students Association",
+                name: "Alathurpadi Students Association",
                 url: "https://alathurpadidars.in",
               },
               image: "https://gjc.alathurpadidars.in/jeelani-dome.png",

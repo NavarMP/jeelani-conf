@@ -66,7 +66,7 @@ export default function BadgePage({ params }: { params: { registrationId: string
                 className="w-48 h-auto invert brightness-200"
               />
               <p className="text-[var(--color-brass)] text-[10px] uppercase tracking-[0.2em] mt-2 font-medium">
-                Alathoorpadi • Sept 27
+                Alathurpadi • Sept 27
               </p>
             </div>
             

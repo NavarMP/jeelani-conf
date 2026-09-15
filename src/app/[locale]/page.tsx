@@ -6,16 +6,17 @@ import { Speakers } from "@/components/sections/Speakers";
 import { Registration } from "@/components/sections/Registration";
 import { Gallery } from "@/components/sections/Gallery";
 import { Location } from "@/components/sections/Location";
-import { getSiteSettings, getSessions, getSpeakers } from "@/lib/data";
+import { getSiteSettings, getSessions, getSpeakers, getRegistrationSessions } from "@/lib/data";
 import { setRequestLocale } from 'next-intl/server';
 
 export default async function HomePage(props: { params: Promise<{ locale: string }> }) {
   const params = await props.params;
   setRequestLocale(params.locale);
-  const [siteSettings, sessions, speakers] = await Promise.all([
+  const [siteSettings, sessions, speakers, registrationSessions] = await Promise.all([
     getSiteSettings(),
     getSessions(),
     getSpeakers(),
+    getRegistrationSessions(),
   ]);
 
   return (
@@ -25,7 +26,7 @@ export default async function HomePage(props: { params: Promise<{ locale: string
       <Countdown targetDate={siteSettings.eventDate} />
       <Schedule sessions={sessions} />
       <Speakers speakers={speakers} />
-      <Registration />
+      <Registration registrationSessions={registrationSessions} />
       <Gallery />
       {/* <LiveStreamPreview /> */}
       <Location locationMapUrl={siteSettings.locationMapUrl} />

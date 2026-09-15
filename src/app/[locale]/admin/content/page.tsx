@@ -74,7 +74,7 @@ export default function ContentManagerPage() {
                 <div className="sm:col-span-6">
                   <label htmlFor="venue" className="block text-sm font-medium text-gray-700">Venue / Location Name</label>
                   <div className="mt-1">
-                    <input type="text" id="venue" defaultValue="Alathoorpadi, Melmuri" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] sm:text-sm p-2 border" />
+                    <input type="text" id="venue" defaultValue="Alathurpadi, Melmuri" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] sm:text-sm p-2 border" />
                   </div>
                 </div>
 
@@ -95,7 +95,7 @@ export default function ContentManagerPage() {
                 <div className="sm:col-span-6">
                   <label htmlFor="organizer" className="block text-sm font-medium text-gray-700">Organizer Name</label>
                   <div className="mt-1">
-                    <input type="text" id="organizer" defaultValue="Alathoorpadi Students Association" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] sm:text-sm p-2 border" />
+                    <input type="text" id="organizer" defaultValue="Alathurpadi Students Association" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] sm:text-sm p-2 border" />
                   </div>
                 </div>
 
