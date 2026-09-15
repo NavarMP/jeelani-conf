@@ -11,7 +11,7 @@ const mockRegistration = {
   name: "Mohammed Bilal",
   dars: "Jamia Nooriyya",
   place: "Pattikkad",
-  type: "Grand Assembly",
+  type: "as-Sanad al-Muttaṣil",
   role: "Delegate",
 };
 

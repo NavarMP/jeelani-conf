@@ -2,8 +2,7 @@ import { getSessions } from "@/lib/data";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-
-
+import { formatSessionTimeRange, getSessionRegistration } from "@/lib/sessionHelpers";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -23,6 +22,8 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
   if (!session) notFound();
 
   const sessionSpeakers = session.speakers || [];
+  const regInfo = getSessionRegistration(session);
+  const timeFormatted = formatSessionTimeRange(session.start_time, session.end_time);
 
   const typeLabels: Record<string, string> = {
     talk: "Academic Talk",
@@ -31,8 +32,10 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
     mawlid: "Mawlid Gathering",
     meeting: "Management Meet",
     paid_session: "Paid Session",
-    // paper_presentation: "Paper Presentation",
+    competition: "Competition",
     closing: "Closing Ceremony",
+    external_redirect: "Grand Assembly",
+    paper_presentation: "Paper Presentation",
   };
 
   return (
@@ -48,7 +51,7 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
             Stage {session.stage}
           </span>
           <span className="text-[10px] px-2.5 py-1 rounded-full font-medium bg-[var(--color-navy)]/10 text-[var(--color-navy)]">
-            {typeLabels[session.type] || session.type}
+            {typeLabels[session.type] || session.type.replace("_", " ")}
           </span>
           {session.is_paid && (
             <span className="text-[10px] px-2.5 py-1 rounded-full font-medium bg-[var(--color-brass)]/10 text-[var(--color-brass)]">
@@ -72,8 +75,8 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
         )}
 
         {/* Time */}
-        <div className="flex items-center gap-3 mb-8 text-sm text-[var(--text-secondary)]">
-          <span>🕐 {session.start_time} – {session.end_time}</span>
+        <div className="flex items-center gap-3 mb-8 text-sm text-[var(--text-secondary)] font-medium">
+          <span>🕐 {timeFormatted}</span>
           <span>📍 Stage {session.stage}</span>
         </div>
 
@@ -109,13 +112,22 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
         )}
 
         {/* CTAs */}
-        <div className="flex flex-wrap gap-3">
-          {session.is_paid && (
-            <Link href="/register/musthafa-darimi" className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all">
-              Register for this Session
+        <div className="flex flex-wrap items-center gap-3">
+          {regInfo && (
+            <Link
+              href={regInfo.url}
+              target={regInfo.isExternal ? "_blank" : undefined}
+              rel={regInfo.isExternal ? "noopener noreferrer" : undefined}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-turquoise)] text-white hover:bg-[var(--hover-turquoise)] shadow-md hover:shadow-lg transition-all"
+            >
+              <span>{regInfo.label}</span>
+              <span className="text-xs">{regInfo.isExternal ? "↗" : "→"}</span>
             </Link>
           )}
-          <Link href="/#schedule" className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all">
+          <Link
+            href="/#schedule"
+            className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
+          >
             View Full Schedule
           </Link>
         </div>

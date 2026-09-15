@@ -2,6 +2,7 @@ import { getSpeakers, getSessions } from "@/lib/data";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata, ResolvingMetadata } from "next";
+import { formatSessionTimeRange } from "@/lib/sessionHelpers";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -115,7 +116,7 @@ export default async function SpeakerPage({ params }: Props) {
                       Stage {session.stage}
                     </span>
                     <span className="text-sm text-[var(--text-muted)] font-medium">
-                      {session.start_time} - {session.end_time}
+                      {formatSessionTimeRange(session.start_time, session.end_time)}
                     </span>
                   </div>
                   <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--color-turquoise)] transition-colors">

@@ -6,6 +6,8 @@ import { type Session, type Speaker } from "@/lib/data";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import { formatSessionTime, getSessionRegistration } from "@/lib/sessionHelpers";
+
 function SessionCard({ session, index, t }: { session: Session; index: number; t: (key: string) => string }) {
   const speakerList = session.speakers || [];
   const typeColors: Record<string, string> = {
@@ -20,7 +22,9 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
     closing: "bg-[var(--text-muted)]/10 text-[var(--text-secondary)]",
   };
 
-  const isExternal = session.type === "external_redirect" && session.external_url;
+  const regInfo = getSessionRegistration(session);
+  const startTimeFormatted = formatSessionTime(session.start_time);
+  const endTimeFormatted = formatSessionTime(session.end_time);
 
   return (
     <motion.div
@@ -28,65 +32,82 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
       whileInView={{ y: 0, opacity: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
-      className="group relative flex gap-4 p-4 rounded-xl border border-[var(--border)] hover:border-[var(--color-turquoise)]/30 bg-[var(--surface)] hover:shadow-md transition-all"
+      className="group relative flex gap-4 p-4 md:p-5 rounded-xl border border-[var(--border)] hover:border-[var(--color-turquoise)]/40 bg-[var(--surface)] hover:bg-[var(--surface-elevated)]/60 hover:shadow-md transition-all cursor-pointer"
     >
+      {/* Whole card clickable link to full details */}
+      <Link
+        href={`/sessions/${session.slug}`}
+        className="absolute inset-0 z-10 rounded-xl"
+        aria-label={`View details for ${session.title}`}
+      />
+
       {/* Time column */}
-      <div className="shrink-0 text-center min-w-[65px]">
-        <p className="text-sm font-bold text-[var(--color-navy)] dark:text-[var(--color-turquoise)]">
-          {session.start_time}
+      <div className="shrink-0 text-center min-w-[75px] pt-0.5">
+        <p className="text-sm font-bold text-[var(--color-navy)] dark:text-[var(--color-turquoise)] leading-tight">
+          {startTimeFormatted}
         </p>
-        <p className="text-xs text-[var(--text-muted)]">{session.end_time}</p>
+        <p className="text-xs text-[var(--text-muted)] mt-0.5 font-medium">
+          {endTimeFormatted}
+        </p>
       </div>
 
       {/* Timeline dot + line */}
       <div className="flex flex-col items-center shrink-0">
-        <div className="w-3 h-3 rounded-full bg-[var(--color-turquoise)] border-2 border-[var(--surface)] shadow-sm mt-1" />
+        <div className="w-3 h-3 rounded-full bg-[var(--color-turquoise)] border-2 border-[var(--surface)] shadow-sm mt-1 group-hover:scale-125 transition-transform" />
         <div className="w-0.5 flex-1 bg-[var(--border)] mt-1" />
       </div>
 
       {/* Content */}
-      <div className="flex-1 pb-4">
+      <div className="flex-1 pb-1">
         <div className="flex items-start gap-2 mb-1 flex-wrap">
-          <h3 className="text-sm md:text-base font-semibold text-[var(--text-primary)] leading-snug">
+          <h3 className="text-sm md:text-base font-semibold text-[var(--text-primary)] leading-snug group-hover:text-[var(--color-turquoise)] transition-colors">
             {session.title}
           </h3>
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${typeColors[session.type] || ""}`}>
             {session.type.replace("_", " ")}
           </span>
           {session.is_paid && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-brass)]/10 text-[var(--color-brass)]">
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-brass)]/10 text-[var(--color-brass)] shrink-0">
               {t("paid")}
             </span>
           )}
         </div>
 
-        {speakerList.length > 0 && (
-          <p className="text-xs text-[var(--text-muted)] mt-1">
-            {speakerList.map((s) => s.name).join(", ")}
+        {session.title_ml && (
+          <p className="text-xs text-[var(--text-muted)] mb-1" style={{ fontFamily: "var(--font-noto-sans-malayalam)" }}>
+            {session.title_ml}
           </p>
         )}
 
-        <p className="text-xs text-[var(--text-secondary)] mt-2 leading-relaxed line-clamp-2">
+        {speakerList.length > 0 && (
+          <p className="text-xs text-[var(--text-muted)] mt-1">
+            🎤 {speakerList.map((s) => s.name).join(", ")}
+          </p>
+        )}
+
+        <p className="text-xs text-[var(--text-secondary)] mt-1.5 leading-relaxed line-clamp-2">
           {session.description}
         </p>
 
-        {isExternal ? (
-          <a
-            href={session.external_url!}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-xs font-medium text-[var(--color-turquoise)] hover:text-[var(--hover-turquoise)] mt-2 transition-colors gap-1"
-          >
-            Visit Portal <span className="text-[10px]">↗</span>
-          </a>
-        ) : session.type === "talk" || session.type === "paid_session" || session.type === "meeting" ? (
-          <Link
-            href={`/sessions/${session.slug}`}
-            className="inline-flex items-center text-xs font-medium text-[var(--color-turquoise)] hover:text-[var(--hover-turquoise)] mt-2 transition-colors"
-          >
+        {/* Action row: Details hint on left, Registration button on right */}
+        <div className="flex items-center justify-between gap-3 mt-3 pt-2 border-t border-[var(--border)]/50">
+          <span className="inline-flex items-center text-xs font-medium text-[var(--color-turquoise)] group-hover:underline gap-1">
             {t("viewDetails")}
-          </Link>
-        ) : null}
+          </span>
+
+          {regInfo && (
+            <Link
+              href={regInfo.url}
+              target={regInfo.isExternal ? "_blank" : undefined}
+              rel={regInfo.isExternal ? "noopener noreferrer" : undefined}
+              onClick={(e) => e.stopPropagation()}
+              className="relative z-20 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[var(--color-turquoise)] text-white hover:bg-[var(--hover-turquoise)] shadow-sm hover:shadow transition-all"
+            >
+              <span>{regInfo.label}</span>
+              <span className="text-[10px]">{regInfo.isExternal ? "↗" : "→"}</span>
+            </Link>
+          )}
+        </div>
       </div>
     </motion.div>
   );
