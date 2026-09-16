@@ -137,14 +137,31 @@ export function Opening({ targetDate, brochureUrl }: { targetDate: string; broch
                 {tHero("viewSchedule")}
               </Link>
             </Magnetic>
-            {brochureUrl ? (
-              <Magnetic pattern="tap">
-                <a href={brochureUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 backdrop-blur-sm transition-colors">
+            <Magnetic pattern="tap">
+              {brochureUrl ? (
+                <a
+                  href={brochureUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 backdrop-blur-sm transition-colors"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-                  Download Brochure
+                  {tHero("brochure")}
                 </a>
-              </Magnetic>
-            ) : null}
+              ) : (
+                <a
+                  href="#brochure"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert("Brochure will be available soon!");
+                  }}
+                  className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 backdrop-blur-sm transition-colors cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                  {tHero("brochure")}
+                </a>
+              )}
+            </Magnetic>
           </motion.div>
         </div>
 

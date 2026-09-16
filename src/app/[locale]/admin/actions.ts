@@ -281,3 +281,41 @@ export async function revalidateGuestPages() {
   revalidatePath("/admin/guests");
   revalidatePath("/", "layout");
 }
+
+export async function saveBrochureUrlAction(url: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("global_settings")
+    .upsert({
+      key: "brochure_url",
+      value: { url },
+      updated_at: new Date().toISOString(),
+    });
+
+  if (error) {
+    console.error("Failed to save brochure URL:", error);
+    throw new Error("Failed to save brochure URL: " + error.message);
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/content");
+  return { success: true };
+}
+
+export async function deleteBrochureUrlAction() {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("global_settings")
+    .delete()
+    .eq("key", "brochure_url");
+
+  if (error) {
+    console.error("Failed to delete brochure URL:", error);
+    throw new Error("Failed to delete brochure URL: " + error.message);
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/content");
+  return { success: true };
+}
+
