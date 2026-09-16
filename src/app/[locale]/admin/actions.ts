@@ -272,3 +272,12 @@ export async function updateLiveStream(stage: string, youtubeId: string, isLive:
   revalidatePath("/admin/live");
   revalidatePath("/", "layout");
 }
+
+export async function revalidateGuestPages() {
+  revalidatePath("/speakers");
+  revalidatePath("/guests");
+  revalidatePath("/schedule");
+  revalidatePath("/admin/schedule");
+  revalidatePath("/admin/guests");
+  revalidatePath("/", "layout");
+}

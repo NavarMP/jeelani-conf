@@ -172,8 +172,14 @@ CREATE POLICY "Allow public insert on darimi" ON public.registrations_darimi_ses
 CREATE POLICY "Allow public insert on paper" ON public.registrations_paper_presentation FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Allow public select on speakers" ON public.speakers FOR SELECT USING (true);
+CREATE POLICY "Admin manage speakers" ON public.speakers FOR ALL USING (true) WITH CHECK (true);
+
 CREATE POLICY "Allow public select on sessions" ON public.sessions FOR SELECT USING (true);
+CREATE POLICY "Admin manage sessions" ON public.sessions FOR ALL USING (true) WITH CHECK (true);
+
 CREATE POLICY "Allow public select on session_speakers" ON public.session_speakers FOR SELECT USING (true);
+CREATE POLICY "Admin manage session_speakers" ON public.session_speakers FOR ALL USING (true) WITH CHECK (true);
+
 CREATE POLICY "Allow public select on global_settings" ON public.global_settings FOR SELECT USING (true);
 CREATE POLICY "Allow public select on live_streams" ON public.live_streams FOR SELECT USING (true);
 CREATE POLICY "Allow public select on zones" ON public.zones FOR SELECT USING (true);
@@ -235,6 +241,7 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('speaker-photos', 'speake
 
 CREATE POLICY "Public can upload receipts" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'receipts');
 CREATE POLICY "Public can view receipts" ON storage.objects FOR SELECT USING (bucket_id = 'receipts');
-CREATE POLICY "Auth can upload speaker photos" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'speaker-photos');
 CREATE POLICY "Public can view speaker photos" ON storage.objects FOR SELECT USING (bucket_id = 'speaker-photos');
-CREATE POLICY "Auth can delete speaker photos" ON storage.objects FOR DELETE USING (bucket_id = 'speaker-photos');
+CREATE POLICY "Allow upload speaker photos" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'speaker-photos');
+CREATE POLICY "Allow update speaker photos" ON storage.objects FOR UPDATE USING (bucket_id = 'speaker-photos') WITH CHECK (bucket_id = 'speaker-photos');
+CREATE POLICY "Allow delete speaker photos" ON storage.objects FOR DELETE USING (bucket_id = 'speaker-photos');

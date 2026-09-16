@@ -62,7 +62,7 @@
   },
   "Speakers": {
     "eyebrow": "Guests & Scholars",
-    "heading": "Distinguished Speakers",
+    "heading": "Distinguished Guests",
     "description": "Scholars, spiritual leaders, and academics who carry the torch of the Jilani tradition."
   },
   "Registration": {
@@ -198,7 +198,7 @@
   },
   "AstroAIFiqh": {
     "backToOptions": "← Back to registration options",
-    "type": "Public • Paid",
+    "type": "Public • Paid (₹50)",
     "heading": "Astronomy & AI Fiqh",
     "description": "Register for the academic sessions block on Stage 2, including Astronomy & AI Fiqh, Dr. Musthafa Darimi Session, and Ameer Husain Hudavi Session.",
     "session1": "Astronomy and AI Fiqh — Shahul Hameed Master Melmuri",
@@ -217,10 +217,29 @@
     "placeOfStudyPlaceholder": "Place of study",
     "placeOfWork": "Place of Work *",
     "placeOfWorkPlaceholder": " Place of work",
+    "scanToPay": "Scan to Pay ₹50",
+    "amount": "Amount:",
+    "payeeNameLabel": "Name:",
+    "payeeName": "Muhammed Sinan",
+    "upiId": "UPI ID:",
+    "payeePhone": "Phone:",
+    "downloadQR": "Download QR",
+    "copyQR": "Copy QR",
+    "copiedQR": "Copied QR!",
+    "amountCopied": "Amount copied!",
+    "upiCopied": "UPI ID copied!",
+    "phoneCopied": "Phone number copied!",
+    "uploadScreenshot": "Upload Payment Screenshot *",
+    "clickToUpload": "Click to upload",
+    "orDragDrop": "or drag and drop",
+    "fileTypes": "PNG, JPG or JPEG (Max 5MB)",
+    "fileSelected": "File selected:",
+    "imageSizeError": "Screenshot must be less than 5MB.",
+    "screenshotRequired": "Please upload your payment screenshot.",
     "submit": "Register for Astronomy & AI Fiqh",
     "submitting": "Submitting...",
     "successHeading": "Registration Submitted",
-    "successMessage": "Your registration for the Astronomy & AI Fiqh has been submitted successfully. We look forward to seeing you at Stage 2.",
+    "successMessage": "Your registration for Astronomy & AI Fiqh has been submitted successfully. We will verify your payment details and confirm your registration.",
     "backToHome": "← Back to Home"
   },
   "DarsManagement": {
@@ -255,5 +274,16 @@
     "stage2": "Stage 2",
     "stage2Desc": "Parallel sessions — Dars Management, Astronomy and AI Fiqh.",
     "liveNow": "LIVE NOW"
+  },
+  "AmbientAudio": {
+    "title": "Sacred Echoes",
+    "subtitle": "Baghdad to Malabar",
+    "play": "Play",
+    "pause": "Pause",
+    "volume": "Volume",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "tapToPlay": "Tap to Play",
+    "ambientSound": "Ambient Sound"
   }
 }

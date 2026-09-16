@@ -57,7 +57,7 @@ export default function AdminSidebar() {
       title: "Program & Venue",
       items: [
         { label: "Schedule Builder", href: "/admin/schedule", Icon: CalendarRange, exact: true },
-        { label: "Speakers", href: "/admin/speakers", Icon: Mic, exact: true },
+        { label: "Guests", href: "/admin/guests", Icon: Mic, exact: true },
         { label: "Zones & Slots", href: "/admin/zones", Icon: Armchair, exact: true },
       ],
     },

@@ -198,7 +198,7 @@
   },
   "AstroAIFiqh": {
     "backToOptions": "العودة لخيارات التسجيل →",
-    "type": "عام • مدفوع",
+    "type": "عام • رسم التسجيل ٥٠ روبية",
     "heading": "الجلسات الأكاديمية",
     "description": "سجل في مجموعة الجلسات الأكاديمية في المنصة ٢، والتي تشمل فقه الفلك والذكاء الاصطناعي، وجلسة الدكتور مصطفى الداريمي، وجلسة أمير حسين هداوي.",
     "session1": "فقه الفلك والذكاء الاصطناعي — شاهول حميد ماستر ميلموري",
@@ -217,10 +217,29 @@
     "placeOfStudyPlaceholder": "اسم المؤسسة / المدرسة",
     "placeOfWork": "مكان العمل *",
     "placeOfWorkPlaceholder": "اسم الشركة / المؤسسة",
+    "scanToPay": "امسح لدفع ٥٠ روبية",
+    "amount": "المبلغ:",
+    "payeeNameLabel": "الاسم:",
+    "payeeName": "Muhammed Sinan",
+    "upiId": "معرف UPI:",
+    "payeePhone": "الهاتف:",
+    "downloadQR": "تحميل QR",
+    "copyQR": "نسخ QR",
+    "copiedQR": "تم نسخ QR!",
+    "amountCopied": "تم نسخ المبلغ!",
+    "upiCopied": "تم نسخ معرف UPI!",
+    "phoneCopied": "تم نسخ رقم الهاتف!",
+    "uploadScreenshot": "رفع لقطة شاشة الدفع *",
+    "clickToUpload": "انقر للرفع",
+    "orDragDrop": "أو اسحب وأسقط",
+    "fileTypes": "PNG أو JPG أو JPEG (بحد أقصى 5MB)",
+    "fileSelected": "تم اختيار الملف:",
+    "imageSizeError": "يجب أن تكون الصورة أقل من 5 ميغابايت.",
+    "screenshotRequired": "يرجى رفع لقطة شاشة الدفع.",
     "submit": "التسجيل في الجلسات الأكاديمية",
     "submitting": "إرسال...",
     "successHeading": "تم تقديم التسجيل",
-    "successMessage": "تم تقديم تسجيلك في الجلسات الأكاديمية بنجاح. نتطلع لرؤيتك في المنصة ٢.",
+    "successMessage": "تم تقديم تسجيلك في الجلسات الأكاديمية بنجاح. سنتحقق من تفاصيل الدفع ونؤكد تسجيلك.",
     "backToHome": "العودة للرئيسية →"
   },
   "DarsManagement": {
@@ -255,5 +274,16 @@
     "stage2": "المنصة ٢",
     "stage2Desc": "الجلسات الموازية — إدارة الدرس والمحادثات الأكاديمية وعروض الأبحاث",
     "liveNow": "مباشر الآن"
+  },
+  "AmbientAudio": {
+    "title": "الصدى الروحي",
+    "subtitle": "من بغداد إلى ملبار",
+    "play": "تشغيل",
+    "pause": "إيقاف مؤقت",
+    "volume": "مستوى الصوت",
+    "mute": "كتم الصوت",
+    "unmute": "إلغاء كتم الصوت",
+    "tapToPlay": "اضغط للتشغيل",
+    "ambientSound": "الصوت المحيطي"
   }
 }

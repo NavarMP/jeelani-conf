@@ -20,7 +20,7 @@ export default async function SpeakersPage() {
             className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
-            Distinguished Speakers
+            Distinguished Guests
           </h1>
           <p className="text-[var(--text-secondary)] text-sm mt-2 max-w-lg mx-auto">
             Scholars, spiritual leaders, and academics who carry the torch of the Jilani tradition.
