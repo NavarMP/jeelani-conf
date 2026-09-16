@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   Fraunces,
   Manrope,
+  Noto_Serif_Malayalam,
   Noto_Naskh_Arabic,
   Reem_Kufi,
 } from "next/font/google";
@@ -47,26 +48,11 @@ const display = Fraunces({
   style: ["normal", "italic"],
 });
 
-const malayalamText = localFont({
-  src: [
-    {
-      path: "../../../public/fonts/FN-Mahitha-Light.ttf",
-      weight: "300",
-      style: "normal",
-    },
-    {
-      path: "../../../public/fonts/FN-Mahitha-Regular.ttf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../../public/fonts/FN-Mahitha-Bold.ttf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
+const malayalamText = Noto_Serif_Malayalam({
   variable: "--font-malayalam-text",
+  subsets: ["malayalam"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 const malayalamTitle = localFont({
