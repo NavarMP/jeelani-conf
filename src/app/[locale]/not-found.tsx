@@ -8,18 +8,21 @@ export default async function NotFound() {
     <div className="min-h-[100dvh] flex items-center justify-center px-6">
       <div className="text-center max-w-md">
         {/* Dome illustration */}
-        <div className="w-32 h-32 mx-auto mb-6 text-[var(--color-navy)] dark:text-[var(--color-turquoise)] opacity-30">
-          <svg viewBox="0 0 200 180" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-full h-full">
-            <path d="M30 140 Q30 60 100 20 Q170 60 170 140"/>
-            <rect x="25" y="140" width="150" height="25" rx="2"/>
-            <path d="M40 165 Q50 150 60 165"/>
-            <path d="M65 165 Q75 150 85 165"/>
-            <path d="M90 165 Q100 150 110 165"/>
-            <path d="M115 165 Q125 150 135 165"/>
-            <path d="M140 165 Q150 150 160 165"/>
-            <line x1="100" y1="20" x2="100" y2="8"/>
-            <circle cx="100" cy="6" r="3"/>
-          </svg>
+        <div className="w-32 h-32 mx-auto mb-6 opacity-30">
+          <div
+            className="w-full h-full bg-[var(--color-navy)] dark:bg-[var(--color-turquoise)]"
+            style={{
+              WebkitMaskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+              WebkitMaskSize: "contain",
+              WebkitMaskPosition: "center",
+              WebkitMaskRepeat: "no-repeat",
+              maskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+              maskSize: "contain",
+              maskPosition: "center",
+              maskRepeat: "no-repeat",
+            }}
+            aria-hidden="true"
+          />
         </div>
 
         <h1

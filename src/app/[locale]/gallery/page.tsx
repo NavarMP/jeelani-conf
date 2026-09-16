@@ -69,12 +69,20 @@ export default function GalleryPage() {
                   aria-hidden="true"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <svg viewBox="0 0 200 180" className="w-16 h-16 text-white/15" fill="none" stroke="currentColor" strokeWidth="1.2">
-                    <path d="M30 140 Q30 60 100 20 Q170 60 170 140"/>
-                    <rect x="25" y="140" width="150" height="25" rx="2"/>
-                    <line x1="100" y1="20" x2="100" y2="8"/>
-                    <circle cx="100" cy="6" r="3"/>
-                  </svg>
+                  <div
+                    className="w-16 h-16 bg-white/15"
+                    style={{
+                      WebkitMaskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+                      WebkitMaskSize: "contain",
+                      WebkitMaskPosition: "center",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+                      maskSize: "contain",
+                      maskPosition: "center",
+                      maskRepeat: "no-repeat",
+                    }}
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/50">
                   <p className="text-xs text-white/80 font-medium">{item.label}</p>

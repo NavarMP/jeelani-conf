@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Camera, Star, Trash2, LayoutGrid, List, Search, ArrowUpDown, CheckSquare } from "lucide-react";
+import { Camera, Star, Trash2, LayoutGrid, List, Search, ArrowUpDown, GripVertical } from "lucide-react";
 import { revalidateGuestPages } from "@/app/[locale]/admin/actions";
 
 interface Guest {
@@ -27,6 +27,10 @@ export default function GuestManager() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
+  // Drag and drop state
+  const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
+  const [dragOverGuestId, setDragOverGuestId] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -120,9 +124,6 @@ export default function GuestManager() {
     try {
       const slug = `guest-${Date.now()}`;
       
-      // We pass only required/useful fields. 
-      // If there was an issue before, it might be due to a missing required field not present here, 
-      // but usually `name` and `slug` are the only ones.
       const payload = {
         name: "New Guest",
         slug,
@@ -183,29 +184,70 @@ export default function GuestManager() {
     }
   };
 
-  const moveGuest = async (index: number, direction: -1 | 1) => {
-    if (index + direction < 0 || index + direction >= filteredGuests.length) return;
-    
-    const newGuests = [...filteredGuests];
-    const current = newGuests[index];
-    const target = newGuests[index + direction];
-    
-    // Swap order_index
-    const currentOrder = current.order_index;
-    current.order_index = target.order_index;
-    target.order_index = currentOrder;
-    
-    // Update local state temporarily to feel snappy
-    newGuests[index] = target;
-    newGuests[index + direction] = current;
-    
-    // Update DB
-    await supabase.from("speakers").upsert([
-      { id: current.id, order_index: current.order_index },
-      { id: target.id, order_index: target.order_index }
-    ]);
-    
-    fetchGuests();
+  // Reorder logic
+  const moveGuest = async (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+
+    const sourceIndex = guests.findIndex(g => g.id === sourceId);
+    const targetIndex = guests.findIndex(g => g.id === targetId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const newGuests = [...guests];
+    const [movedGuest] = newGuests.splice(sourceIndex, 1);
+    newGuests.splice(targetIndex, 0, movedGuest);
+
+    // Reassign order indexes based on new array order
+    const updatedGuests = newGuests.map((g, index) => ({
+      ...g,
+      order_index: index + 1
+    }));
+
+    // Optimistic UI update
+    setGuests(updatedGuests);
+
+    try {
+      // Update in DB safely using Promise.all to avoid upsert constraint issues
+      await Promise.all(
+        updatedGuests.map(g =>
+          supabase.from("speakers").update({ order_index: g.order_index }).eq("id", g.id)
+        )
+      );
+      await revalidateGuestPages();
+    } catch (error) {
+      console.error("Reorder failed, reverting:", error);
+      fetchGuests(); // Revert on error
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedGuestId(id);
+    e.dataTransfer.effectAllowed = "move";
+    // For visual feedback
+    const el = e.currentTarget as HTMLElement;
+    setTimeout(() => el.classList.add("opacity-50"), 0);
+  };
+
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    if (draggedGuestId && draggedGuestId !== id) {
+      setDragOverGuestId(id);
+    }
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setDraggedGuestId(null);
+    setDragOverGuestId(null);
+    const el = e.currentTarget as HTMLElement;
+    el.classList.remove("opacity-50");
+  };
+
+  const handleDrop = (e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    if (draggedGuestId && draggedGuestId !== id) {
+      moveGuest(draggedGuestId, id);
+    }
+    setDraggedGuestId(null);
+    setDragOverGuestId(null);
   };
 
   const filteredGuests = guests.filter((g) => 
@@ -297,7 +339,17 @@ export default function GuestManager() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredGuests.map((guest, idx) => (
-                  <tr key={guest.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <tr 
+                    key={guest.id} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, guest.id)}
+                    onDragOver={(e) => handleDragOver(e, guest.id)}
+                    onDragEnd={handleDragEnd}
+                    onDrop={(e) => handleDrop(e, guest.id)}
+                    className={`transition-all group ${
+                      dragOverGuestId === guest.id ? "bg-[var(--color-turquoise)]/10 border-t-2 border-[var(--color-turquoise)]" : "hover:bg-gray-50/50"
+                    }`}
+                  >
                     <td className="px-4 py-3 text-center align-middle">
                       <input
                         type="checkbox"
@@ -307,9 +359,8 @@ export default function GuestManager() {
                       />
                     </td>
                     <td className="px-4 py-3 align-middle">
-                      <div className="flex flex-col gap-1 items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => moveGuest(idx, -1)} disabled={idx === 0} className="text-gray-400 hover:text-[var(--color-navy)] disabled:opacity-30"><ArrowUpDown className="w-3 h-3 rotate-180" /></button>
-                        <button onClick={() => moveGuest(idx, 1)} disabled={idx === filteredGuests.length - 1} className="text-gray-400 hover:text-[var(--color-navy)] disabled:opacity-30"><ArrowUpDown className="w-3 h-3" /></button>
+                      <div className="cursor-grab hover:text-[var(--color-navy)] text-gray-400 active:cursor-grabbing">
+                        <GripVertical className="w-5 h-5" />
                       </div>
                     </td>
                     <td className="px-4 py-3 align-middle">
@@ -375,7 +426,22 @@ export default function GuestManager() {
         /* Grid View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredGuests.map((guest) => (
-            <div key={guest.id} className={`bg-white rounded-xl border ${selectedIds.has(guest.id) ? "border-[var(--color-turquoise)] ring-1 ring-[var(--color-turquoise)]/20" : "border-gray-200"} shadow-sm overflow-hidden hover:shadow-md transition-shadow relative`}>
+            <div 
+              key={guest.id} 
+              draggable
+              onDragStart={(e) => handleDragStart(e, guest.id)}
+              onDragOver={(e) => handleDragOver(e, guest.id)}
+              onDragEnd={handleDragEnd}
+              onDrop={(e) => handleDrop(e, guest.id)}
+              className={`bg-white rounded-xl border ${selectedIds.has(guest.id) ? "border-[var(--color-turquoise)] ring-1 ring-[var(--color-turquoise)]/20" : "border-gray-200"} shadow-sm overflow-hidden hover:shadow-md transition-all relative ${
+                dragOverGuestId === guest.id ? "scale-[1.02] ring-2 ring-[var(--color-turquoise)]" : ""
+              }`}
+            >
+              {/* Drag Handle */}
+              <div className="absolute top-3 right-3 z-10 cursor-grab active:cursor-grabbing bg-white/80 backdrop-blur-sm p-1 rounded text-gray-500 hover:text-[var(--color-navy)]">
+                <GripVertical className="w-4 h-4" />
+              </div>
+              
               <div className="absolute top-3 left-3 z-10">
                 <input
                   type="checkbox"
@@ -386,7 +452,7 @@ export default function GuestManager() {
               </div>
               <div className="relative h-44 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-turquoise)] flex items-center justify-center">
                 {guest.image_url ? (
-                  <img src={guest.image_url} alt={guest.name} className="w-full h-full object-cover" />
+                  <img src={guest.image_url} alt={guest.name} className="w-full h-full object-cover pointer-events-none" />
                 ) : (
                   <svg viewBox="0 0 80 80" className="w-20 h-20 text-white/30" fill="currentColor">
                     <circle cx="40" cy="28" r="14" />
@@ -400,7 +466,7 @@ export default function GuestManager() {
                   <input type="file" accept="image/*" className="hidden" disabled={isUploading === guest.id} onChange={(e) => { if (e.target.files?.[0]) handlePhotoUpload(guest.id, e.target.files[0]); }} />
                 </label>
                 {guest.featured && (
-                  <span className="absolute top-2 right-2 px-2 py-0.5 bg-[var(--color-brass)] text-white text-[10px] font-bold rounded-full">
+                  <span className="absolute top-2 right-10 px-2 py-0.5 bg-[var(--color-brass)] text-white text-[10px] font-bold rounded-full">
                     Featured
                   </span>
                 )}

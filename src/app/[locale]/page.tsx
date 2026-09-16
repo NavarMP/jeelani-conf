@@ -21,7 +21,7 @@ export default async function HomePage(props: { params: Promise<{ locale: string
     <>
       <Opening targetDate={siteSettings.eventDate} />
       <Schedule sessions={sessions} />
-      <Speakers speakers={speakers} />
+      <Speakers speakers={speakers.filter(s => s.featured)} />
       <Registration registrationSessions={registrationSessions} />
       <Gallery />
       {/* <LiveStreamPreview /> */}

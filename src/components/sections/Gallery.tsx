@@ -78,12 +78,20 @@ export function Gallery() {
 
                 {/* Center dome motif */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <svg viewBox="0 0 200 180" className="w-20 h-20 text-white/20" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
-                    <path d="M30 140 Q30 60 100 20 Q170 60 170 140"/>
-                    <rect x="25" y="140" width="150" height="25" rx="2"/>
-                    <line x1="100" y1="20" x2="100" y2="8"/>
-                    <circle cx="100" cy="6" r="3"/>
-                  </svg>
+                  <div
+                    className="w-20 h-20 bg-white/20"
+                    style={{
+                      WebkitMaskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+                      WebkitMaskSize: "contain",
+                      WebkitMaskPosition: "center",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+                      maskSize: "contain",
+                      maskPosition: "center",
+                      maskRepeat: "no-repeat",
+                    }}
+                    aria-hidden="true"
+                  />
                 </div>
 
                 {/* Label */}

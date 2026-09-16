@@ -33,10 +33,7 @@ export function Opening({ targetDate }: { targetDate: string }) {
     target: containerRef,
     offset: ["start start", "end end"],
   });
-  // The golden thread that runs the length of the Opening — fills as the
-  // reader moves from Baghdad (hero) toward Malabar (countdown).
-  const threadHeight = useTransform(scrollYProgress, [0, 0.85], ["0%", "100%"]);
-
+  
   const tHero = useTranslations("Hero");
   const tAbout = useTranslations("About");
   const tCountdown = useTranslations("Countdown");
@@ -87,13 +84,6 @@ export function Opening({ targetDate }: { targetDate: string }) {
         }}
         aria-hidden="true"
       />
-      {/* The thread — Baghdad to Malabar, drawn by scroll */}
-      <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-white/10 hidden md:block" aria-hidden="true">
-        <motion.div
-          className="w-full bg-gradient-to-b from-[var(--color-brass)] via-[var(--color-turquoise)] to-[var(--color-rose)]"
-          style={{ height: threadHeight }}
-        />
-      </div>
 
       {/* ══════════════════ HERO ══════════════════ */}
       <section id="hero" className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
@@ -178,29 +168,36 @@ export function Opening({ targetDate }: { targetDate: string }) {
               <div className="relative aspect-square max-w-md mx-auto">
                 <div className="absolute inset-0 rounded-2xl opacity-10" style={{ backgroundImage: "url('/motifs/arabesque-tile-pattern.svg')", backgroundRepeat: "repeat", backgroundSize: "100px 100px" }} aria-hidden="true" />
                 <div className="absolute inset-8 flex items-center justify-center">
-                  <svg viewBox="0 0 200 180" className="w-full h-full text-[var(--color-navy)] dark:text-[var(--color-turquoise)]" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
-                    <path d="M30 140 Q30 60 100 20 Q170 60 170 140" />
-                    <rect x="25" y="140" width="150" height="25" rx="2" />
-                    <path d="M40 165 Q50 150 60 165" />
-                    <path d="M65 165 Q75 150 85 165" />
-                    <path d="M90 165 Q100 150 110 165" />
-                    <path d="M115 165 Q125 150 135 165" />
-                    <path d="M140 165 Q150 150 160 165" />
-                    <line x1="100" y1="20" x2="100" y2="8" />
-                    <circle cx="100" cy="6" r="3" />
-                    <path d="M97 3 Q100 0 103 3" />
-                    <path d="M100 35 Q120 50 110 75 Q100 60 90 75 Q80 50 100 35Z" />
-                    <path d="M70 80 Q85 70 100 80 Q115 70 130 80" />
-                    <path d="M55 110 Q75 95 100 105 Q125 95 145 110" />
-                    <path d="M80 55 L100 45 L120 55 L100 65 Z" />
-                    <path d="M65 85 L85 75 L105 85 L85 95 Z" />
-                    <path d="M95 85 L115 75 L135 85 L115 95 Z" />
-                  </svg>
+                  <div
+                    className="w-full h-full bg-[var(--color-navy)] dark:bg-[var(--color-turquoise)]"
+                    style={{
+                      WebkitMaskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+                      WebkitMaskSize: "contain",
+                      WebkitMaskPosition: "center",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+                      maskSize: "contain",
+                      maskPosition: "center",
+                      maskRepeat: "no-repeat",
+                    }}
+                    aria-hidden="true"
+                  />
                 </div>
-                <div className="absolute -bottom-4 -right-4 w-16 h-16 text-[var(--color-brass)]">
-                  <svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true">
-                    <path d="M50 0C53.5 20 58 30 70 36.5C80 40 100 42 100 50C100 50 80 52 70 56.5C58 63 53.5 73 50 100C46.5 73 42 63 30 56.5C20 52 0 50 0 50C0 42 20 40 30 36.5C42 30 46.5 20 50 0Z" />
-                  </svg>
+                <div className="absolute -bottom-4 -right-4 w-16 h-16">
+                  <div
+                    className="w-full h-full bg-[var(--color-brass)]"
+                    style={{
+                      WebkitMaskImage: "url('/motifs/four-point-glint.svg')",
+                      WebkitMaskSize: "contain",
+                      WebkitMaskPosition: "center",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskImage: "url('/motifs/four-point-glint.svg')",
+                      maskSize: "contain",
+                      maskPosition: "center",
+                      maskRepeat: "no-repeat",
+                    }}
+                    aria-hidden="true"
+                  />
                 </div>
               </div>
             </motion.div>
