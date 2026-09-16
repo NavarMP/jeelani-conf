@@ -382,7 +382,7 @@ export default function GuestManager() {
                       ) : (
                         <div>
                           <div className="font-bold text-gray-900">{guest.name}</div>
-                          {guest.name_ml && <div className="text-xs text-gray-500">{guest.name_ml}</div>}
+                          {guest.name_ml && <div className="text-xs text-gray-500" style={{ fontFamily: "var(--font-malayalam-title)" }}>{guest.name_ml}</div>}
                           <div className="text-xs text-[var(--color-turquoise)] font-medium mt-0.5">{guest.title}</div>
                         </div>
                       )}
@@ -477,7 +477,7 @@ export default function GuestManager() {
                 ) : (
                   <>
                     <h3 className="font-bold text-gray-900 text-sm">{guest.name}</h3>
-                    {guest.name_ml && <p className="text-xs text-gray-500 mt-0.5">{guest.name_ml}</p>}
+                    {guest.name_ml && <p className="text-xs text-gray-500 mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>{guest.name_ml}</p>}
                     <p className="text-xs text-[var(--color-turquoise)] font-medium mt-1">{guest.title}</p>
                     <p className="text-xs text-gray-500 mt-2 line-clamp-2">{guest.bio}</p>
                     <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">

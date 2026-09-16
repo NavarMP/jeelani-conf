@@ -52,7 +52,7 @@ function SpeakerCard({ speaker, index }: { speaker: Speaker; index: number }) {
           {speaker.name}
         </h3>
         {speaker.name_ml && (
-          <p className="text-[10px] text-[var(--text-muted)] mt-0.5" style={{ fontFamily: "var(--font-malayalam-text)" }}>
+          <p className="text-[10px] text-[var(--text-muted)] mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>
             {speaker.name_ml}
           </p>
         )}

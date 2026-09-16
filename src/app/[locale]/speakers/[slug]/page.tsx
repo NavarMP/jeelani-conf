@@ -84,11 +84,19 @@ export default async function SpeakerPage({ params }: Props) {
               </p>
             )}
             <h1
-              className="text-3xl md:text-5xl font-bold text-[var(--text-primary)] mb-6"
+              className="text-3xl md:text-5xl font-bold text-[var(--text-primary)] mb-2"
               style={{ fontFamily: "var(--font-bodoni-moda)" }}
             >
               {speaker.name}
             </h1>
+            {speaker.name_ml && (
+              <p
+                className="text-xl md:text-2xl text-[var(--color-turquoise)] font-medium mb-6"
+                style={{ fontFamily: "var(--font-malayalam-title)" }}
+              >
+                {speaker.name_ml}
+              </p>
+            )}
             <div className="prose prose-invert max-w-none text-[var(--text-secondary)]">
               <p className="text-lg leading-relaxed">{speaker.bio}</p>
             </div>

@@ -64,6 +64,11 @@ export default async function SpeakersPage() {
                     <h2 className="text-sm font-semibold text-[var(--text-primary)] leading-snug">
                       {speaker.name}
                     </h2>
+                    {speaker.name_ml && (
+                      <p className="text-[11px] text-[var(--text-muted)] mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>
+                        {speaker.name_ml}
+                      </p>
+                    )}
                   </div>
                 </div>
 

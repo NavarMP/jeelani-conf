@@ -71,7 +71,7 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
           </h3>
 
           {session.title_ml && (
-            <p className="text-xs text-[var(--text-muted)] mt-0.5" style={{ fontFamily: "var(--font-malayalam-text)" }}>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>
               {session.title_ml}
             </p>
           )}

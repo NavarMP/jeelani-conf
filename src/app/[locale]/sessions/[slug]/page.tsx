@@ -70,7 +70,7 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
         </h1>
 
         {session.title_ml && (
-          <p className="text-base text-[var(--text-muted)] mb-4" style={{ fontFamily: "var(--font-malayalam-text)" }}>
+          <p className="text-base text-[var(--text-muted)] mb-4" style={{ fontFamily: "var(--font-malayalam-title)" }}>
             {session.title_ml}
           </p>
         )}

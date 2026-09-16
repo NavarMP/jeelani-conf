@@ -237,7 +237,7 @@ html {
 }
 
 body {
-  font-family: var(--font-sans, 'Manrope', system-ui, sans-serif);
+  font-family: var(--font-sans, 'Manrope', system-ui, sans-serif), var(--font-malayalam-text);
   font-size: var(--text-base);
   line-height: 1.6;
   min-height: 100dvh;
@@ -245,6 +245,67 @@ body {
   transition: background-color var(--transition-base), color var(--transition-base);
   background-color: var(--background);
   position: relative;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display, 'Fraunces', serif), var(--font-malayalam-title);
+}
+
+/* ---------- Malayalam Typography Support ---------- */
+html[lang="ml"] {
+  --font-sans: var(--font-malayalam-text), sans-serif !important;
+  --font-display: var(--font-malayalam-title), serif !important;
+  --font-bodoni-moda: var(--font-malayalam-title), serif !important;
+  --font-heading: var(--font-malayalam-title), serif !important;
+  font-family: var(--font-malayalam-text), sans-serif;
+}
+
+html[lang="ml"] body {
+  font-family: var(--font-malayalam-text), sans-serif !important;
+}
+
+html[lang="ml"] h1,
+html[lang="ml"] h2,
+html[lang="ml"] h3,
+html[lang="ml"] h4,
+html[lang="ml"] h5,
+html[lang="ml"] h6,
+html[lang="ml"] .font-display,
+html[lang="ml"] .font-heading,
+html[lang="ml"] [style*="--font-bodoni-moda"],
+html[lang="ml"] [style*="var(--font-bodoni-moda)"] {
+  font-family: var(--font-malayalam-title), serif !important;
+}
+
+html[lang="ml"] p,
+html[lang="ml"] span:not([class*="font-display"]):not([style*="font-bodoni-moda"]),
+html[lang="ml"] a:not([class*="font-display"]):not([style*="font-bodoni-moda"]),
+html[lang="ml"] button,
+html[lang="ml"] input,
+html[lang="ml"] textarea,
+html[lang="ml"] select,
+html[lang="ml"] label,
+html[lang="ml"] li {
+  font-family: var(--font-malayalam-text), sans-serif;
+}
+
+html[lang="ml"] h1 *,
+html[lang="ml"] h2 *,
+html[lang="ml"] h3 *,
+html[lang="ml"] h4 *,
+html[lang="ml"] h5 *,
+html[lang="ml"] h6 *,
+html[lang="ml"] [style*="--font-bodoni-moda"] * {
+  font-family: inherit;
+}
+
+/* Specific utilities for explicit Malayalam font control */
+.font-ml-title {
+  font-family: var(--font-malayalam-title), serif !important;
+}
+
+.font-ml-text {
+  font-family: var(--font-malayalam-text), sans-serif !important;
 }
 
 /* A faint, fixed watermark of the shrine tilework running the length of

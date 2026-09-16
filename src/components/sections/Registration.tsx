@@ -95,7 +95,7 @@ export function Registration({ registrationSessions }: { registrationSessions: R
                 >
                   {t("grandAssembly")}
                 </h3>
-                <p className="text-xs text-[var(--text-muted)] mb-3" style={{ fontFamily: "var(--font-malayalam-text)" }}>
+                <p className="text-xs text-[var(--text-muted)] mb-3" style={{ fontFamily: "var(--font-malayalam-title)" }}>
                   {t("grandAssemblyMl")}
                 </p>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
@@ -157,7 +157,7 @@ export function Registration({ registrationSessions }: { registrationSessions: R
                       {session.title}
                     </h3>
                     {session.title_ml && (
-                      <p className="text-xs text-[var(--text-muted)] mb-3" style={{ fontFamily: "var(--font-malayalam-text)" }}>
+                      <p className="text-xs text-[var(--text-muted)] mb-3" style={{ fontFamily: "var(--font-malayalam-title)" }}>
                         {session.title_ml}
                       </p>
                     )}
