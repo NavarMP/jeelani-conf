@@ -25,7 +25,7 @@ export function Navbar() {
     { href: "/#schedule", label: t("schedule") },
     { href: "/#speakers", label: t("speakers") },
     { href: "/#gallery", label: t("gallery") },
-    { href: "/live", label: t("live") },
+    // { href: "/live", label: t("live") },
     { href: "/#location", label: t("location") },
   ];
 

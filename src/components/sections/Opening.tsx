@@ -19,7 +19,7 @@ import { useSectionEnterHaptic } from "@/hooks/useHaptics";
  * behind all three, so scrolling from the title card into the story and
  * into the countdown reads as one motion rather than three page loads.
  */
-export function Opening({ targetDate }: { targetDate: string }) {
+export function Opening({ targetDate, brochureUrl }: { targetDate: string; brochureUrl?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const aboutRef = useRef(null);
   const countdownRef = useRef(null);
@@ -137,12 +137,14 @@ export function Opening({ targetDate }: { targetDate: string }) {
                 {tHero("viewSchedule")}
               </Link>
             </Magnetic>
-            <Magnetic pattern="tap">
-              <Link href="/live" className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 backdrop-blur-sm transition-colors">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                {tHero("watchLive")}
-              </Link>
-            </Magnetic>
+            {brochureUrl ? (
+              <Magnetic pattern="tap">
+                <a href={brochureUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 backdrop-blur-sm transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                  Download Brochure
+                </a>
+              </Magnetic>
+            ) : null}
           </motion.div>
         </div>
 

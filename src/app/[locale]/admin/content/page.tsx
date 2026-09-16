@@ -1,4 +1,5 @@
 import React from "react";
+import { BrochureUploader } from "@/components/admin/BrochureUploader";
 
 export const metadata = {
   title: "Content Manager | Admin",
@@ -110,6 +111,8 @@ export default function ContentManagerPage() {
                     </div>
                   </div>
                 </div>
+
+                <BrochureUploader />
               </div>
             </div>
           </div>

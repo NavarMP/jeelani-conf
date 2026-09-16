@@ -79,7 +79,7 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
         </div>
 
         {session.title_ml && (
-          <p className="text-xs text-[var(--text-muted)] mb-1" style={{ fontFamily: "var(--font-noto-sans-malayalam)" }}>
+          <p className="text-xs text-[var(--text-muted)] mb-1" style={{ fontFamily: "var(--font-malayalam-text)" }}>
             {session.title_ml}
           </p>
         )}

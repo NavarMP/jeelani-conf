@@ -245,3 +245,8 @@ CREATE POLICY "Public can view speaker photos" ON storage.objects FOR SELECT USI
 CREATE POLICY "Allow upload speaker photos" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'speaker-photos');
 CREATE POLICY "Allow update speaker photos" ON storage.objects FOR UPDATE USING (bucket_id = 'speaker-photos') WITH CHECK (bucket_id = 'speaker-photos');
 CREATE POLICY "Allow delete speaker photos" ON storage.objects FOR DELETE USING (bucket_id = 'speaker-photos');
+INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', true) ON CONFLICT (id) DO NOTHING;
+CREATE POLICY "Public can view documents" ON storage.objects FOR SELECT USING (bucket_id = 'documents');
+CREATE POLICY "Allow upload documents" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'documents');
+CREATE POLICY "Allow update documents" ON storage.objects FOR UPDATE USING (bucket_id = 'documents') WITH CHECK (bucket_id = 'documents');
+CREATE POLICY "Allow delete documents" ON storage.objects FOR DELETE USING (bucket_id = 'documents');

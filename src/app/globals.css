@@ -164,7 +164,8 @@
   /* Font families */
   --font-display: var(--font-bodoni-moda); /* now bound to Fraunces — see layout.tsx */
   --font-sans: var(--font-sans); /* now bound to Manrope — see layout.tsx */
-  --font-malayalam: var(--font-noto-sans-malayalam);
+  --font-malayalam: var(--font-malayalam-text);
+  --font-malayalam-title: var(--font-malayalam-title);
   --font-arabic: var(--font-noto-naskh-arabic);
   --font-arabic-display: var(--font-reem-kufi);
   --font-heading: var(--font-sans);

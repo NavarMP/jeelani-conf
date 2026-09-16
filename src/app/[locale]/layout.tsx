@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import {
   Fraunces,
   Manrope,
-  Noto_Sans_Malayalam,
   Noto_Naskh_Arabic,
   Reem_Kufi,
 } from "next/font/google";
+import localFont from "next/font/local";
 import "../globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
@@ -47,11 +47,33 @@ const display = Fraunces({
   style: ["normal", "italic"],
 });
 
-const notoMalayalam = Noto_Sans_Malayalam({
-  variable: "--font-noto-sans-malayalam",
-  subsets: ["malayalam"],
+const malayalamText = localFont({
+  src: [
+    {
+      path: "../../../public/fonts/FN-Mahitha-Light.ttf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../../../public/fonts/FN-Mahitha-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../../public/fonts/FN-Mahitha-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-malayalam-text",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+});
+
+const malayalamTitle = localFont({
+  src: "../../../public/fonts/FCMakam-Regular.ttf",
+  variable: "--font-malayalam-title",
+  weight: "400",
+  display: "swap",
 });
 
 const notoArabic = Noto_Naskh_Arabic({
@@ -144,7 +166,8 @@ export default async function RootLayout(props: {
   const fontVars = [
     sans.variable,
     display.variable,
-    notoMalayalam.variable,
+    malayalamText.variable,
+    malayalamTitle.variable,
     notoArabic.variable,
     reemKufi.variable,
   ].join(" ");
