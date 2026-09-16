@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { updateLiveStream } from "@/app/[locale]/admin/actions";
+import { X, VideoOff } from "lucide-react";
 
 interface Stream {
   stage: string;
@@ -95,7 +96,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
         >
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="opacity-70 hover:opacity-100">
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -148,7 +149,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
                   ></iframe>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 text-xs">
-                    <span className="text-xl mb-1">📹</span>
+                    <VideoOff className="w-5 h-5 mb-1" strokeWidth={1.75} aria-hidden="true" />
                     No Video ID Configured
                   </div>
                 )}
@@ -219,7 +220,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Stage 2 (Academic Hall)</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Darimi Session & Paper Presentations</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Astronomy & AI Fiqh</p>
                 </div>
                 <span
                   className={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1.5 transition-colors ${
@@ -249,7 +250,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
                   ></iframe>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 text-xs">
-                    <span className="text-xl mb-1">📹</span>
+                    <VideoOff className="w-5 h-5 mb-1" strokeWidth={1.75} aria-hidden="true" />
                     No Video ID Configured
                   </div>
                 )}

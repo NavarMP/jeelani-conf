@@ -7,6 +7,10 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { formatSessionTime, getSessionRegistration } from "@/lib/sessionHelpers";
+import { haptic } from "@/lib/haptics";
+import { useSectionEnterHaptic } from "@/hooks/useHaptics";
+import { Magnetic } from "@/components/ui/Magnetic";
+import { Mic } from "lucide-react";
 
 function SessionCard({ session, index, t }: { session: Session; index: number; t: (key: string) => string }) {
   const speakerList = session.speakers || [];
@@ -37,6 +41,7 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
       {/* Whole card clickable link to full details */}
       <Link
         href={`/sessions/${session.slug}`}
+        onClick={() => haptic("tap")}
         className="absolute inset-0 z-10 rounded-xl"
         aria-label={`View details for ${session.title}`}
       />
@@ -80,8 +85,9 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
         )}
 
         {speakerList.length > 0 && (
-          <p className="text-xs text-[var(--text-muted)] mt-1">
-            🎤 {speakerList.map((s) => s.name).join(", ")}
+          <p className="text-xs text-[var(--text-muted)] mt-1 flex items-center gap-1.5">
+            <Mic className="w-3 h-3 shrink-0" strokeWidth={2} aria-hidden="true" />
+            {speakerList.map((s) => s.name).join(", ")}
           </p>
         )}
 
@@ -96,16 +102,18 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
           </span>
 
           {regInfo && (
-            <Link
-              href={regInfo.url}
-              target={regInfo.isExternal ? "_blank" : undefined}
-              rel={regInfo.isExternal ? "noopener noreferrer" : undefined}
-              onClick={(e) => e.stopPropagation()}
-              className="relative z-20 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[var(--color-turquoise)] text-white hover:bg-[var(--hover-turquoise)] shadow-sm hover:shadow transition-all"
-            >
-              <span>{regInfo.label}</span>
-              <span className="text-[10px]">{regInfo.isExternal ? "↗" : "→"}</span>
-            </Link>
+            <Magnetic pattern="select" strength={0.4}>
+              <Link
+                href={regInfo.url}
+                target={regInfo.isExternal ? "_blank" : undefined}
+                rel={regInfo.isExternal ? "noopener noreferrer" : undefined}
+                onClick={(e) => e.stopPropagation()}
+                className="relative z-20 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[var(--color-turquoise)] text-white hover:bg-[var(--hover-turquoise)] shadow-sm hover:shadow transition-all"
+              >
+                <span>{regInfo.label}</span>
+                <span className="text-[10px]">{regInfo.isExternal ? "↗" : "→"}</span>
+              </Link>
+            </Magnetic>
           )}
         </div>
       </div>
@@ -118,6 +126,7 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const t = useTranslations("Schedule");
+  useSectionEnterHaptic(isInView);
 
   const stageSessions = sessions.filter((s) => s.stage === activeStage);
 
@@ -155,8 +164,11 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
           {["stage1", "stage2"].map((stage) => (
             <button
               key={stage}
-              onClick={() => setActiveStage(stage)}
-              className={`relative px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
+              onClick={() => {
+                haptic("select");
+                setActiveStage(stage);
+              }}
+              className={`relative px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95 ${
                 activeStage === stage
                   ? "bg-[var(--color-navy)] text-white shadow-md"
                   : "bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--color-turquoise)]/30"
@@ -184,12 +196,14 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
 
         {/* Full schedule link */}
         <div className="text-center mt-10">
-          <Link
-            href="/schedule"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
-          >
-            {t("viewFullSchedule")}
-          </Link>
+          <Magnetic pattern="tap">
+            <Link
+              href="/schedule"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
+            >
+              {t("viewFullSchedule")}
+            </Link>
+          </Magnetic>
         </div>
       </div>
     </section>

@@ -46,7 +46,7 @@ export default async function AdminDashboard() {
           <h3 className="text-sm font-medium text-gray-500 mb-2">Dynamic Registrations</h3>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold text-gray-900">{stats.dynamicRegistrations}</span>
-            <span className="text-xs text-purple-500 font-medium">Burda, Academic, Dars</span>
+            <span className="text-xs text-purple-500 font-medium">Burda, Astro & AI Fiqh, Dars</span>
           </div>
         </div>
         

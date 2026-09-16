@@ -8,6 +8,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { ScrollProgress } from "@/components/ui/ScrollProgress";
+import { haptic } from "@/lib/haptics";
+import { Sun, Moon, SunMoon, Menu, X } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -38,11 +41,12 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const themeIcon = !mounted ? "◐" : theme === "dark" ? "☀" : theme === "light" ? "☽" : "◐";
+  const ThemeIcon = !mounted ? SunMoon : theme === "dark" ? Sun : theme === "light" ? Moon : SunMoon;
   const nextTheme = theme === "dark" ? "light" : theme === "light" ? "system" : "dark";
 
   return (
     <>
+      <ScrollProgress />
       <nav
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
           solid
@@ -72,6 +76,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={() => haptic("tap")}
                 className={`text-sm font-medium transition-colors hover:text-[var(--color-turquoise)] ${
                   solid ? "text-[var(--text-secondary)]" : "text-white/80 hover:text-white"
                 }`}
@@ -88,20 +93,25 @@ export function Navbar() {
 
             {/* Theme toggle */}
             <button
-              onClick={() => setTheme(nextTheme)}
-              className={`w-9 h-9 flex items-center justify-center rounded-full transition-all text-lg ${
+              onClick={() => {
+                haptic("select");
+                setTheme(nextTheme);
+              }}
+              className={`w-9 h-9 flex items-center justify-center rounded-full transition-all text-lg active:scale-90 ${
                 solid
                   ? "text-[var(--text-secondary)] hover:bg-[var(--border)]"
                   : "text-white/70 hover:text-white hover:bg-white/10"
               }`}
+              style={{ transition: "transform var(--transition-fast), background-color var(--transition-fast)" }}
               aria-label={`Switch to ${nextTheme} theme`}
             >
-              {themeIcon}
+              <ThemeIcon className="w-[18px] h-[18px]" strokeWidth={1.75} aria-hidden="true" />
             </button>
 
             {/* Register CTA */}
             <Link
               href="/#register"
+              onClick={() => haptic("select")}
               className="hidden md:inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all hover:shadow-lg hover:shadow-[var(--color-brass)]/20 active:scale-95"
             >
               {t("register")}
@@ -109,7 +119,10 @@ export function Navbar() {
 
             {/* Mobile hamburger — hidden on lg+, visible on smaller screens but nav handled by MobileDock */}
             <button
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={() => {
+                haptic("tap");
+                setMenuOpen(!menuOpen);
+              }}
               className={`lg:hidden w-9 h-9 flex items-center justify-center rounded-full transition-all ${
                 solid
                   ? "text-[var(--text-primary)] hover:bg-[var(--border)]"
@@ -160,9 +173,12 @@ export function Navbar() {
                 >
                   <Link
                     href={link.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="block text-2xl font-semibold text-white/90 hover:text-[var(--color-brass)] transition-colors py-2"
-                    style={{ fontFamily: "var(--font-bodoni-moda)" }}
+                    onClick={() => {
+                      haptic("tap");
+                      setMenuOpen(false);
+                    }}
+                    className="block text-2xl font-semibold text-white/90 hover:text-[var(--color-brass)] transition-colors py-2 active:translate-x-1"
+                    style={{ fontFamily: "var(--font-bodoni-moda)", transition: "transform var(--transition-fast), color var(--transition-fast)" }}
                   >
                     {link.label}
                   </Link>
@@ -176,8 +192,11 @@ export function Navbar() {
               >
                 <Link
                   href="/#register"
-                  onClick={() => setMenuOpen(false)}
-                  className="inline-flex items-center px-8 py-3 rounded-full text-base font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all"
+                  onClick={() => {
+                    haptic("success");
+                    setMenuOpen(false);
+                  }}
+                  className="inline-flex items-center px-8 py-3 rounded-full text-base font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all active:scale-95"
                 >
                   {t("registerNow")}
                 </Link>

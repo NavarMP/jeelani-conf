@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Volume2, VolumeX } from "lucide-react";
+import { haptic } from "@/lib/haptics";
 
 export function AmbientAudioPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -33,6 +35,7 @@ export function AmbientAudioPlayer() {
 
   const togglePlay = () => {
     if (!audioRef.current) return;
+    haptic("select");
     if (isPlaying) {
       audioRef.current.pause();
       localStorage.setItem("gjc-ambient-audio", "paused");
@@ -73,24 +76,22 @@ export function AmbientAudioPlayer() {
           )}
         </AnimatePresence>
 
-        {/* Play/Pause button — styled as Ponnani lamp */}
+        {/* Play/Pause button */}
         <button
           onClick={togglePlay}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-90 ${
             isPlaying
               ? "bg-[var(--color-brass)] text-[var(--color-black)] glow-brass"
               : "bg-[var(--surface)] text-[var(--text-muted)] border border-[var(--border)] hover:border-[var(--color-brass)]/40"
           }`}
+          style={{ transition: "transform var(--transition-fast), background-color var(--transition-fast)" }}
           aria-label={isPlaying ? "Pause ambient audio" : "Play ambient audio"}
           title={isPlaying ? "Pause ambient audio" : "Play ambient audio"}
         >
           {isPlaying ? (
-            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-              <rect x="6" y="5" width="4" height="14" rx="1" />
-              <rect x="14" y="5" width="4" height="14" rx="1" />
-            </svg>
+            <Volume2 className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
           ) : (
-            <span className="text-lg">🪔</span>
+            <VolumeX className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
           )}
         </button>
 

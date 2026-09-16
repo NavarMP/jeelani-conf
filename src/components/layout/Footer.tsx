@@ -2,21 +2,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { getSiteSettings } from "@/lib/data";
 import { getTranslations } from "next-intl/server";
+import { Globe, Mail } from "lucide-react";
+import { FaInstagram, FaFacebookF, FaYoutube, FaXTwitter, FaWhatsapp } from "react-icons/fa6";
 
 export async function Footer() {
   const siteSettings = await getSiteSettings();
   const t = await getTranslations("Footer");
 
   const socialLinks = [
-    { href: siteSettings.social?.website || "", label: "Website", icon: "🌐" },
-    { href: `mailto:${siteSettings.social?.email || ""}`, label: "Email", icon: "✉" },
-    { href: siteSettings.social?.whatsappDirect || "", label: "WhatsApp", icon: "💬" },
-    { href: siteSettings.social?.whatsappChannel || "", label: "WhatsApp Channel", icon: "📢" },
-    { href: siteSettings.social?.instagram || "", label: "Instagram", icon: "📷" },
-    { href: siteSettings.social?.facebook || "", label: "Facebook", icon: "📘" },
-    { href: siteSettings.social?.twitter || "", label: "X (Twitter)", icon: "𝕏" },
-    { href: siteSettings.social?.youtube || "", label: "YouTube", icon: "▶" },
-  ].filter(link => link.href);
+    { href: siteSettings.social?.website || "", label: "Website", Icon: Globe },
+    { href: `mailto:${siteSettings.social?.email || ""}`, label: "Email", Icon: Mail },
+    { href: siteSettings.social?.whatsappDirect || "", label: "WhatsApp", Icon: FaWhatsapp },
+    { href: siteSettings.social?.whatsappChannel || "", label: "WhatsApp Channel", Icon: FaWhatsapp },
+    { href: siteSettings.social?.instagram || "", label: "Instagram", Icon: FaInstagram },
+    { href: siteSettings.social?.facebook || "", label: "Facebook", Icon: FaFacebookF },
+    { href: siteSettings.social?.twitter || "", label: "X (Twitter)", Icon: FaXTwitter },
+    { href: siteSettings.social?.youtube || "", label: "YouTube", Icon: FaYoutube },
+  ].filter((link) => link.href);
   return (
     <footer className="bg-[var(--color-black)] text-[var(--color-ivory)] relative overflow-hidden">
       {/* Subtle arabesque pattern overlay */}
@@ -101,7 +103,7 @@ export async function Footer() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-white/5 hover:bg-[var(--color-turquoise)]/20 text-[var(--color-ivory)]/70 hover:text-[var(--color-ivory)] transition-all border border-white/5 hover:border-[var(--color-turquoise)]/30"
                   title={link.label}
                 >
-                  <span>{link.icon}</span>
+                  <link.Icon className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{link.label}</span>
                 </a>
               ))}

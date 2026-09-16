@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import { BURDA_RULES_DATA, RULES_LANGUAGES, type RulesLanguage } from "./rulesData";
+import { CircleCheckBig } from "lucide-react";
 
 export default function BurdaQawwaliRegistration() {
   const [rulesLang, setRulesLang] = useState<RulesLanguage>("ml");
@@ -164,7 +165,9 @@ export default function BurdaQawwaliRegistration() {
           animate={{ scale: 1, opacity: 1 }}
           className="text-center max-w-md bg-[var(--surface)] p-8 rounded-3xl shadow-md border border-[var(--border)]"
         >
-          <div className="text-6xl mb-6">✨</div>
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[var(--color-brass)]/10 flex items-center justify-center text-[var(--color-brass)]">
+            <CircleCheckBig className="w-10 h-10" strokeWidth={1.75} aria-hidden="true" />
+          </div>
           <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-3" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
             {t("successHeading")}
           </h2>

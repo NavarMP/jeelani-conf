@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { X } from "lucide-react";
 
 interface GalleryMediaItem {
   id: string;
@@ -228,8 +229,8 @@ export default function GalleryManager() {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
               <h3 className="text-lg font-bold text-gray-900">Add Gallery Media</h3>
-              <button onClick={() => setIsAddOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg">
-                ✕
+              <button onClick={() => setIsAddOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
               </button>
             </div>
 

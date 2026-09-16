@@ -1,6 +1,4 @@
-import { Hero } from "@/components/sections/Hero";
-import { About } from "@/components/sections/About";
-import { Countdown } from "@/components/sections/Countdown";
+import { Opening } from "@/components/sections/Opening";
 import { Schedule } from "@/components/sections/Schedule";
 import { Speakers } from "@/components/sections/Speakers";
 import { Registration } from "@/components/sections/Registration";
@@ -21,9 +19,7 @@ export default async function HomePage(props: { params: Promise<{ locale: string
 
   return (
     <>
-      <Hero />
-      <About />
-      <Countdown targetDate={siteSettings.eventDate} />
+      <Opening targetDate={siteSettings.eventDate} />
       <Schedule sessions={sessions} />
       <Speakers speakers={speakers} />
       <Registration registrationSessions={registrationSessions} />

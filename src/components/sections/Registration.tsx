@@ -5,6 +5,10 @@ import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { type RegistrationSession } from "@/lib/data";
+import { haptic } from "@/lib/haptics";
+import { useSectionEnterHaptic } from "@/hooks/useHaptics";
+import { Magnetic } from "@/components/ui/Magnetic";
+import { Building2, ArrowRight, ArrowUpRight, ClipboardList } from "lucide-react";
 
 const GRAND_ASSEMBLY_EXTERNAL_URL = "https://grand-jeelani-conference-2026.web.app/";
 
@@ -27,6 +31,7 @@ export function Registration({ registrationSessions }: { registrationSessions: R
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const t = useTranslations("Registration");
+  useSectionEnterHaptic(isInView);
 
   return (
     <section id="register" className="relative py-20 md:py-28 overflow-hidden" ref={ref}>
@@ -71,35 +76,39 @@ export function Registration({ registrationSessions }: { registrationSessions: R
             animate={isInView ? { y: 0, opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <a
-              href={GRAND_ASSEMBLY_EXTERNAL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group block p-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--color-turquoise)]/30 hover:shadow-lg transition-all h-full"
-            >
-              <div className="text-3xl mb-4">🕌</div>
-              <span className="text-[10px] px-2.5 py-1 rounded-full font-medium bg-[var(--color-navy)]/10 text-[var(--color-navy)] dark:bg-[var(--color-turquoise)]/10 dark:text-[var(--color-turquoise)]">
-                {t("grandAssemblyType")}
-              </span>
-              <h3
-                className="text-lg font-bold text-[var(--text-primary)] mt-3 mb-1 group-hover:text-[var(--color-turquoise)] transition-colors"
-                style={{ fontFamily: "var(--font-bodoni-moda)" }}
+            <Magnetic pattern="select" strength={0.25} className="block h-full">
+              <a
+                href={GRAND_ASSEMBLY_EXTERNAL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block p-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--color-turquoise)]/30 hover:shadow-lg transition-all h-full"
               >
-                {t("grandAssembly")}
-              </h3>
-              <p className="text-xs text-[var(--text-muted)] mb-3" style={{ fontFamily: "var(--font-noto-sans-malayalam)" }}>
-                {t("grandAssemblyMl")}
-              </p>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
-                {t("grandAssemblyDesc")}
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-[var(--color-brass)]">{t("free")}</span>
-                <span className="text-xs font-medium text-[var(--color-turquoise)] group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                  {t("registerCta")} <span className="text-[10px]">↗</span>
+                <div className="w-11 h-11 rounded-xl bg-[var(--color-navy)]/10 flex items-center justify-center mb-4 text-[var(--color-navy)] dark:text-[var(--color-turquoise)]">
+                  <Building2 className="w-5 h-5" strokeWidth={1.75} aria-hidden="true" />
+                </div>
+                <span className="text-[10px] px-2.5 py-1 rounded-full font-medium bg-[var(--color-navy)]/10 text-[var(--color-navy)] dark:bg-[var(--color-turquoise)]/10 dark:text-[var(--color-turquoise)]">
+                  {t("grandAssemblyType")}
                 </span>
-              </div>
-            </a>
+                <h3
+                  className="text-lg font-bold text-[var(--text-primary)] mt-3 mb-1 group-hover:text-[var(--color-turquoise)] transition-colors"
+                  style={{ fontFamily: "var(--font-bodoni-moda)" }}
+                >
+                  {t("grandAssembly")}
+                </h3>
+                <p className="text-xs text-[var(--text-muted)] mb-3" style={{ fontFamily: "var(--font-noto-sans-malayalam)" }}>
+                  {t("grandAssemblyMl")}
+                </p>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
+                  {t("grandAssemblyDesc")}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-[var(--color-brass)]">{t("free")}</span>
+                  <span className="text-xs font-medium text-[var(--color-turquoise)] group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    {t("registerCta")} <ArrowUpRight className="w-3 h-3" strokeWidth={2.25} aria-hidden="true" />
+                  </span>
+                </div>
+              </a>
+            </Magnetic>
           </motion.div>
 
           {/* Dynamic registration session cards */}
@@ -118,41 +127,51 @@ export function Registration({ registrationSessions }: { registrationSessions: R
                 animate={isInView ? { y: 0, opacity: 1 } : {}}
                 transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
               >
-                <CardWrapper
-                  {...(cardProps as any)}
-                  className="group block p-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--color-turquoise)]/30 hover:shadow-lg transition-all h-full"
-                >
-                  <div className="text-3xl mb-4">{session.icon || "📋"}</div>
-                  <span
-                    className="text-[10px] px-2.5 py-1 rounded-full font-medium"
-                    style={{
-                      backgroundColor: `color-mix(in srgb, ${session.color || "var(--color-turquoise)"} 10%, transparent)`,
-                      color: session.color || "var(--color-turquoise)",
-                    }}
+                <Magnetic pattern="select" strength={0.25} className="block h-full">
+                  <CardWrapper
+                    {...(cardProps as any)}
+                    className="group block p-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--color-turquoise)]/30 hover:shadow-lg transition-all h-full"
                   >
-                    {session.price_label || "Free"}
-                  </span>
-                  <h3
-                    className="text-lg font-bold text-[var(--text-primary)] mt-3 mb-1 group-hover:text-[var(--color-turquoise)] transition-colors"
-                    style={{ fontFamily: "var(--font-bodoni-moda)" }}
-                  >
-                    {session.title}
-                  </h3>
-                  {session.title_ml && (
-                    <p className="text-xs text-[var(--text-muted)] mb-3" style={{ fontFamily: "var(--font-noto-sans-malayalam)" }}>
-                      {session.title_ml}
-                    </p>
-                  )}
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
-                    {session.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[var(--color-brass)]">{session.price_label || "Free"}</span>
-                    <span className="text-xs font-medium text-[var(--color-turquoise)] group-hover:translate-x-1 transition-transform">
-                      {t("registerCta")}
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 text-xl"
+                      style={{
+                        backgroundColor: `color-mix(in srgb, ${session.color || "var(--color-turquoise)"} 12%, transparent)`,
+                        color: session.color || "var(--color-turquoise)",
+                      }}
+                    >
+                      {session.icon || <ClipboardList className="w-5 h-5" strokeWidth={1.75} aria-hidden="true" />}
+                    </div>
+                    <span
+                      className="text-[10px] px-2.5 py-1 rounded-full font-medium"
+                      style={{
+                        backgroundColor: `color-mix(in srgb, ${session.color || "var(--color-turquoise)"} 10%, transparent)`,
+                        color: session.color || "var(--color-turquoise)",
+                      }}
+                    >
+                      {session.price_label || "Free"}
                     </span>
-                  </div>
-                </CardWrapper>
+                    <h3
+                      className="text-lg font-bold text-[var(--text-primary)] mt-3 mb-1 group-hover:text-[var(--color-turquoise)] transition-colors"
+                      style={{ fontFamily: "var(--font-bodoni-moda)" }}
+                    >
+                      {session.title}
+                    </h3>
+                    {session.title_ml && (
+                      <p className="text-xs text-[var(--text-muted)] mb-3" style={{ fontFamily: "var(--font-noto-sans-malayalam)" }}>
+                        {session.title_ml}
+                      </p>
+                    )}
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
+                      {session.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-[var(--color-brass)]">{session.price_label || "Free"}</span>
+                      <span className="text-xs font-medium text-[var(--color-turquoise)] group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                        {t("registerCta")} <ArrowRight className="w-3 h-3" strokeWidth={2.25} aria-hidden="true" />
+                      </span>
+                    </div>
+                  </CardWrapper>
+                </Magnetic>
               </motion.div>
             );
           })}

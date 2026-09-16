@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { saveZone, deleteZone, assignSeat, autoAssignUnseated } from "@/app/[locale]/admin/actions";
+import { X, Zap } from "lucide-react";
 
 interface Zone {
   id: string;
@@ -162,7 +163,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
         >
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="opacity-70 hover:opacity-100">
-            ✕
+            <X className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -187,7 +188,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
             {isPending ? (
               <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
             ) : (
-              <span>⚡</span>
+              <Zap className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
             )}
             Auto-Assign Unseated
           </button>
@@ -426,7 +427,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                     onClick={() => setSelectedSeat(null)}
                     className="text-xs text-gray-400 hover:text-gray-600 p-1"
                   >
-                    ✕
+                    <X className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -447,9 +448,9 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
               <h3 className="text-lg font-bold text-gray-900">Add New Assembly Zone</h3>
               <button
                 onClick={() => setIsAddZoneOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-lg"
+                className="text-gray-400 hover:text-gray-600"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
               </button>
             </div>
 

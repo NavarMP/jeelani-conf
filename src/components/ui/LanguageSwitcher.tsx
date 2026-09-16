@@ -4,6 +4,7 @@ import { useLocale } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Globe, ChevronDown, Check } from "lucide-react";
 
 const localeLabels: Record<string, string> = {
   en: "EN",
@@ -80,17 +81,13 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
         aria-label="Switch language"
         aria-expanded={open}
       >
-        <span className="text-[10px]">🌐</span>
+        <Globe className="w-3 h-3" strokeWidth={2} aria-hidden="true" />
         <span>{localeLabels[locale] || "EN"}</span>
-        <svg
+        <ChevronDown
           className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
+          strokeWidth={2.25}
+          aria-hidden="true"
+        />
       </button>
 
       <AnimatePresence>
@@ -115,9 +112,7 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
                 <span className="text-xs font-bold w-6">{localeLabels[loc]}</span>
                 <span>{localeFullLabels[loc]}</span>
                 {locale === loc && (
-                  <svg className="w-3.5 h-3.5 ml-auto text-[var(--color-turquoise)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+                  <Check className="w-3.5 h-3.5 ml-auto text-[var(--color-turquoise)]" strokeWidth={2.5} aria-hidden="true" />
                 )}
               </button>
             ))}

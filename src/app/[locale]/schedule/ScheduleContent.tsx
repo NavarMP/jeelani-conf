@@ -7,6 +7,9 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { formatSessionTime, getSessionRegistration } from "@/lib/sessionHelpers";
+import { haptic } from "@/lib/haptics";
+import { Magnetic } from "@/components/ui/Magnetic";
+import { Mic, ArrowRight, ArrowUpRight } from "lucide-react";
 
 function FullSessionCard({ session, t }: { session: Session; t: (key: string) => string }) {
   const speakerList = session.speakers || [];
@@ -74,8 +77,9 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
           )}
 
           {speakerList.length > 0 && (
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
-              🎤 {speakerList.map((s) => s.name).join(", ")}
+            <p className="text-xs text-[var(--text-secondary)] mt-2 flex items-center gap-1.5">
+              <Mic className="w-3 h-3 shrink-0" strokeWidth={2} aria-hidden="true" />
+              {speakerList.map((s) => s.name).join(", ")}
             </p>
           )}
 
@@ -84,20 +88,26 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
           {/* Action row */}
           <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-[var(--border)]/50">
             <span className="inline-flex items-center text-xs font-medium text-[var(--color-turquoise)] group-hover:underline gap-1">
-              View details →
+              View details <ArrowRight className="w-3 h-3" strokeWidth={2.25} aria-hidden="true" />
             </span>
 
             {regInfo && (
-              <Link
-                href={regInfo.url}
-                target={regInfo.isExternal ? "_blank" : undefined}
-                rel={regInfo.isExternal ? "noopener noreferrer" : undefined}
-                onClick={(e) => e.stopPropagation()}
-                className="relative z-20 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[var(--color-turquoise)] text-white hover:bg-[var(--hover-turquoise)] shadow-sm hover:shadow transition-all"
-              >
-                <span>{regInfo.label}</span>
-                <span className="text-[10px]">{regInfo.isExternal ? "↗" : "→"}</span>
-              </Link>
+              <Magnetic pattern="select" strength={0.4}>
+                <Link
+                  href={regInfo.url}
+                  target={regInfo.isExternal ? "_blank" : undefined}
+                  rel={regInfo.isExternal ? "noopener noreferrer" : undefined}
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative z-20 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[var(--color-turquoise)] text-white hover:bg-[var(--hover-turquoise)] shadow-sm hover:shadow transition-all"
+                >
+                  <span>{regInfo.label}</span>
+                  {regInfo.isExternal ? (
+                    <ArrowUpRight className="w-3 h-3" strokeWidth={2.25} aria-hidden="true" />
+                  ) : (
+                    <ArrowRight className="w-3 h-3" strokeWidth={2.25} aria-hidden="true" />
+                  )}
+                </Link>
+              </Magnetic>
             )}
           </div>
         </div>

@@ -4,17 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { haptic } from "@/lib/haptics";
+import { Building2, CalendarDays, Ticket, Images, Tv } from "lucide-react";
 
 export function MobileDock() {
   const pathname = usePathname();
   const t = useTranslations("MobileDock");
 
   const dockItems = [
-    { href: "/", icon: "🕌", label: t("home") },
-    { href: "/#schedule", icon: "📅", label: t("schedule") },
-    { href: "/#register", icon: "🎫", label: t("register") },
-    { href: "/#gallery", icon: "🖼", label: t("gallery") },
-    { href: "/live", icon: "📺", label: t("live") },
+    { href: "/", Icon: Building2, label: t("home") },
+    { href: "/#schedule", Icon: CalendarDays, label: t("schedule") },
+    { href: "/#register", Icon: Ticket, label: t("register") },
+    { href: "/#gallery", Icon: Images, label: t("gallery") },
+    { href: "/live", Icon: Tv, label: t("live") },
   ];
 
   return (
@@ -35,14 +37,20 @@ export function MobileDock() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => haptic(item.href === "/#register" ? "select" : "tap")}
                 className="relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-colors min-w-[3rem]"
               >
                 <motion.span
-                  className="text-xl"
-                  whileTap={{ scale: 0.85 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  className="text-[var(--text-primary)]"
+                  whileTap={{ scale: 0.8, rotate: -6 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 14 }}
                 >
-                  {item.icon}
+                  <item.Icon
+                    className="w-5 h-5"
+                    strokeWidth={1.75}
+                    color={isActive ? "var(--color-brass)" : undefined}
+                    aria-hidden="true"
+                  />
                 </motion.span>
                 <span
                   className={`text-[10px] font-medium transition-colors ${

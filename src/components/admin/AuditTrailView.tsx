@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { Download } from "lucide-react";
 
 export interface AuditLog {
   timestamp: string;
@@ -75,7 +76,7 @@ export default function AuditTrailView({ initialLogs }: Props) {
             onClick={handleExportCSV}
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 text-gray-700 shadow-sm transition-colors flex items-center gap-2"
           >
-            <span>📥</span> Export CSV
+            <Download className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> Export CSV
           </button>
         </div>
       </div>

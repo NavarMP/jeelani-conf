@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Camera, Star, Trash2 } from "lucide-react";
 
 interface Speaker {
   id: string;
@@ -179,8 +180,14 @@ export default function SpeakerManager() {
 
               {/* Upload overlay */}
               <label className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors cursor-pointer group">
-                <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full transition-opacity">
-                  {isUploading === speaker.id ? "Uploading..." : "📷 Upload Photo"}
+                <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full transition-opacity flex items-center gap-1.5">
+                  {isUploading === speaker.id ? (
+                    "Uploading..."
+                  ) : (
+                    <>
+                      <Camera className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" /> Upload Photo
+                    </>
+                  )}
                 </span>
                 <input
                   type="file"
@@ -239,13 +246,13 @@ export default function SpeakerManager() {
                           : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                       }`}
                     >
-                      ★
+                      <Star className="w-3.5 h-3.5" strokeWidth={2} fill={speaker.featured ? "currentColor" : "none"} aria-hidden="true" />
                     </button>
                     <button
                       onClick={() => handleDelete(speaker.id)}
                       className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                     >
-                      ✕
+                      <Trash2 className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
                     </button>
                   </div>
                 </>

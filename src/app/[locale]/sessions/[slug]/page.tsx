@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { formatSessionTimeRange, getSessionRegistration } from "@/lib/sessionHelpers";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Clock, MapPin } from "lucide-react";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -41,8 +42,8 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
   return (
     <div className="min-h-[100dvh] pt-24 pb-32 px-6">
       <div className="max-w-2xl mx-auto">
-        <Link href="/#schedule" className="text-xs text-[var(--color-turquoise)] hover:underline mb-6 inline-block">
-          ← Back to Schedule
+        <Link href="/#schedule" className="text-xs text-[var(--color-turquoise)] hover:underline mb-6 inline-flex items-center gap-1">
+          <ArrowLeft className="w-3 h-3" strokeWidth={2.25} aria-hidden="true" /> Back to Schedule
         </Link>
 
         {/* Badge row */}
@@ -76,8 +77,8 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
 
         {/* Time */}
         <div className="flex items-center gap-3 mb-8 text-sm text-[var(--text-secondary)] font-medium">
-          <span>🕐 {timeFormatted}</span>
-          <span>📍 Stage {session.stage}</span>
+          <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" /> {timeFormatted}</span>
+          <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" /> Stage {session.stage}</span>
         </div>
 
         {/* Description */}
@@ -121,7 +122,11 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-turquoise)] text-white hover:bg-[var(--hover-turquoise)] shadow-md hover:shadow-lg transition-all"
             >
               <span>{regInfo.label}</span>
-              <span className="text-xs">{regInfo.isExternal ? "↗" : "→"}</span>
+              {regInfo.isExternal ? (
+                <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" />
+              ) : (
+                <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" />
+              )}
             </Link>
           )}
           <Link

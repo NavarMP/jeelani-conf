@@ -4,11 +4,16 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Maximize2 } from "lucide-react";
+import { useSectionEnterHaptic } from "@/hooks/useHaptics";
+import { haptic } from "@/lib/haptics";
+import { Magnetic } from "@/components/ui/Magnetic";
 
 export function Gallery() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const t = useTranslations("Gallery");
+  useSectionEnterHaptic(isInView);
 
   const galleryItems = [
     { id: 1, aspect: "4/5", color: "from-[#103E79] to-[#218EB6]", labelKey: "conferenceHall" },
@@ -20,7 +25,7 @@ export function Gallery() {
   ];
 
   return (
-    <section id="gallery" className="relative py-20 md:py-28 bg-[var(--surface)]" ref={ref}>
+    <section id="gallery" className="relative py-20 md:py-28" ref={ref}>
       <div className="container-site">
         {/* Section header */}
         <motion.div
@@ -52,6 +57,8 @@ export function Gallery() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.08 }}
+              whileTap={{ scale: 0.96 }}
+              onTapStart={() => haptic("tap")}
               className="break-inside-avoid group cursor-pointer"
             >
               <div
@@ -86,7 +93,7 @@ export function Gallery() {
 
                 {/* Hover expand icon */}
                 <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
-                  <span className="text-white text-xs">⤢</span>
+                  <Maximize2 className="w-3.5 h-3.5 text-white" strokeWidth={2} aria-hidden="true" />
                 </div>
               </div>
             </motion.div>
@@ -95,12 +102,14 @@ export function Gallery() {
 
         {/* View full gallery link */}
         <div className="text-center mt-10">
-          <Link
-            href="/gallery"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
-          >
-            {t("viewFullGallery")}
-          </Link>
+          <Magnetic pattern="tap">
+            <Link
+              href="/gallery"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
+            >
+              {t("viewFullGallery")}
+            </Link>
+          </Magnetic>
         </div>
       </div>
     </section>

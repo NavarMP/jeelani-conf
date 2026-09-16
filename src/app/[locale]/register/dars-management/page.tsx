@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { CircleCheckBig } from "lucide-react";
 
 interface Member {
   name: string;
@@ -83,7 +84,9 @@ export default function DarsManagementRegistration() {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center pt-20 pb-24 px-6">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center max-w-md">
-          <div className="text-5xl mb-4">🏛️</div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--color-brass)]/10 flex items-center justify-center text-[var(--color-brass)]">
+            <CircleCheckBig className="w-8 h-8" strokeWidth={1.75} aria-hidden="true" />
+          </div>
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
             {t("successHeading")}
           </h2>

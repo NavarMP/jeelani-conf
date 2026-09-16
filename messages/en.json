@@ -70,7 +70,7 @@
     "heading": "Register Now",
     "description": "Choose your registration based on your interest and participation level.",
     "grandAssembly": "as-Sanad al-Muttaṣil",
-    "grandAssemblyMl": "മഹാ സമ്മേളനം",
+    "grandAssemblyMl": "അസ്-സനദുൽ മുത്തസ്വിൽ",
     "grandAssemblyDesc": "Join the main conference gathering. Registration is handled on the official portal.",
     "grandAssemblyType": "External Portal",
     "free": "Free",
@@ -142,7 +142,7 @@
     "competitionRegistration": "Competition Registration",
     "title": "Burda & Qawwali",
     "titleHighlight": "Competition",
-    "subtitle": "Organized as part of the Rabi' Campaign \"A Thousand and Five Hundred Years\" (ആയിരത്തി അഞ്ഞൂറ് ആണ്ടുകൾ).",
+    "subtitle": "A Celebration of Love for the Beloved ﷺ",
     "rulesHeading": "Rules & Regulations",
     "rule1": "Participation is open to teams that accept the ideological principles and teachings of Samastha.",
     "rule2": "The competition will be conducted in two rounds.",
@@ -196,10 +196,10 @@
     "imageSizeError": "Image must be less than 5MB.",
     "submitting": "Submitting..."
   },
-  "DarimiAcademic": {
+  "AstroAIFiqh": {
     "backToOptions": "← Back to registration options",
     "type": "Public • Paid",
-    "heading": "Academic Sessions",
+    "heading": "Astronomy & AI Fiqh",
     "description": "Register for the academic sessions block on Stage 2, including Astronomy & AI Fiqh, Dr. Musthafa Darimi Session, and Ameer Husain Hudavi Session.",
     "session1": "Astronomy and AI Fiqh — Shahul Hameed Master Melmuri",
     "session2": "Dr. Musthafa Darimi Karippur",
@@ -217,10 +217,10 @@
     "placeOfStudyPlaceholder": "Place of study",
     "placeOfWork": "Place of Work *",
     "placeOfWorkPlaceholder": " Place of work",
-    "submit": "Register for Academic Sessions",
+    "submit": "Register for Astronomy & AI Fiqh",
     "submitting": "Submitting...",
     "successHeading": "Registration Submitted",
-    "successMessage": "Your registration for the Academic Sessions has been submitted successfully. We look forward to seeing you at Stage 2.",
+    "successMessage": "Your registration for the Astronomy & AI Fiqh has been submitted successfully. We look forward to seeing you at Stage 2.",
     "backToHome": "← Back to Home"
   },
   "DarsManagement": {
@@ -253,7 +253,7 @@
     "stage1": "Stage 1",
     "stage1Desc": "Main conference hall — as-Sanad al-Muttaṣil, keynotes, and mawlid",
     "stage2": "Stage 2",
-    "stage2Desc": "Parallel sessions — Dars Management, academic talks, and AI Fiqh.",
+    "stage2Desc": "Parallel sessions — Dars Management, Astronomy and AI Fiqh.",
     "liveNow": "LIVE NOW"
   }
 }

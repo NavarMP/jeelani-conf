@@ -124,7 +124,7 @@ export function getSessionRegistration(
     }
   }
 
-  // 3. Paid sessions default to academic sessions pass
+  // 3. Paid sessions default to Astronomy & AI Fiqh pass
   if (session.is_paid || session.type === "paid_session") {
     return {
       url: "/register/astro-ai-fiqh",

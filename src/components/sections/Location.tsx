@@ -3,18 +3,22 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { MapPin, Clock, Mic, Navigation } from "lucide-react";
+import { useSectionEnterHaptic } from "@/hooks/useHaptics";
+import { Magnetic } from "@/components/ui/Magnetic";
 
 export function Location({ locationMapUrl }: { locationMapUrl: string }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const t = useTranslations("Location");
+  useSectionEnterHaptic(isInView);
 
   /* Use OpenStreetMap free embed instead of Google Maps API */
   /* Coordinates for Alathurpadi, Melmuri — approx 10.9°N, 76.0°E */
   const osmEmbedUrl = "https://www.openstreetmap.org/export/embed.html?bbox=76.0%2C10.89%2C76.02%2C10.91&layer=mapnik&marker=10.9%2C76.01";
 
   return (
-    <section id="location" className="relative py-20 md:py-28 bg-[var(--surface)]" ref={ref}>
+    <section id="location" className="relative py-20 md:py-28" ref={ref}>
       <div className="container-site">
         {/* Section header */}
         <motion.div
@@ -63,8 +67,8 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
             <div className="space-y-6">
               {/* Venue */}
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[var(--color-navy)]/10 flex items-center justify-center text-lg shrink-0">
-                  📍
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-navy)]/10 flex items-center justify-center shrink-0 text-[var(--color-navy)] dark:text-[var(--color-turquoise)]">
+                  <MapPin className="w-5 h-5" strokeWidth={1.75} aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-[var(--text-primary)] text-sm">{t("venue")}</h3>
@@ -76,8 +80,8 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
 
               {/* Date & Time */}
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[var(--color-turquoise)]/10 flex items-center justify-center text-lg shrink-0">
-                  🕐
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-turquoise)]/10 flex items-center justify-center shrink-0 text-[var(--color-turquoise)]">
+                  <Clock className="w-5 h-5" strokeWidth={1.75} aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-[var(--text-primary)] text-sm">{t("dateTime")}</h3>
@@ -92,8 +96,8 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
 
               {/* Stages */}
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[var(--color-brass)]/10 flex items-center justify-center text-lg shrink-0">
-                  🎤
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-brass)]/10 flex items-center justify-center shrink-0 text-[var(--color-brass)]">
+                  <Mic className="w-5 h-5" strokeWidth={1.75} aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-[var(--text-primary)] text-sm">{t("twoStages")}</h3>
@@ -105,22 +109,26 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
 
               {/* Get Directions */}
               <div className="flex flex-wrap gap-3 pt-2">
-                <a
-                  href={locationMapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-all"
-                >
-                  📍 {t("getDirections")}
-                </a>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=10.9,76.01`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
-                >
-                  🗺 {t("navigateMaps")}
-                </a>
+                <Magnetic pattern="select">
+                  <a
+                    href={locationMapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-colors"
+                  >
+                    <MapPin className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> {t("getDirections")}
+                  </a>
+                </Magnetic>
+                <Magnetic pattern="tap">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=10.9,76.01`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-colors"
+                  >
+                    <Navigation className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> {t("navigateMaps")}
+                  </a>
+                </Magnetic>
               </div>
             </div>
           </motion.div>

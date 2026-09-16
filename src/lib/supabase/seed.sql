@@ -46,7 +46,7 @@ INSERT INTO public.speakers (id, name, name_ml, slug, title, bio, description, f
 
 -- Step 3: Insert Sessions — Stage 1
 INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time, end_time, stage, type, is_paid, external_url) VALUES
-  ('b1000000-0000-0000-0000-000000000001', 'grand-assembly', 'Grand Assembly', 'മഹാ സമ്മേളനം', 'The grand opening assembly. Registration is handled on the external portal.', '2026-09-27T10:00:00+05:30', '2026-09-27T11:00:00+05:30', 'stage1', 'external_redirect', false, 'https://grand-jeelani-conference-2026.web.app/'),
+  ('b1000000-0000-0000-0000-000000000001', 'grand-assembly', 'Grand Assembly', 'അസ്-സനദുൽ മുത്തസ്വിൽ', 'The grand opening assembly. Registration is handled on the external portal.', '2026-09-27T10:00:00+05:30', '2026-09-27T11:00:00+05:30', 'stage1', 'external_redirect', false, 'https://grand-jeelani-conference-2026.web.app/'),
   ('b1000000-0000-0000-0000-000000000002', 'inaugural-ceremony', 'Inaugural Ceremony', 'ഉദ്ഘാടന ചടങ്ങ്', 'Topic: The Aesthetics of Self-Purification (Tazkiyatun Nafs)', '2026-09-27T11:00:00+05:30', '2026-09-27T12:00:00+05:30', 'stage1', 'ceremony', false, NULL),
   ('b1000000-0000-0000-0000-000000000003', 'shaykh-jilani-talk', 'Shaykh Jilani: Spirituality, Life & Philosophy', 'ശൈഖ് ജീലാനി : ആത്മീയത, ജീവിതം, ദർശനം', 'A scholarly discourse on the life, spiritual teachings, and philosophy of Shaykh Abdul Qadir Jilani.', '2026-09-27T12:00:00+05:30', '2026-09-27T14:00:00+05:30', 'stage1', 'talk', false, NULL),
   ('b1000000-0000-0000-0000-000000000004', 'lunch-break', 'Lunch & Prayer Break', 'ഭക്ഷണം, നമസ്കാരം', 'Lunch and Dhuhr prayer break.', '2026-09-27T14:00:00+05:30', '2026-09-27T15:00:00+05:30', 'stage1', 'meal', false, NULL),
@@ -89,7 +89,7 @@ INSERT INTO public.session_speakers (session_id, speaker_id) VALUES
 -- Step 6: Insert Registration Sessions (for dynamic registration cards)
 INSERT INTO public.registration_sessions (slug, title, title_ml, description, description_ml, icon, color, price_label, form_type, is_open, is_archived, order_index) VALUES
   ('burda-qawwali', 'Burda & Qawwali Competition', 'ബുർദ & ഖവ്വാലി മത്സരം', 'Register your team for the Burda & Qawwali Competition grand finale.', 'ബുർദ & ഖവ്വാലി മത്സരത്തിന്റെ ഗ്രാൻഡ് ഫിനാലെയ്ക്ക് നിങ്ങളുടെ ടീമിനെ രജിസ്റ്റർ ചെയ്യുക.', '🎤', 'var(--color-brass)', 'Paid', 'burda', true, false, 1),
-  ('astro-ai-fiqh', 'Academic Sessions', 'അക്കാദമിക് സെഷനുകൾ', 'Register for the academic block: Astronomy & AI Fiqh, Dr. Musthafa Darimi Session, and Ameer Husain Hudavi Session.', 'അക്കാദമിക് ബ്ലോക്കിലേക്ക് രജിസ്റ്റർ ചെയ്യുക: അസ്ട്രോണമി & AI ഫിഖ്ഹ്, ഡോ. മുസ്തഫ ദാരിമി സെഷൻ, അമീർ ഹുസൈൻ ഹുദവി സെഷൻ.', '📚', 'var(--color-rose)', 'Paid', 'standard', true, false, 2),
+  ('astro-ai-fiqh', 'Astronomy & AI Fiqh', 'അക്കാദമിക് സെഷനുകൾ', 'Register for the academic block: Astronomy & AI Fiqh, Dr. Musthafa Darimi Session, and Ameer Husain Hudavi Session.', 'അക്കാദമിക് ബ്ലോക്കിലേക്ക് രജിസ്റ്റർ ചെയ്യുക: അസ്ട്രോണമി & AI ഫിഖ്ഹ്, ഡോ. മുസ്തഫ ദാരിമി സെഷൻ, അമീർ ഹുസൈൻ ഹുദവി സെഷൻ.', '📚', 'var(--color-rose)', 'Paid', 'standard', true, false, 2),
   ('dars-management-meet', 'Dars Management Meet', 'ദർസ് മാനേജ്മെന്റ് മീറ്റ്', 'Register your mahall delegation for the Dars Management Meet. 1 to 5 members per mahall.', 'ദർസ് മാനേജ്മെന്റ് മീറ്റിലേക്ക് നിങ്ങളുടെ മഹല്ല് പ്രതിനിധി സംഘത്തെ രജിസ്റ്റർ ചെയ്യുക. ഒരു മഹല്ലിൽ നിന്ന് 1 മുതൽ 5 അംഗങ്ങൾ വരെ.', '🏛️', 'var(--color-navy)', 'Free', 'group', true, false, 3)
 ON CONFLICT (slug) DO UPDATE SET
   title = EXCLUDED.title,

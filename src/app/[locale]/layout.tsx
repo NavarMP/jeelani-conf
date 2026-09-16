@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import {
-  Inter,
-  Bodoni_Moda,
+  Fraunces,
+  Manrope,
   Noto_Sans_Malayalam,
   Noto_Naskh_Arabic,
-  Reem_Kufi, Geist } from "next/font/google";
+  Reem_Kufi,
+} from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
@@ -14,17 +15,31 @@ import { AmbientAudioPlayer } from "@/components/ui/AmbientAudioPlayer";
 import { CustomCursor } from "@/components/ui/CustomCursor";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+/* ── Font Configuration ──────────────────────────────────────────────────
+   Two families instead of the previous four-family Latin stack (Geist +
+   Inter + Bodoni Moda, with Inter loaded but never actually referenced
+   anywhere in the app — pure dead weight). Variable names are kept as
+   `--font-sans` / `--font-bodoni-moda` so the rest of the app (which
+   already references these tokens in ~25 files) doesn't need to change;
+   only what they point to does.
 
-
-/* ── Font Configuration ──────────────────────────────────────────────── */
-const inter = Inter({
-  variable: "--font-inter",
+   - Manrope (`--font-sans`): the UI workhorse — warmer and slightly more
+     characterful than Inter/Geist at display sizes, still fully neutral
+     and highly legible at body sizes.
+   - Fraunces (`--font-bodoni-moda`): display serif for headings and the
+     wordmark surrounds. Soft, slightly inky serif with real optical-size
+     personality — closer to the manuscript/Persianate warmth of the brief
+     than a stark high-contrast Didone like Bodoni Moda, which reads as a
+     very common "AI display serif" default.
+   ── ────────────────────────────────────────────────────────────────── */
+const sans = Manrope({
+  variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const bodoniModa = Bodoni_Moda({
+const display = Fraunces({
   variable: "--font-bodoni-moda",
   subsets: ["latin"],
   display: "swap",
@@ -127,15 +142,15 @@ export default async function RootLayout(props: {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const fontVars = [
-    inter.variable,
-    bodoniModa.variable,
+    sans.variable,
+    display.variable,
     notoMalayalam.variable,
     notoArabic.variable,
     reemKufi.variable,
   ].join(" ");
 
   return (
-    <html lang={locale} dir={dir} className={cn("h-full", "antialiased", fontVars, "font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang={locale} dir={dir} className={cn("h-full", "antialiased", fontVars, "font-sans")} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

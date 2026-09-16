@@ -162,8 +162,8 @@
   --color-spiritual-black: var(--color-black);
 
   /* Font families */
-  --font-display: var(--font-bodoni-moda);
-  --font-sans: var(--font-sans);
+  --font-display: var(--font-bodoni-moda); /* now bound to Fraunces — see layout.tsx */
+  --font-sans: var(--font-sans); /* now bound to Manrope — see layout.tsx */
   --font-malayalam: var(--font-noto-sans-malayalam);
   --font-arabic: var(--font-noto-naskh-arabic);
   --font-arabic-display: var(--font-reem-kufi);
@@ -236,12 +236,43 @@ html {
 }
 
 body {
-  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-sans, 'Manrope', system-ui, sans-serif);
   font-size: var(--text-base);
   line-height: 1.6;
   min-height: 100dvh;
   overflow-x: hidden;
   transition: background-color var(--transition-base), color var(--transition-base);
+  background-color: var(--background);
+  position: relative;
+}
+
+/* A faint, fixed watermark of the shrine tilework running the length of
+   the whole document (not per-section) — this is what keeps Schedule,
+   Speakers, Gallery, Location and Registration reading as one continuous
+   canvas rather than a stack of separately-colored blocks, in both light
+   and dark mode. `fixed` attachment means it doesn't repaint or shift as
+   sections scroll past it — a single cheap paint layer, kept at the same
+   low opacity used everywhere else this motif appears. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url('/motifs/arabesque-tile-pattern.svg');
+  background-repeat: repeat;
+  background-size: 160px 160px;
+}
+
+@media (max-width: 768px) {
+  body::before {
+    /* iOS Safari doesn't composite `position: fixed` backgrounds well on
+       long documents; falling back to absolute still repeats seamlessly
+       and costs nothing extra since it's a single background-image. */
+    position: absolute;
+    height: 100%;
+  }
 }
 
 /* Ensure reduced motion is respected globally */

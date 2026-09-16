@@ -1,6 +1,7 @@
 import React from "react";
 import ScheduleBuilder from "@/components/admin/ScheduleBuilder";
 import { getSessions, getSpeakers } from "@/lib/data";
+import { ArrowUpRight } from "lucide-react";
 
 export const metadata = {
   title: "Schedule Builder | Admin",
@@ -23,7 +24,7 @@ export default async function ScheduleBuilderPage() {
             rel="noreferrer"
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 text-gray-700 shadow-sm transition-colors"
           >
-            Preview on Site ↗
+            Preview on Site <ArrowUpRight className="inline w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" />
           </a>
         </div>
       </div>

@@ -5,6 +5,24 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Building2,
+  GraduationCap,
+  Zap,
+  CalendarRange,
+  Mic,
+  Armchair,
+  Radio,
+  Images,
+  PenLine,
+  ShieldCheck,
+  Menu,
+  X,
+  LogOut,
+  type LucideIcon,
+} from "lucide-react";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -19,42 +37,42 @@ export default function AdminSidebar() {
     router.push("/admin/login");
   };
 
-  const navSections = [
+  const navSections: { title: string; items: { label: string; href: string; Icon: LucideIcon; exact?: boolean; isAllRegs?: boolean; type?: string }[] }[] = [
     {
       title: "Overview",
       items: [
-        { label: "Dashboard", href: "/admin", icon: "📊", exact: true },
+        { label: "Dashboard", href: "/admin", Icon: LayoutDashboard, exact: true },
       ],
     },
     {
       title: "Registrations & Entries",
       items: [
-        { label: "All Registrations", href: "/admin/registrations", icon: "📋", isAllRegs: true },
-        { label: "Grand Assembly", href: "/admin/registrations?type=assembly", icon: "🏛️", type: "assembly" },
-        { label: "Darimi Session", href: "/admin/registrations?type=darimi", icon: "🎓", type: "darimi" },
-        { label: "Dynamic Sessions", href: "/admin/sessions", icon: "⚡", exact: true },
+        { label: "All Registrations", href: "/admin/registrations", Icon: ClipboardList, isAllRegs: true },
+        { label: "Grand Assembly", href: "/admin/registrations?type=assembly", Icon: Building2, type: "assembly" },
+        { label: "Darimi Session", href: "/admin/registrations?type=darimi", Icon: GraduationCap, type: "darimi" },
+        { label: "Dynamic Sessions", href: "/admin/sessions", Icon: Zap, exact: true },
       ],
     },
     {
       title: "Program & Venue",
       items: [
-        { label: "Schedule Builder", href: "/admin/schedule", icon: "🗓️", exact: true },
-        { label: "Speakers", href: "/admin/speakers", icon: "🎙️", exact: true },
-        { label: "Zones & Slots", href: "/admin/zones", icon: "💺", exact: true },
+        { label: "Schedule Builder", href: "/admin/schedule", Icon: CalendarRange, exact: true },
+        { label: "Speakers", href: "/admin/speakers", Icon: Mic, exact: true },
+        { label: "Zones & Slots", href: "/admin/zones", Icon: Armchair, exact: true },
       ],
     },
     {
       title: "Media & Broadcast",
       items: [
-        { label: "Live Stream Control", href: "/admin/live", icon: "🔴", exact: true },
-        { label: "Gallery Manager", href: "/admin/gallery", icon: "🖼️", exact: true },
+        { label: "Live Stream Control", href: "/admin/live", Icon: Radio, exact: true },
+        { label: "Gallery Manager", href: "/admin/gallery", Icon: Images, exact: true },
       ],
     },
     {
       title: "Administration",
       items: [
-        { label: "Content Manager", href: "/admin/content", icon: "✏️", exact: true },
-        { label: "System Audit Trail", href: "/admin/audit", icon: "🛡️", exact: true },
+        { label: "Content Manager", href: "/admin/content", Icon: PenLine, exact: true },
+        { label: "System Audit Trail", href: "/admin/audit", Icon: ShieldCheck, exact: true },
       ],
     },
   ];
@@ -80,7 +98,7 @@ export default function AdminSidebar() {
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           className="p-2.5 rounded-xl bg-[var(--color-navy)] text-white shadow-md focus:outline-none"
         >
-          {isMobileOpen ? "✕" : "☰"}
+          {isMobileOpen ? <X className="w-4 h-4" strokeWidth={2} /> : <Menu className="w-4 h-4" strokeWidth={2} />}
         </button>
       </div>
 
@@ -132,7 +150,7 @@ export default function AdminSidebar() {
                         : "text-white/75 hover:text-white hover:bg-white/8"
                     }`}
                   >
-                    <span className="text-sm">{item.icon}</span>
+                    <item.Icon className="w-4 h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
                     <span className="truncate">{item.label}</span>
                   </Link>
                 );
@@ -156,7 +174,9 @@ export default function AdminSidebar() {
                 <div className="text-[10px] text-white/50">admin@jeelani.org</div>
               </div>
             </div>
-            <span className="text-xs text-white/40 hover:text-white">🚪</span>
+            <span className="text-white/40 hover:text-white transition-colors">
+              <LogOut className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
+            </span>
           </button>
         </div>
       </aside>

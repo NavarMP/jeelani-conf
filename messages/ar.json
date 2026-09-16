@@ -70,7 +70,7 @@
     "heading": "سجّل الآن",
     "description": "اختر تسجيلك بناءً على مستوى اهتمامك ومشاركتك.",
     "grandAssembly": "التجمع الكبير",
-    "grandAssemblyMl": "മഹാ സമ്മേളനം",
+    "grandAssemblyMl": "അസ്-സനദുൽ മുത്തസ്വിൽ",
     "grandAssemblyDesc": "انضم إلى تجمع المؤتمر الرئيسي. يتم التسجيل عبر البوابة الرسمية.",
     "grandAssemblyType": "بوابة خارجية",
     "free": "مجاني",
@@ -196,7 +196,7 @@
     "imageSizeError": "يجب أن تكون الصورة أقل من 5 ميغابايت.",
     "submitting": "إرسال..."
   },
-  "DarimiAcademic": {
+  "AstroAIFiqh": {
     "backToOptions": "العودة لخيارات التسجيل →",
     "type": "عام • مدفوع",
     "heading": "الجلسات الأكاديمية",

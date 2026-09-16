@@ -4,6 +4,8 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { type Speaker } from "@/lib/data";
 import { useTranslations } from "next-intl";
+import { haptic } from "@/lib/haptics";
+import { useSectionEnterHaptic } from "@/hooks/useHaptics";
 
 function SpeakerCard({ speaker, index }: { speaker: Speaker; index: number }) {
   return (
@@ -12,7 +14,9 @@ function SpeakerCard({ speaker, index }: { speaker: Speaker; index: number }) {
       whileInView={{ y: 0, opacity: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
-      className="group text-center"
+      whileTap={{ scale: 0.95 }}
+      onTapStart={() => haptic("tap")}
+      className="group text-center cursor-pointer"
     >
       {/* Scalloped-seal photo frame */}
       <div className="relative w-28 h-28 md:w-32 md:h-32 mx-auto mb-3">
@@ -64,9 +68,10 @@ export function Speakers({ speakers }: { speakers: Speaker[] }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const t = useTranslations("Speakers");
+  useSectionEnterHaptic(isInView);
 
   return (
-    <section id="speakers" className="relative py-20 md:py-28 bg-[var(--surface)]" ref={ref}>
+    <section id="speakers" className="relative py-20 md:py-28" ref={ref}>
       <div className="container-site">
         {/* Section header */}
         <motion.div

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import React, { Suspense } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { ArrowUpRight } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -35,7 +36,7 @@ export default function AdminLayout({
               className="text-[var(--color-navy)] font-medium hover:underline flex items-center gap-1 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             >
               <span>View Site</span>
-              <span className="text-xs">↗</span>
+              <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" />
             </Link>
           </div>
         </header>
