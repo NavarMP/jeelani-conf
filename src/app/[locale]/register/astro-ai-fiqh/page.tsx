@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { CircleCheckBig } from "lucide-react";
+import { CircleCheckBig, ArrowRight } from "lucide-react";
 
 export default function DarimiAcademicRegistration() {
   const [formData, setFormData] = useState({
@@ -169,26 +169,24 @@ export default function DarimiAcademicRegistration() {
           <p className="text-sm text-[var(--text-secondary)] mb-2">{t("description")}</p>
 
           {/* Session list */}
-          <div className="bg-[var(--surface-elevated)] rounded-xl p-4 mb-8 border border-[var(--border)] space-y-2">
+          <div className="bg-[var(--surface-elevated)] rounded-xl p-4 mb-4 border border-[var(--border)] space-y-2">
             <div className="flex items-start gap-2 text-xs text-[var(--text-secondary)]">
               <span className="text-[var(--color-rose)] mt-0.5">●</span>
               <div>
-                <span className="font-semibold text-[var(--text-primary)]">2:00 PM – 3:00 PM</span> — {t("session1")}
+                <span className="font-semibold text-[var(--text-primary)]">3:00 PM – 5:00 PM</span> — {t("session1")}
               </div>
             </div>
             <div className="flex items-start gap-2 text-xs text-[var(--text-secondary)]">
               <span className="text-[var(--color-rose)] mt-0.5">●</span>
               <div>
-                <span className="font-semibold text-[var(--text-primary)]">3:00 PM – 5:00 PM</span> — {t("session2")}
-              </div>
-            </div>
-            <div className="flex items-start gap-2 text-xs text-[var(--text-secondary)]">
-              <span className="text-[var(--color-rose)] mt-0.5">●</span>
-              <div>
-                <span className="font-semibold text-[var(--text-primary)]">5:00 PM – 6:30 PM</span> — {t("session3")}
+                <span className="font-semibold text-[var(--text-primary)]">5:00 PM – 6:30 PM</span> — {t("session2")}
               </div>
             </div>
           </div>
+          
+          <Link href="/sessions/astro-ai-fiqh" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-turquoise)] hover:underline mb-8">
+            View Session Details <ArrowRight className="w-3 h-3" />
+          </Link>
         </motion.div>
 
         <motion.form onSubmit={handleSubmit} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }} className="space-y-5">

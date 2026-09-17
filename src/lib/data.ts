@@ -26,7 +26,9 @@ export interface Session {
   is_paid?: boolean;
   external_url?: string;
   registration_session_slug?: string;
+  parent_id?: string;
   speakers?: Speaker[];
+  programs?: Session[];
 }
 
 export interface RegistrationSession {
@@ -48,7 +50,11 @@ export interface RegistrationSession {
 
 export async function getSpeakers(): Promise<Speaker[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('speakers').select('*').order('order_index', { ascending: true });
+  const { data, error } = await supabase
+    .from('speakers')
+    .select('*')
+    .order('order_index', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true });
   if (error) {
     console.error("Error fetching speakers:", error);
     return [];
@@ -70,13 +76,46 @@ export async function getSessions(): Promise<Session[]> {
     console.error("Error fetching sessions:", error);
     return [];
   }
+  
+  if (!data) return [];
+  
+  const allSessions: Session[] = data;
+  const topLevelSessions = allSessions.filter(s => !s.parent_id);
+  const childSessions = allSessions.filter(s => s.parent_id);
+  
+  // Nest child sessions into their parents
+  topLevelSessions.forEach(parent => {
+    parent.programs = childSessions.filter(child => child.parent_id === parent.id);
+  });
+  
+  return topLevelSessions;
+}
+
+/** Returns ALL sessions as a flat array (no nesting). Used by admin. */
+export async function getAllSessionsFlat(): Promise<Session[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('sessions').select('*, speakers(*)').order('start_time', { ascending: true });
+  if (error) {
+    console.error("Error fetching all sessions flat:", error);
+    return [];
+  }
   return data || [];
 }
 
 export async function getSessionBySlug(slug: string): Promise<Session | null> {
   const supabase = await createClient();
   const { data, error } = await supabase.from('sessions').select('*, speakers(*)').eq('slug', slug).single();
-  if (error) return null;
+  if (error || !data) return null;
+
+  const { data: childPrograms } = await supabase
+    .from('sessions')
+    .select('*, speakers(*)')
+    .eq('parent_id', data.id)
+    .order('start_time', { ascending: true });
+
+  if (childPrograms && childPrograms.length > 0) {
+    data.programs = childPrograms;
+  }
   return data;
 }
 
@@ -87,7 +126,17 @@ export async function getSessionsByStage(stage: string): Promise<Session[]> {
     console.error("Error fetching sessions by stage:", error);
     return [];
   }
-  return data || [];
+  if (!data) return [];
+  
+  const allSessions: Session[] = data;
+  const topLevelSessions = allSessions.filter(s => !s.parent_id);
+  const childSessions = allSessions.filter(s => s.parent_id);
+  
+  topLevelSessions.forEach(parent => {
+    parent.programs = childSessions.filter(child => child.parent_id === parent.id);
+  });
+  
+  return topLevelSessions;
 }
 
 export async function getRegistrationSessions(): Promise<RegistrationSession[]> {
@@ -174,7 +223,7 @@ export async function getRecentRegistrations() {
   
   const allRegistrations = [
     ...(assemblyData || []).map(r => ({ ...r, type: 'Grand Assembly' })),
-    ...(darimiData || []).map(r => ({ ...r, type: 'Darimi Session' })),
+    ...(darimiData || []).map(r => ({ ...r, type: 'Astronomy & AI Fiqh' })),
     ...(dynamicData || []).map((r: any) => ({ ...r, type: r.session_slug || 'Dynamic' }))
   ];
   
@@ -192,7 +241,7 @@ export async function getAllRegistrations() {
   // Map them into a unified format
   const allRegistrations = [
     ...(assemblyData || []).map(r => ({ ...r, tableName: 'registrations_grand_assembly', typeSlug: 'assembly', typeName: 'Grand Assembly' })),
-    ...(darimiData || []).map(r => ({ ...r, tableName: 'registrations_darimi_session', typeSlug: 'darimi', typeName: 'Darimi Session' })),
+    ...(darimiData || []).map(r => ({ ...r, tableName: 'registrations_darimi_session', typeSlug: 'AstroAIFiqh', typeName: 'Astronomy & AI Fiqh' })),
     ...(dynamicData || []).map((r: any) => ({ ...r, tableName: 'dynamic_registrations', typeSlug: r.session_slug, typeName: r.registration_sessions?.title || r.session_slug }))
   ];
   
@@ -294,7 +343,7 @@ export async function getAuditTrailData() {
       timestamp: r.updated_at || r.created_at,
       admin: 'System / Gateway',
       ip: '192.168.1.12',
-      category: 'Darimi Session',
+      category: 'Astronomy & AI Fiqh',
       color: 'emerald',
       action: `Paid Entry ${r.registration_id} (${r.name})`,
       details: `Payment: ${r.payment_status} • Status: ${r.status}`

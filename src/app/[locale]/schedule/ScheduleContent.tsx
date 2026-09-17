@@ -33,7 +33,7 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
       initial={{ y: 15, opacity: 0 }}
       whileInView={{ y: 0, opacity: 1 }}
       viewport={{ once: true }}
-      className="group relative p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--color-turquoise)]/40 hover:bg-[var(--surface-elevated)]/60 hover:shadow-md transition-all cursor-pointer"
+      className="group relative p-4 sm:p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--color-turquoise)]/40 hover:bg-[var(--surface-elevated)]/60 hover:shadow-md transition-all cursor-pointer"
     >
       {/* Whole card clickable link */}
       <Link
@@ -42,13 +42,13 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
         aria-label={`View details for ${session.title}`}
       />
 
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-4">
         {/* Time column */}
-        <div className="shrink-0 text-center pt-1 min-w-[75px]">
-          <p className="text-base font-bold text-[var(--color-navy)] dark:text-[var(--color-turquoise)] leading-tight">
+        <div className="shrink-0 flex sm:flex-col items-center sm:items-center gap-2 sm:gap-0 sm:text-center sm:pt-1 sm:min-w-[75px]">
+          <p className="text-sm sm:text-base font-bold text-[var(--color-navy)] dark:text-[var(--color-turquoise)] leading-tight">
             {startTimeFormatted}
           </p>
-          <p className="text-xs text-[var(--text-muted)] mt-1 font-medium">
+          <p className="text-xs text-[var(--text-muted)] sm:mt-1 font-medium">
             {t("to")} {endTimeFormatted}
           </p>
         </div>
@@ -84,6 +84,36 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
           )}
 
           <p className="text-xs text-[var(--text-muted)] mt-2 leading-relaxed">{session.description}</p>
+
+          {/* Nested Programs */}
+          {session.programs && session.programs.length > 0 && (
+            <div className="mt-3 sm:mt-4 space-y-2.5 sm:space-y-3 pl-3 sm:pl-4 border-l-2 border-[var(--border)]">
+              {session.programs.map((program) => {
+                const progSpeakers = program.speakers || [];
+                return (
+                  <div key={program.id} className="relative group/prog">
+                    <p className="text-xs font-semibold text-[var(--color-navy)] dark:text-[var(--color-turquoise)] mb-1">
+                      {formatSessionTime(program.start_time)} - {formatSessionTime(program.end_time)}
+                    </p>
+                    <h4 className="text-sm font-medium text-[var(--text-primary)] group-hover/prog:text-[var(--color-turquoise)] transition-colors">
+                      {program.title}
+                    </h4>
+                    {program.title_ml && (
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>
+                        {program.title_ml}
+                      </p>
+                    )}
+                    {progSpeakers.length > 0 && (
+                      <p className="text-xs text-[var(--text-secondary)] mt-1.5 flex items-center gap-1.5">
+                        <Mic className="w-3 h-3 shrink-0" strokeWidth={2} aria-hidden="true" />
+                        {progSpeakers.map((s) => s.name).join(", ")}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Action row */}
           <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-[var(--border)]/50">
@@ -123,11 +153,15 @@ export function ScheduleContent({ sessions }: { sessions: Session[] }) {
 
   const filteredSessions = sessions
     .filter((s) => s.stage === activeStage)
-    .filter((s) =>
-      searchQuery === "" ||
-      s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    .filter((s) => {
+      if (searchQuery === "") return true;
+      const q = searchQuery.toLowerCase();
+      if (s.title.toLowerCase().includes(q) || s.description?.toLowerCase().includes(q)) return true;
+      if (s.programs) {
+        return s.programs.some(p => p.title.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.speakers?.some(sp => sp.name.toLowerCase().includes(q)));
+      }
+      return false;
+    });
 
   return (
     <div className="min-h-[100dvh] pt-24 pb-32">

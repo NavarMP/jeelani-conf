@@ -10,6 +10,7 @@ ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS slug VARCHAR(255) UNIQUE;
 ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT false;
 ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS external_url VARCHAR(1000);
 ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS registration_session_slug VARCHAR(255);
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES public.sessions(id) ON DELETE CASCADE;
 ALTER TABLE public.registration_sessions ADD COLUMN IF NOT EXISTS title_ml VARCHAR(255);
 ALTER TABLE public.registration_sessions ADD COLUMN IF NOT EXISTS description_ml TEXT;
 ALTER TABLE public.registration_sessions ADD COLUMN IF NOT EXISTS icon VARCHAR(10);
@@ -36,7 +37,7 @@ INSERT INTO public.speakers (id, name, name_ml, slug, title, bio, description, f
   ('a1000000-0000-0000-0000-000000000004', 'Misbahuddin Karakkuṉṉ', 'മിസ്ബാഹുദ്ദീൻ കാരക്കുന്ന്', 'misbahuddin', 'Scholar & Speaker', 'Scholar presenting on the aesthetics of self-purification alongside Hafiz Basheer Faizi.', 'Co-speaker at the Inaugural Ceremony.', false, 4),
   ('a1000000-0000-0000-0000-000000000005', 'Salim Faizi Kolathoor', 'സാലിം ഫൈസി കൊളത്തൂർ', 'salim-faizi', 'Speaker', 'Scholar presenting on Shaykh Jilani — his spirituality, life, and philosophy.', 'Speaker on Shaykh Jilani: Spirituality, Life & Philosophy.', true, 5),
   ('a1000000-0000-0000-0000-000000000006', 'Sayyid Sadiq Ali Shihab Thangal Panakkad', 'സയ്യിദ് സാദിഖ് അലി ശിഹാബ് തങ്ങൾ പാണക്കാട്', 'sayyid-sadiq-ali', 'Keynote Speaker', 'Keynote speaker at the Jeelani Conference evening session.', 'Keynote address at the Grand Jeelani Conference.', true, 6),
-  ('a1000000-0000-0000-0000-000000000007', 'Elamkulam Ustadh', 'ഏലംകുളം ഉസ്താദ്', 'elamkulam-ustadh', 'Scholar', 'Distinguished scholar at the Jeelani Conference.', 'Speaker at the Jeelani Conference evening session.', true, 7),
+  ('a1000000-0000-0000-0000-000000000007', 'Shaykhuna Elamkulam Bappu Musliyar', 'ശൈഖുനാ ഏലംകുളം ബാപ്പു മുസ്ലിയാർ', 'elamkulam-musliyar', 'Scholar', 'Distinguished scholar at the Jeelani Conference.', 'Speaker at the Jeelani Conference evening session.', true, 7),
   ('a1000000-0000-0000-0000-000000000008', 'Valiyuddeen Faizi', 'വലിയുദ്ധീൻ ഫൈസി', 'valiyuddeen-faizi', 'Speaker', 'Closing address speaker at Stage 1.', 'Closing address after the Jeelani Conference.', false, 8),
   ('a1000000-0000-0000-0000-000000000009', 'Sayyid Muhammed Koya Thangal Jamalullaily', 'സയ്യിദ് മുഹമ്മദ് കോയ തങ്ങൾ ജമലുല്ലൈലി', 'sayyid-muhammed-koya', 'Presiding Chair', 'Presiding chair of the Dars Management Meet.', 'Leading the Dars Management Meet on Stage 2.', true, 9),
   ('a1000000-0000-0000-0000-000000000010', 'Abdusamad Pookkottur', 'അബ്ദുസമദ് പൂക്കോട്ടൂർ', 'abdusamad-pookkottur', 'Speaker', 'Speaker on "Palli Dars: We Are the Successors of Tradition."', 'Speaking on preserving the Dars tradition.', false, 10),
@@ -56,11 +57,17 @@ INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time,
   ('b1000000-0000-0000-0000-000000000008', 'closing-address', 'Closing Address', 'സമാപന പ്രഭാഷണം', 'Closing address by Valiyuddeen Faizi.', '2026-09-27T21:00:00+05:30', '2026-09-27T22:00:00+05:30', 'stage1', 'talk', false, NULL);
 
 -- Step 4: Insert Sessions — Stage 2
-INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time, end_time, stage, type, is_paid, registration_session_slug) VALUES
-  ('b1000000-0000-0000-0000-000000000009', 'dars-management-meet', 'Dars Management Meet', 'ദർസ് മാനേജ്മെന്റ് മീറ്റ്', 'Palli Dars: We Are the Successors of Tradition. A meeting on managing and preserving the traditional Dars education system.', '2026-09-27T11:00:00+05:30', '2026-09-27T13:00:00+05:30', 'stage2', 'meeting', false, 'dars-management-meet'),
-  ('b1000000-0000-0000-0000-000000000010', 'astronomy-ai-fiqh', 'Astronomy and AI Fiqh', 'അസ്ട്രോണമി ആൻഡ് AI ഫിഖ്ഹ്', 'An exploration of the intersection of Astronomy, Artificial Intelligence, and Islamic Jurisprudence.', '2026-09-27T14:00:00+05:30', '2026-09-27T15:00:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh'),
-  ('b1000000-0000-0000-0000-000000000011', 'darimi-session', 'Dr. Musthafa Darimi Session', 'ഡോ. മുസ്തഫ ദാരിമി സെഷൻ', 'A specialized paid session by Dr. Musthafa Darimi Karippur.', '2026-09-27T15:00:00+05:30', '2026-09-27T17:00:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh'),
-  ('b1000000-0000-0000-0000-000000000012', 'ameer-husain-session', 'Ameer Husain Hudavi Session', 'അമീർ ഹുസൈൻ ഹുദവി സെഷൻ', 'Session by Ameer Husain Hudavi.', '2026-09-27T17:00:00+05:30', '2026-09-27T18:30:00+05:30', 'stage2', 'talk', false, 'astro-ai-fiqh);
+INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time, end_time, stage, type, is_paid, registration_session_slug, parent_id) VALUES
+  -- Parent Session for Dars Management Meet
+  ('b1000000-0000-0000-0000-000000000009', 'dars-management-meet', 'Dars Management Meet', 'ദർസ് മാനേജ്മെന്റ് മീറ്റ്', 'Palli Dars: We Are the Successors of Tradition. A meeting on managing and preserving the traditional Dars education system.', '2026-09-27T11:00:00+05:30', '2026-09-27T15:00:00+05:30', 'stage2', 'meeting', false, 'dars-management-meet', NULL),
+    -- Sub-programs for Dars Management
+    ('b1000000-0000-0000-0000-000000000109', 'dars-presidential', 'Presidential Address', 'അധ്യക്ഷ പ്രഭാഷണം', NULL, '2026-09-27T11:00:00+05:30', '2026-09-27T11:30:00+05:30', 'stage2', 'meeting', false, NULL, 'b1000000-0000-0000-0000-000000000009'),
+    ('b1000000-0000-0000-0000-000000000209', 'dars-talk', 'Palli Dars: We Are the Successors of Tradition', 'പള്ളിദർസ്: നാം പാരമ്പര്യത്തിൻ്റെ പിന്തുടർച്ചക്കാർ', NULL, '2026-09-27T11:30:00+05:30', '2026-09-27T13:00:00+05:30', 'stage2', 'talk', false, NULL, 'b1000000-0000-0000-0000-000000000009'),
+    ('b1000000-0000-0000-0000-000000000309', 'dars-management-talk', 'Management Talk', 'മാനേജ്മെന്റ് ടോക്ക്', NULL, '2026-09-27T14:00:00+05:30', '2026-09-27T15:00:00+05:30', 'stage2', 'talk', false, NULL, 'b1000000-0000-0000-0000-000000000009'),
+
+  -- Astronomy & AI Fiqh (Top level sessions, single registration)
+  ('b1000000-0000-0000-0000-000000000010', 'astronomy', 'Astronomy', 'അസ്ട്രോണമി', 'An exploration of Astronomy.', '2026-09-27T15:00:00+05:30', '2026-09-27T17:00:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh', NULL),
+  ('b1000000-0000-0000-0000-000000000011', 'ai-fiqh', 'AI Fiqh', 'AI ഫിഖ്ഹ്', 'An exploration of Artificial Intelligence in Islamic Jurisprudence.', '2026-09-27T17:00:00+05:30', '2026-09-27T18:30:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh', NULL);
 
 -- Step 5: Link Speakers to Sessions
 INSERT INTO public.session_speakers (session_id, speaker_id) VALUES
@@ -76,20 +83,19 @@ INSERT INTO public.session_speakers (session_id, speaker_id) VALUES
   ('b1000000-0000-0000-0000-000000000007', 'a1000000-0000-0000-0000-000000000007'), -- Elamkulam
   -- Closing Address
   ('b1000000-0000-0000-0000-000000000008', 'a1000000-0000-0000-0000-000000000008'), -- Valiyuddeen
-  -- Dars Management Meet
-  ('b1000000-0000-0000-0000-000000000009', 'a1000000-0000-0000-0000-000000000009'), -- Muhammed Koya
-  ('b1000000-0000-0000-0000-000000000009', 'a1000000-0000-0000-0000-000000000010'), -- Abdusamad
-  -- Astronomy and AI Fiqh
-  ('b1000000-0000-0000-0000-000000000010', 'a1000000-0000-0000-0000-000000000011'), -- Shahul Hameed
-  -- Darimi Session
-  ('b1000000-0000-0000-0000-000000000011', 'a1000000-0000-0000-0000-000000000012'), -- Darimi
-  -- Ameer Husain Session
-  ('b1000000-0000-0000-0000-000000000012', 'a1000000-0000-0000-0000-000000000013'); -- Ameer Husain
+  -- Dars Management Meet (Sub-programs)
+  ('b1000000-0000-0000-0000-000000000109', 'a1000000-0000-0000-0000-000000000009'), -- Muhammed Koya
+  ('b1000000-0000-0000-0000-000000000209', 'a1000000-0000-0000-0000-000000000010'), -- Abdusamad
+  ('b1000000-0000-0000-0000-000000000309', 'a1000000-0000-0000-0000-000000000011'), -- Shahul Hameed
+  -- Astronomy
+  ('b1000000-0000-0000-0000-000000000010', 'a1000000-0000-0000-0000-000000000012'), -- Darimi
+  -- AI Fiqh
+  ('b1000000-0000-0000-0000-000000000011', 'a1000000-0000-0000-0000-000000000013'); -- Ameer Husain
 
 -- Step 6: Insert Registration Sessions (for dynamic registration cards)
 INSERT INTO public.registration_sessions (slug, title, title_ml, description, description_ml, icon, color, price_label, form_type, is_open, is_archived, order_index) VALUES
   ('burda-qawwali', 'Burda & Qawwali Competition', 'ബുർദ & ഖവ്വാലി മത്സരം', 'Register your team for the Burda & Qawwali Competition grand finale.', 'ബുർദ & ഖവ്വാലി മത്സരത്തിന്റെ ഗ്രാൻഡ് ഫിനാലെയ്ക്ക് നിങ്ങളുടെ ടീമിനെ രജിസ്റ്റർ ചെയ്യുക.', '🎤', 'var(--color-brass)', 'Paid', 'burda', true, false, 1),
-  ('astro-ai-fiqh', 'Astronomy & AI Fiqh', 'അക്കാദമിക് സെഷനുകൾ', 'Register for the academic block: Astronomy & AI Fiqh, Dr. Musthafa Darimi Session, and Ameer Husain Hudavi Session.', 'അക്കാദമിക് ബ്ലോക്കിലേക്ക് രജിസ്റ്റർ ചെയ്യുക: അസ്ട്രോണമി & AI ഫിഖ്ഹ്, ഡോ. മുസ്തഫ ദാരിമി സെഷൻ, അമീർ ഹുസൈൻ ഹുദവി സെഷൻ.', '📚', 'var(--color-rose)', 'Paid', 'standard', true, false, 2),
+  ('astro-ai-fiqh', 'Astronomy & AI Fiqh', 'അക്കാദമിക് സെഷനുകൾ', 'Register for the academic block: Astronomy session by Dr. Musthafa Darimi and AI Fiqh session by Ameer Husain Hudavi.', 'അക്കാദമിക് ബ്ലോക്കിലേക്ക് രജിസ്റ്റർ ചെയ്യുക: അസ്ട്രോണമി സെഷൻ, AI ഫിഖ്ഹ് സെഷൻ.', '📚', 'var(--color-rose)', 'Paid', 'standard', true, false, 2),
   ('dars-management-meet', 'Dars Management Meet', 'ദർസ് മാനേജ്മെന്റ് മീറ്റ്', 'Register your mahall delegation for the Dars Management Meet. 1 to 5 members per mahall.', 'ദർസ് മാനേജ്മെന്റ് മീറ്റിലേക്ക് നിങ്ങളുടെ മഹല്ല് പ്രതിനിധി സംഘത്തെ രജിസ്റ്റർ ചെയ്യുക. ഒരു മഹല്ലിൽ നിന്ന് 1 മുതൽ 5 അംഗങ്ങൾ വരെ.', '🏛️', 'var(--color-navy)', 'Free', 'group', true, false, 3)
 ON CONFLICT (slug) DO UPDATE SET
   title = EXCLUDED.title,

@@ -2,14 +2,14 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { getAllRegistrations, getSessions, getSpeakers } from "@/lib/data";
+import { getAllRegistrations, getSessions, getAllSessionsFlat, getSpeakers } from "@/lib/data";
 
 export async function fetchRegistrationsAction() {
   return await getAllRegistrations();
 }
 
 export async function fetchScheduleDataAction() {
-  const [sessions, speakers] = await Promise.all([getSessions(), getSpeakers()]);
+  const [sessions, speakers] = await Promise.all([getAllSessionsFlat(), getSpeakers()]);
   return { sessions, speakers };
 }
 
@@ -64,7 +64,10 @@ export async function createSession(data: any) {
   if (!session) throw new Error("Unauthorized");
 
   const { error } = await supabase.from("sessions").insert(data);
-  if (error) throw new Error("Failed to create session");
+  if (error) {
+    console.error("Error creating session:", error);
+    throw new Error("Failed to create session: " + error.message);
+  }
   revalidatePath("/admin/schedule");
 }
 
@@ -75,7 +78,10 @@ export async function updateSession(id: string, data: any) {
 
   data.updated_at = new Date().toISOString();
   const { error } = await supabase.from("sessions").update(data).eq("id", id);
-  if (error) throw new Error("Failed to update session");
+  if (error) {
+    console.error("Error updating session:", error);
+    throw new Error("Failed to update session: " + error.message);
+  }
   revalidatePath("/admin/schedule");
 }
 
@@ -85,21 +91,30 @@ export async function deleteSession(id: string) {
   if (!session) throw new Error("Unauthorized");
 
   const { error } = await supabase.from("sessions").delete().eq("id", id);
-  if (error) throw new Error("Failed to delete session");
+  if (error) {
+    console.error("Error deleting session:", error);
+    throw new Error("Failed to delete session: " + error.message);
+  }
   revalidatePath("/admin/schedule");
 }
 
 export async function addSpeakerToSession(sessionId: string, speakerId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("session_speakers").insert({ session_id: sessionId, speaker_id: speakerId });
-  if (error) throw new Error("Failed to add speaker");
+  if (error) {
+    console.error("Error adding speaker to session:", error);
+    throw new Error("Failed to add speaker: " + error.message);
+  }
   revalidatePath("/admin/schedule");
 }
 
 export async function removeSpeakerFromSession(sessionId: string, speakerId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("session_speakers").delete().match({ session_id: sessionId, speaker_id: speakerId });
-  if (error) throw new Error("Failed to remove speaker");
+  if (error) {
+    console.error("Error removing speaker from session:", error);
+    throw new Error("Failed to remove speaker: " + error.message);
+  }
   revalidatePath("/admin/schedule");
 }
 
@@ -274,12 +289,70 @@ export async function updateLiveStream(stage: string, youtubeId: string, isLive:
 }
 
 export async function revalidateGuestPages() {
-  revalidatePath("/speakers");
-  revalidatePath("/guests");
-  revalidatePath("/schedule");
-  revalidatePath("/admin/schedule");
-  revalidatePath("/admin/guests");
   revalidatePath("/", "layout");
+  revalidatePath("/admin/guests");
+}
+
+export async function reorderGuestsAction(payload: any[]) {
+  const supabase = await createClient();
+
+  if (!payload || payload.length === 0) return { success: true };
+
+  // If full guest objects are passed, batch upsert directly (1 single roundtrip)
+  const isObjectList = typeof payload[0] === "object" && payload[0] !== null;
+
+  if (isObjectList) {
+    const toUpsert = payload.map((g, index) => ({
+      ...g,
+      order_index: index + 1,
+      updated_at: new Date().toISOString()
+    }));
+
+    const { error } = await supabase
+      .from("speakers")
+      .upsert(toUpsert, { onConflict: "id" });
+
+    if (error) {
+      console.error("Failed to batch upsert guest order:", error);
+      throw new Error("Failed to update guest order: " + error.message);
+    }
+  } else {
+    // If IDs are passed, fetch current guests and batch upsert
+    const { data: currentGuests, error: fetchErr } = await supabase
+      .from("speakers")
+      .select("*");
+
+    if (fetchErr || !currentGuests) {
+      throw new Error("Failed to fetch speakers for reordering: " + (fetchErr?.message || ""));
+    }
+
+    const guestMap = new Map(currentGuests.map(g => [g.id, g]));
+    const toUpsert: any[] = [];
+    payload.forEach((id: string, index: number) => {
+      const g = guestMap.get(id);
+      if (g) {
+        toUpsert.push({
+          ...g,
+          order_index: index + 1,
+          updated_at: new Date().toISOString()
+        });
+      }
+    });
+
+    if (toUpsert.length > 0) {
+      const { error } = await supabase
+        .from("speakers")
+        .upsert(toUpsert, { onConflict: "id" });
+
+      if (error) {
+        console.error("Failed to batch upsert guest order:", error);
+        throw new Error("Failed to update guest order: " + error.message);
+      }
+    }
+  }
+
+  await revalidateGuestPages();
+  return { success: true };
 }
 
 export async function saveBrochureUrlAction(url: string) {

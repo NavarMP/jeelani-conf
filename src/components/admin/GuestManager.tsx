@@ -2,8 +2,20 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Camera, Star, Trash2, LayoutGrid, List, Search, ArrowUpDown, GripVertical } from "lucide-react";
-import { revalidateGuestPages } from "@/app/[locale]/admin/actions";
+import { 
+  Camera, 
+  Star, 
+  Trash2, 
+  LayoutGrid, 
+  List, 
+  Search, 
+  GripVertical, 
+  ChevronUp, 
+  ChevronDown, 
+  CheckCircle2, 
+  Loader2 
+} from "lucide-react";
+import { revalidateGuestPages, reorderGuestsAction } from "@/app/[locale]/admin/actions";
 
 interface Guest {
   id: string;
@@ -31,7 +43,9 @@ export default function GuestManager() {
   const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
   const [dragOverGuestId, setDragOverGuestId] = useState<string | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Sync / saving status
+  const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "error" | null>(null);
+
   const supabase = createClient();
 
   const fetchGuests = async () => {
@@ -184,68 +198,104 @@ export default function GuestManager() {
     }
   };
 
-  // Reorder logic
-  const moveGuest = async (sourceId: string, targetId: string) => {
-    if (sourceId === targetId) return;
-
-    const sourceIndex = guests.findIndex(g => g.id === sourceId);
-    const targetIndex = guests.findIndex(g => g.id === targetId);
-    if (sourceIndex === -1 || targetIndex === -1) return;
+  // Reorder logic: Core function to move guest from one index to another
+  const moveGuestByIndex = async (sourceIndex: number, targetIndex: number) => {
+    if (
+      sourceIndex === targetIndex ||
+      sourceIndex < 0 ||
+      targetIndex < 0 ||
+      sourceIndex >= guests.length ||
+      targetIndex >= guests.length
+    ) {
+      return;
+    }
 
     const newGuests = [...guests];
     const [movedGuest] = newGuests.splice(sourceIndex, 1);
     newGuests.splice(targetIndex, 0, movedGuest);
 
-    // Reassign order indexes based on new array order
+    // Reassign order indexes (1-based)
     const updatedGuests = newGuests.map((g, index) => ({
       ...g,
-      order_index: index + 1
+      order_index: index + 1,
     }));
 
-    // Optimistic UI update
+    // Optimistically update UI immediately
     setGuests(updatedGuests);
+    setSaveStatus("saving");
 
     try {
-      // Update in DB safely using Promise.all to avoid upsert constraint issues
-      await Promise.all(
-        updatedGuests.map(g =>
-          supabase.from("speakers").update({ order_index: g.order_index }).eq("id", g.id)
-        )
-      );
-      await revalidateGuestPages();
+      await reorderGuestsAction(updatedGuests);
+      setSaveStatus("saved");
+      setTimeout(() => {
+        setSaveStatus(null);
+      }, 3000);
     } catch (error) {
-      console.error("Reorder failed, reverting:", error);
-      fetchGuests(); // Revert on error
+      console.warn("Server action failed, trying direct client sync:", error);
+      try {
+        const { error: clientErr } = await supabase
+          .from("speakers")
+          .upsert(
+            updatedGuests.map((g, idx) => ({
+              ...g,
+              order_index: idx + 1,
+              updated_at: new Date().toISOString(),
+            })),
+            { onConflict: "id" }
+          );
+        if (clientErr) throw clientErr;
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus(null), 3000);
+      } catch (fallbackErr) {
+        console.error("Reorder failed, reverting:", fallbackErr);
+        setSaveStatus("error");
+        alert("Failed to save reorder changes to the database. Reverting.");
+        fetchGuests();
+      }
     }
   };
 
+  const moveGuestById = (sourceId: string, targetId: string) => {
+    const sIdx = guests.findIndex((g) => g.id === sourceId);
+    const tIdx = guests.findIndex((g) => g.id === targetId);
+    if (sIdx !== -1 && tIdx !== -1) {
+      moveGuestByIndex(sIdx, tIdx);
+    }
+  };
+
+  // HTML5 Drag & Drop handlers
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedGuestId(id);
     e.dataTransfer.effectAllowed = "move";
-    // For visual feedback
-    const el = e.currentTarget as HTMLElement;
-    setTimeout(() => el.classList.add("opacity-50"), 0);
+    e.dataTransfer.setData("text/plain", id);
   };
 
   const handleDragOver = (e: React.DragEvent, id: string) => {
     e.preventDefault();
-    if (draggedGuestId && draggedGuestId !== id) {
+    e.dataTransfer.dropEffect = "move";
+    if (draggedGuestId && draggedGuestId !== id && dragOverGuestId !== id) {
       setDragOverGuestId(id);
     }
   };
 
-  const handleDragEnd = (e: React.DragEvent) => {
-    setDraggedGuestId(null);
-    setDragOverGuestId(null);
-    const el = e.currentTarget as HTMLElement;
-    el.classList.remove("opacity-50");
+  const handleDragLeave = (e: React.DragEvent, id: string) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    if (dragOverGuestId === id) {
+      setDragOverGuestId(null);
+    }
   };
 
-  const handleDrop = (e: React.DragEvent, id: string) => {
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
-    if (draggedGuestId && draggedGuestId !== id) {
-      moveGuest(draggedGuestId, id);
+    const sourceId = e.dataTransfer.getData("text/plain") || draggedGuestId;
+    if (sourceId && sourceId !== targetId) {
+      moveGuestById(sourceId, targetId);
     }
+    setDraggedGuestId(null);
+    setDragOverGuestId(null);
+  };
+
+  const handleDragEnd = () => {
     setDraggedGuestId(null);
     setDragOverGuestId(null);
   };
@@ -259,11 +309,29 @@ export default function GuestManager() {
 
   return (
     <div className="space-y-6">
+      {/* Header and Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Guest Management</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-gray-900">Guest Management</h2>
+            {saveStatus === "saving" && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full animate-pulse border border-blue-200">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving order...
+              </span>
+            )}
+            {saveStatus === "saved" && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 animate-in fade-in">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Order synced to home page
+              </span>
+            )}
+            {saveStatus === "error" && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded-full border border-red-200">
+                Error saving order
+              </span>
+            )}
+          </div>
           <p className="text-gray-500 text-sm mt-1">
-            Manage guests, speakers, VIPs. Changes sync with schedule and sessions.
+            Drag rows/cards or use ▲/▼ arrows to reorder guests. Featured guests appear on the home page in this exact order.
           </p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
@@ -280,12 +348,14 @@ export default function GuestManager() {
           <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200">
             <button
               onClick={() => setViewMode("table")}
+              title="Table view"
               className={`p-1.5 rounded-lg transition-colors ${viewMode === "table" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
             >
               <List className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode("grid")}
+              title="Grid view"
               className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
             >
               <LayoutGrid className="w-4 h-4" />
@@ -299,6 +369,20 @@ export default function GuestManager() {
           </button>
         </div>
       </div>
+
+      {searchQuery && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3.5 py-2 rounded-xl flex items-center justify-between">
+          <span>
+            Filtering is active ({filteredGuests.length} of {guests.length} shown). Clear search to reorder across all guests.
+          </span>
+          <button 
+            onClick={() => setSearchQuery("")} 
+            className="font-semibold underline hover:text-amber-900 ml-2"
+          >
+            Clear Search
+          </button>
+        </div>
+      )}
 
       {selectedIds.size > 0 && (
         <div className="bg-[var(--color-turquoise)]/10 border border-[var(--color-turquoise)]/20 rounded-xl p-3 flex items-center justify-between">
@@ -320,7 +404,7 @@ export default function GuestManager() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
+              <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200 select-none">
                 <tr>
                   <th className="px-4 py-3 w-10 text-center">
                     <input
@@ -330,7 +414,7 @@ export default function GuestManager() {
                       className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-gray-300"
                     />
                   </th>
-                  <th className="px-4 py-3 w-16">Reorder</th>
+                  <th className="px-4 py-3 w-32">Order / Move</th>
                   <th className="px-4 py-3">Photo</th>
                   <th className="px-4 py-3">Details</th>
                   <th className="px-4 py-3">Featured</th>
@@ -338,79 +422,164 @@ export default function GuestManager() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredGuests.map((guest, idx) => (
-                  <tr 
-                    key={guest.id} 
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, guest.id)}
-                    onDragOver={(e) => handleDragOver(e, guest.id)}
-                    onDragEnd={handleDragEnd}
-                    onDrop={(e) => handleDrop(e, guest.id)}
-                    className={`transition-all group ${
-                      dragOverGuestId === guest.id ? "bg-[var(--color-turquoise)]/10 border-t-2 border-[var(--color-turquoise)]" : "hover:bg-gray-50/50"
-                    }`}
-                  >
-                    <td className="px-4 py-3 text-center align-middle">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(guest.id)}
-                        onChange={() => toggleSelection(guest.id)}
-                        className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-gray-300"
-                      />
-                    </td>
-                    <td className="px-4 py-3 align-middle">
-                      <div className="cursor-grab hover:text-[var(--color-navy)] text-gray-400 active:cursor-grabbing">
-                        <GripVertical className="w-5 h-5" />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 align-middle">
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
-                        {guest.image_url ? (
-                          <img src={guest.image_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400"><Camera className="w-4 h-4" /></div>
-                        )}
-                        <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer transition-opacity">
-                          <Camera className="w-4 h-4 text-white" />
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handlePhotoUpload(guest.id, e.target.files[0]); }} />
-                        </label>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 align-middle">
-                      {editingGuest?.id === guest.id ? (
-                        <EditGuestForm guest={editingGuest} onSave={(updates) => handleUpdate(guest.id, updates)} onCancel={() => setEditingGuest(null)} />
-                      ) : (
-                        <div>
-                          <div className="font-bold text-gray-900">{guest.name}</div>
-                          {guest.name_ml && <div className="text-xs text-gray-500" style={{ fontFamily: "var(--font-malayalam-title)" }}>{guest.name_ml}</div>}
-                          <div className="text-xs text-[var(--color-turquoise)] font-medium mt-0.5">{guest.title}</div>
+                {filteredGuests.map((guest) => {
+                  const actualIdx = guests.findIndex((g) => g.id === guest.id);
+                  const isDragging = draggedGuestId === guest.id;
+                  const isOver = dragOverGuestId === guest.id;
+
+                  return (
+                    <tr 
+                      key={guest.id} 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, guest.id)}
+                      onDragOver={(e) => handleDragOver(e, guest.id)}
+                      onDragLeave={(e) => handleDragLeave(e, guest.id)}
+                      onDragEnd={handleDragEnd}
+                      onDrop={(e) => handleDrop(e, guest.id)}
+                      className={`transition-all ${
+                        isDragging ? "opacity-30 bg-gray-100" : ""
+                      } ${
+                        isOver ? "bg-[var(--color-turquoise)]/15 border-t-2 border-[var(--color-turquoise)] shadow-inner" : "hover:bg-gray-50/70"
+                      }`}
+                    >
+                      {/* Selection Checkbox */}
+                      <td className="px-4 py-3 text-center align-middle">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(guest.id)}
+                          onChange={() => toggleSelection(guest.id)}
+                          className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-gray-300"
+                        />
+                      </td>
+
+                      {/* Reorder: Grip Handle + #Badge + Up/Down Arrows */}
+                      <td className="px-4 py-3 align-middle select-none">
+                        <div className="flex items-center gap-1.5">
+                          <div 
+                            title="Drag to reorder" 
+                            className="p-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-[var(--color-navy)] rounded hover:bg-gray-100 transition-colors"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </div>
+
+                          <span className="w-7 text-center text-xs font-mono font-bold text-gray-600 bg-gray-100 border border-gray-200 px-1 py-0.5 rounded shadow-2xs">
+                            #{actualIdx + 1}
+                          </span>
+
+                          <div className="flex flex-col gap-0.5">
+                            <button
+                              type="button"
+                              disabled={actualIdx === 0 || saveStatus === "saving"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveGuestByIndex(actualIdx, actualIdx - 1);
+                              }}
+                              title="Move Up"
+                              className="p-0.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            >
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={actualIdx === guests.length - 1 || saveStatus === "saving"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveGuestByIndex(actualIdx, actualIdx + 1);
+                              }}
+                              title="Move Down"
+                              className="p-0.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            >
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 align-middle">
-                      <button
-                        onClick={() => handleUpdate(guest.id, { featured: !guest.featured })}
-                        className={`p-1.5 rounded-lg transition-colors ${guest.featured ? "bg-[var(--color-brass)]/10 text-[var(--color-brass)]" : "text-gray-300 hover:text-gray-500"}`}
-                      >
-                        <Star className="w-4 h-4" fill={guest.featured ? "currentColor" : "none"} />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3 align-middle text-right space-x-2">
-                      <button
-                        onClick={() => setEditingGuest(guest)}
-                        className="text-xs font-medium text-[var(--color-navy)] hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(guest.id)}
-                        className="text-xs font-medium text-red-600 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      {/* Photo */}
+                      <td className="px-4 py-3 align-middle">
+                        <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 select-none">
+                          {guest.image_url ? (
+                            <img 
+                              src={guest.image_url} 
+                              alt="" 
+                              draggable={false} 
+                              className="w-full h-full object-cover pointer-events-none" 
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <Camera className="w-4 h-4" />
+                            </div>
+                          )}
+                          <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer transition-opacity">
+                            <Camera className="w-4 h-4 text-white" />
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={(e) => { 
+                                if (e.target.files?.[0]) handlePhotoUpload(guest.id, e.target.files[0]); 
+                              }} 
+                            />
+                          </label>
+                        </div>
+                      </td>
+
+                      {/* Details */}
+                      <td className="px-4 py-3 align-middle">
+                        {editingGuest?.id === guest.id ? (
+                          <EditGuestForm 
+                            guest={editingGuest} 
+                            onSave={(updates) => handleUpdate(guest.id, updates)} 
+                            onCancel={() => setEditingGuest(null)} 
+                          />
+                        ) : (
+                          <div>
+                            <div className="font-bold text-gray-900">{guest.name}</div>
+                            {guest.name_ml && (
+                              <div className="text-xs text-gray-500" style={{ fontFamily: "var(--font-malayalam-title)" }}>
+                                {guest.name_ml}
+                              </div>
+                            )}
+                            <div className="text-xs text-[var(--color-turquoise)] font-medium mt-0.5">
+                              {guest.title || "No Title"}
+                            </div>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Featured (Star) */}
+                      <td className="px-4 py-3 align-middle">
+                        <button
+                          onClick={() => handleUpdate(guest.id, { featured: !guest.featured })}
+                          title={guest.featured ? "Featured on Home Page (click to unfeature)" : "Not Featured (click to feature on Home Page)"}
+                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            guest.featured 
+                              ? "bg-[var(--color-brass)]/15 text-[var(--color-brass)] ring-1 ring-[var(--color-brass)]/30" 
+                              : "text-gray-300 hover:text-gray-500 hover:bg-gray-100"
+                          }`}
+                        >
+                          <Star className="w-4 h-4" fill={guest.featured ? "currentColor" : "none"} />
+                        </button>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-4 py-3 align-middle text-right space-x-2">
+                        <button
+                          onClick={() => setEditingGuest(guest)}
+                          className="text-xs font-medium text-[var(--color-navy)] hover:underline cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(guest.id)}
+                          className="text-xs font-medium text-red-600 hover:underline cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {filteredGuests.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
@@ -425,94 +594,236 @@ export default function GuestManager() {
       ) : (
         /* Grid View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredGuests.map((guest) => (
-            <div 
-              key={guest.id} 
-              draggable
-              onDragStart={(e) => handleDragStart(e, guest.id)}
-              onDragOver={(e) => handleDragOver(e, guest.id)}
-              onDragEnd={handleDragEnd}
-              onDrop={(e) => handleDrop(e, guest.id)}
-              className={`bg-white rounded-xl border ${selectedIds.has(guest.id) ? "border-[var(--color-turquoise)] ring-1 ring-[var(--color-turquoise)]/20" : "border-gray-200"} shadow-sm overflow-hidden hover:shadow-md transition-all relative ${
-                dragOverGuestId === guest.id ? "scale-[1.02] ring-2 ring-[var(--color-turquoise)]" : ""
-              }`}
-            >
-              {/* Drag Handle */}
-              <div className="absolute top-3 right-3 z-10 cursor-grab active:cursor-grabbing bg-white/80 backdrop-blur-sm p-1 rounded text-gray-500 hover:text-[var(--color-navy)]">
-                <GripVertical className="w-4 h-4" />
-              </div>
-              
-              <div className="absolute top-3 left-3 z-10">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(guest.id)}
-                  onChange={() => toggleSelection(guest.id)}
-                  className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-gray-300 shadow-sm"
-                />
-              </div>
-              <div className="relative h-44 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-turquoise)] flex items-center justify-center">
-                {guest.image_url ? (
-                  <img src={guest.image_url} alt={guest.name} className="w-full h-full object-cover pointer-events-none" />
-                ) : (
-                  <svg viewBox="0 0 80 80" className="w-20 h-20 text-white/30" fill="currentColor">
-                    <circle cx="40" cy="28" r="14" />
-                    <path d="M15 72 Q15 50 40 45 Q65 50 65 72 Z" />
-                  </svg>
-                )}
-                <label className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors cursor-pointer group">
-                  <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full transition-opacity flex items-center gap-1.5">
-                    {isUploading === guest.id ? "Uploading..." : <><Camera className="w-3.5 h-3.5" /> Upload Photo</>}
-                  </span>
-                  <input type="file" accept="image/*" className="hidden" disabled={isUploading === guest.id} onChange={(e) => { if (e.target.files?.[0]) handlePhotoUpload(guest.id, e.target.files[0]); }} />
-                </label>
-                {guest.featured && (
-                  <span className="absolute top-2 right-10 px-2 py-0.5 bg-[var(--color-brass)] text-white text-[10px] font-bold rounded-full">
-                    Featured
-                  </span>
-                )}
-              </div>
-              <div className="p-4">
-                {editingGuest?.id === guest.id ? (
-                  <EditGuestForm guest={editingGuest} onSave={(updates) => handleUpdate(guest.id, updates)} onCancel={() => setEditingGuest(null)} />
-                ) : (
-                  <>
-                    <h3 className="font-bold text-gray-900 text-sm">{guest.name}</h3>
-                    {guest.name_ml && <p className="text-xs text-gray-500 mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>{guest.name_ml}</p>}
-                    <p className="text-xs text-[var(--color-turquoise)] font-medium mt-1">{guest.title}</p>
-                    <p className="text-xs text-gray-500 mt-2 line-clamp-2">{guest.bio}</p>
-                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
-                      <button onClick={() => setEditingGuest(guest)} className="flex-1 py-1.5 text-xs font-medium text-[var(--color-navy)] bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">Edit</button>
-                      <button onClick={() => handleUpdate(guest.id, { featured: !guest.featured })} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${guest.featured ? "bg-[var(--color-brass)]/10 text-[var(--color-brass)]" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
-                        <Star className="w-3.5 h-3.5" fill={guest.featured ? "currentColor" : "none"} />
+          {filteredGuests.map((guest) => {
+            const actualIdx = guests.findIndex((g) => g.id === guest.id);
+            const isDragging = draggedGuestId === guest.id;
+            const isOver = dragOverGuestId === guest.id;
+
+            return (
+              <div 
+                key={guest.id} 
+                draggable
+                onDragStart={(e) => handleDragStart(e, guest.id)}
+                onDragOver={(e) => handleDragOver(e, guest.id)}
+                onDragLeave={(e) => handleDragLeave(e, guest.id)}
+                onDragEnd={handleDragEnd}
+                onDrop={(e) => handleDrop(e, guest.id)}
+                className={`bg-white rounded-xl border ${
+                  selectedIds.has(guest.id) 
+                    ? "border-[var(--color-turquoise)] ring-2 ring-[var(--color-turquoise)]/20" 
+                    : "border-gray-200"
+                } shadow-sm overflow-hidden hover:shadow-md transition-all relative ${
+                  isDragging ? "opacity-30 scale-95" : ""
+                } ${
+                  isOver ? "scale-[1.02] ring-2 ring-[var(--color-turquoise)] shadow-lg" : ""
+                }`}
+              >
+                {/* Top Overlay Bar: Order Controls, Drag Handle, and Checkbox */}
+                <div className="absolute top-2.5 left-2.5 right-2.5 z-10 flex items-center justify-between select-none">
+                  <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2 py-1 rounded-lg shadow-sm border border-gray-200/80">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(guest.id)}
+                      onChange={() => toggleSelection(guest.id)}
+                      className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-gray-300 shadow-xs mr-0.5 cursor-pointer"
+                    />
+                    <div 
+                      title="Drag to rearrange" 
+                      className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-700 p-0.5"
+                    >
+                      <GripVertical className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[11px] font-mono font-bold text-gray-700 px-1 bg-gray-100 rounded border border-gray-200">
+                      #{actualIdx + 1}
+                    </span>
+                    <div className="flex items-center">
+                      <button
+                        type="button"
+                        disabled={actualIdx === 0 || saveStatus === "saving"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          moveGuestByIndex(actualIdx, actualIdx - 1);
+                        }}
+                        title="Move Up"
+                        className="p-0.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(guest.id)} className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
+                      <button
+                        type="button"
+                        disabled={actualIdx === guests.length - 1 || saveStatus === "saving"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          moveGuestByIndex(actualIdx, actualIdx + 1);
+                        }}
+                        title="Move Down"
+                        className="p-0.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </>
-                )}
+                  </div>
+
+                  {guest.featured && (
+                    <span className="px-2 py-0.5 bg-[var(--color-brass)] text-white text-[10px] font-bold rounded-full shadow-xs">
+                      Featured
+                    </span>
+                  )}
+                </div>
+
+                {/* Photo banner */}
+                <div className="relative h-44 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-turquoise)] flex items-center justify-center select-none">
+                  {guest.image_url ? (
+                    <img 
+                      src={guest.image_url} 
+                      alt={guest.name} 
+                      draggable={false} 
+                      className="w-full h-full object-cover pointer-events-none" 
+                    />
+                  ) : (
+                    <svg viewBox="0 0 80 80" className="w-20 h-20 text-white/30 pointer-events-none" fill="currentColor">
+                      <circle cx="40" cy="28" r="14" />
+                      <path d="M15 72 Q15 50 40 45 Q65 50 65 72 Z" />
+                    </svg>
+                  )}
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors cursor-pointer group">
+                    <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full transition-opacity flex items-center gap-1.5">
+                      {isUploading === guest.id ? "Uploading..." : <><Camera className="w-3.5 h-3.5" /> Upload Photo</>}
+                    </span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      disabled={isUploading === guest.id} 
+                      onChange={(e) => { 
+                        if (e.target.files?.[0]) handlePhotoUpload(guest.id, e.target.files[0]); 
+                      }} 
+                    />
+                  </label>
+                </div>
+
+                {/* Card Content */}
+                <div className="p-4">
+                  {editingGuest?.id === guest.id ? (
+                    <EditGuestForm 
+                      guest={editingGuest} 
+                      onSave={(updates) => handleUpdate(guest.id, updates)} 
+                      onCancel={() => setEditingGuest(null)} 
+                    />
+                  ) : (
+                    <>
+                      <h3 className="font-bold text-gray-900 text-sm">{guest.name}</h3>
+                      {guest.name_ml && (
+                        <p className="text-xs text-gray-500 mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>
+                          {guest.name_ml}
+                        </p>
+                      )}
+                      <p className="text-xs text-[var(--color-turquoise)] font-medium mt-1">{guest.title || "No Title"}</p>
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">{guest.bio}</p>
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                        <button 
+                          onClick={() => setEditingGuest(guest)} 
+                          className="flex-1 py-1.5 text-xs font-medium text-[var(--color-navy)] bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleUpdate(guest.id, { featured: !guest.featured })} 
+                          title={guest.featured ? "Unfeature from home page" : "Feature on home page"}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+                            guest.featured ? "bg-[var(--color-brass)]/15 text-[var(--color-brass)] ring-1 ring-[var(--color-brass)]/30" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                          }`}
+                        >
+                          <Star className="w-3.5 h-3.5" fill={guest.featured ? "currentColor" : "none"} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(guest.id)} 
+                          className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
-function EditGuestForm({ guest, onSave, onCancel }: { guest: Guest; onSave: (u: Partial<Guest>) => void; onCancel: () => void }) {
-  const [form, setForm] = useState({ name: guest.name, name_ml: guest.name_ml || "", title: guest.title, bio: guest.bio || "", description: guest.description || "" });
+function EditGuestForm({ 
+  guest, 
+  onSave, 
+  onCancel 
+}: { 
+  guest: Guest; 
+  onSave: (u: Partial<Guest>) => void; 
+  onCancel: () => void 
+}) {
+  const [form, setForm] = useState({ 
+    name: guest.name, 
+    name_ml: guest.name_ml || "", 
+    title: guest.title, 
+    bio: guest.bio || "", 
+    description: guest.description || "" 
+  });
+
   const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-[var(--color-turquoise)] focus:ring-1 focus:ring-[var(--color-turquoise)]/30";
+
   return (
     <div className="space-y-2">
-      <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name (EN)" className={inputClass} />
-      <input type="text" value={form.name_ml} onChange={(e) => setForm({ ...form, name_ml: e.target.value })} placeholder="Name (ML)" className={inputClass} />
-      <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Title / Role" className={inputClass} />
-      <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Short bio" rows={2} className={`${inputClass} resize-none`} />
-      <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detailed description" rows={2} className={`${inputClass} resize-none`} />
+      <input 
+        type="text" 
+        value={form.name} 
+        onChange={(e) => setForm({ ...form, name: e.target.value })} 
+        placeholder="Name (EN)" 
+        className={inputClass} 
+      />
+      <input 
+        type="text" 
+        value={form.name_ml} 
+        onChange={(e) => setForm({ ...form, name_ml: e.target.value })} 
+        placeholder="Name (ML)" 
+        className={inputClass} 
+      />
+      <input 
+        type="text" 
+        value={form.title} 
+        onChange={(e) => setForm({ ...form, title: e.target.value })} 
+        placeholder="Title / Role" 
+        className={inputClass} 
+      />
+      <textarea 
+        value={form.bio} 
+        onChange={(e) => setForm({ ...form, bio: e.target.value })} 
+        placeholder="Short bio" 
+        rows={2} 
+        className={`${inputClass} resize-none`} 
+      />
+      <textarea 
+        value={form.description} 
+        onChange={(e) => setForm({ ...form, description: e.target.value })} 
+        placeholder="Detailed description" 
+        rows={2} 
+        className={`${inputClass} resize-none`} 
+      />
       <div className="flex gap-2">
-        <button onClick={() => onSave(form)} className="flex-1 py-1.5 text-xs font-medium bg-[var(--color-turquoise)] text-white rounded-lg hover:bg-[var(--color-turquoise)]/90 transition-colors">Save</button>
-        <button onClick={onCancel} className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+        <button 
+          onClick={() => onSave(form)} 
+          className="flex-1 py-1.5 text-xs font-medium bg-[var(--color-turquoise)] text-white rounded-lg hover:bg-[var(--color-turquoise)]/90 transition-colors cursor-pointer"
+        >
+          Save
+        </button>
+        <button 
+          onClick={onCancel} 
+          className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );

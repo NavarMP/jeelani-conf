@@ -4,11 +4,20 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Enum for registration statuses
-CREATE TYPE registration_status AS ENUM ('pending', 'confirmed', 'cancelled');
-CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
+DO $$ BEGIN
+    CREATE TYPE registration_status AS ENUM ('pending', 'confirmed', 'cancelled');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- 1. Grand Assembly Registrations (Private/Invite)
-CREATE TABLE public.registrations_grand_assembly (
+CREATE TABLE IF NOT EXISTS public.registrations_grand_assembly (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     registration_id VARCHAR(20) UNIQUE NOT NULL, -- e.g., REG-2026-X79M
     name VARCHAR(255) NOT NULL,
@@ -25,7 +34,7 @@ CREATE TABLE public.registrations_grand_assembly (
 );
 
 -- 2. Musthafa Darimi Session Registrations (Paid)
-CREATE TABLE public.registrations_darimi_session (
+CREATE TABLE IF NOT EXISTS public.registrations_darimi_session (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     registration_id VARCHAR(20) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
@@ -42,7 +51,7 @@ CREATE TABLE public.registrations_darimi_session (
 );
 
 -- 3. Paper Presentation Registrations (Free) — ARCHIVED, kept for historical data
-CREATE TABLE public.registrations_paper_presentation (
+CREATE TABLE IF NOT EXISTS public.registrations_paper_presentation (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     registration_id VARCHAR(20) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
@@ -59,7 +68,7 @@ CREATE TABLE public.registrations_paper_presentation (
 );
 
 -- 4. Speakers
-CREATE TABLE public.speakers (
+CREATE TABLE IF NOT EXISTS public.speakers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     name_ml VARCHAR(255),
@@ -75,7 +84,7 @@ CREATE TABLE public.speakers (
 );
 
 -- 5. Sessions (Schedule)
-CREATE TABLE public.sessions (
+CREATE TABLE IF NOT EXISTS public.sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     slug VARCHAR(255) UNIQUE,
     title VARCHAR(255) NOT NULL,
@@ -94,21 +103,21 @@ CREATE TABLE public.sessions (
 );
 
 -- 6. Session Speakers (Many-to-Many)
-CREATE TABLE public.session_speakers (
+CREATE TABLE IF NOT EXISTS public.session_speakers (
     session_id UUID REFERENCES public.sessions(id) ON DELETE CASCADE,
     speaker_id UUID REFERENCES public.speakers(id) ON DELETE CASCADE,
     PRIMARY KEY (session_id, speaker_id)
 );
 
 -- 7. Global Settings (Key-Value)
-CREATE TABLE public.global_settings (
+CREATE TABLE IF NOT EXISTS public.global_settings (
     key VARCHAR(255) PRIMARY KEY,
     value JSONB NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 8. Live Streams
-CREATE TABLE public.live_streams (
+CREATE TABLE IF NOT EXISTS public.live_streams (
     stage VARCHAR(50) PRIMARY KEY,
     youtube_id VARCHAR(255),
     is_live BOOLEAN DEFAULT false,
@@ -116,7 +125,7 @@ CREATE TABLE public.live_streams (
 );
 
 -- 9. Zones
-CREATE TABLE public.zones (
+CREATE TABLE IF NOT EXISTS public.zones (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     capacity INTEGER NOT NULL,
@@ -136,22 +145,27 @@ END;
 $$ language 'plpgsql';
 
 -- Attach triggers
+DROP TRIGGER IF EXISTS update_reg_assembly_modtime ON registrations_grand_assembly;
 CREATE TRIGGER update_reg_assembly_modtime
     BEFORE UPDATE ON registrations_grand_assembly
     FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
+DROP TRIGGER IF EXISTS update_reg_darimi_modtime ON registrations_darimi_session;
 CREATE TRIGGER update_reg_darimi_modtime
     BEFORE UPDATE ON registrations_darimi_session
     FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
+DROP TRIGGER IF EXISTS update_reg_paper_modtime ON registrations_paper_presentation;
 CREATE TRIGGER update_reg_paper_modtime
     BEFORE UPDATE ON registrations_paper_presentation
     FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
+DROP TRIGGER IF EXISTS update_speakers_modtime ON speakers;
 CREATE TRIGGER update_speakers_modtime
     BEFORE UPDATE ON speakers
     FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
+DROP TRIGGER IF EXISTS update_sessions_modtime ON sessions;
 CREATE TRIGGER update_sessions_modtime
     BEFORE UPDATE ON sessions
     FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
@@ -168,28 +182,47 @@ ALTER TABLE public.live_streams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.zones ENABLE ROW LEVEL SECURITY;
 
 -- Policies
+DROP POLICY IF EXISTS "Allow public insert on assembly" ON public.registrations_grand_assembly;
 CREATE POLICY "Allow public insert on assembly" ON public.registrations_grand_assembly FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public insert on darimi" ON public.registrations_darimi_session;
 CREATE POLICY "Allow public insert on darimi" ON public.registrations_darimi_session FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public insert on paper" ON public.registrations_paper_presentation;
 CREATE POLICY "Allow public insert on paper" ON public.registrations_paper_presentation FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow public select on speakers" ON public.speakers;
 CREATE POLICY "Allow public select on speakers" ON public.speakers FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admin manage speakers" ON public.speakers;
 CREATE POLICY "Admin manage speakers" ON public.speakers FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow public select on sessions" ON public.sessions;
 CREATE POLICY "Allow public select on sessions" ON public.sessions FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admin manage sessions" ON public.sessions;
 CREATE POLICY "Admin manage sessions" ON public.sessions FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow public select on session_speakers" ON public.session_speakers;
 CREATE POLICY "Allow public select on session_speakers" ON public.session_speakers FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admin manage session_speakers" ON public.session_speakers;
 CREATE POLICY "Admin manage session_speakers" ON public.session_speakers FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow public select on global_settings" ON public.global_settings;
 CREATE POLICY "Allow public select on global_settings" ON public.global_settings FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public select on live_streams" ON public.live_streams;
 CREATE POLICY "Allow public select on live_streams" ON public.live_streams FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public select on zones" ON public.zones;
 CREATE POLICY "Allow public select on zones" ON public.zones FOR SELECT USING (true);
 
 -- ==============================================================================
 -- DYNAMIC REGISTRATIONS
 -- ==============================================================================
 
-CREATE TABLE public.registration_sessions (
+CREATE TABLE IF NOT EXISTS public.registration_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     slug VARCHAR(255) UNIQUE NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -208,7 +241,7 @@ CREATE TABLE public.registration_sessions (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE public.dynamic_registrations (
+CREATE TABLE IF NOT EXISTS public.dynamic_registrations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     registration_id VARCHAR(50) UNIQUE NOT NULL,
     session_slug VARCHAR(255) REFERENCES public.registration_sessions(slug) ON DELETE CASCADE,
@@ -223,75 +256,36 @@ CREATE TABLE public.dynamic_registrations (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS update_reg_sessions_modtime ON registration_sessions;
 CREATE TRIGGER update_reg_sessions_modtime BEFORE UPDATE ON registration_sessions FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+DROP TRIGGER IF EXISTS update_dynamic_regs_modtime ON dynamic_registrations;
 CREATE TRIGGER update_dynamic_regs_modtime BEFORE UPDATE ON dynamic_registrations FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
 ALTER TABLE public.registration_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dynamic_registrations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow public select on active sessions" ON public.registration_sessions;
 CREATE POLICY "Allow public select on active sessions" ON public.registration_sessions FOR SELECT USING (is_archived = false);
+
+DROP POLICY IF EXISTS "Allow public insert on dynamic registrations" ON public.dynamic_registrations;
 CREATE POLICY "Allow public insert on dynamic registrations" ON public.dynamic_registrations FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin manage sessions" ON public.registration_sessions;
 CREATE POLICY "Admin manage sessions" ON public.registration_sessions FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Admin read dynamic registrations" ON public.dynamic_registrations;
 CREATE POLICY "Admin read dynamic registrations" ON public.dynamic_registrations FOR SELECT USING (true);
-
--- ==============================================================================
--- GALLERY
--- ==============================================================================
-
-CREATE TABLE public.gallery_categories (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) UNIQUE NOT NULL,
-    slug VARCHAR(255) UNIQUE NOT NULL,
-    order_index INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE public.gallery_media (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    title VARCHAR(255) NOT NULL,
-    category_id UUID REFERENCES public.gallery_categories(id) ON DELETE CASCADE,
-    url VARCHAR(1000) NOT NULL,
-    aspect VARCHAR(50) DEFAULT '16/9',
-    color VARCHAR(50),
-    is_published BOOLEAN DEFAULT true,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TRIGGER update_gallery_cat_modtime BEFORE UPDATE ON gallery_categories FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
-CREATE TRIGGER update_gallery_media_modtime BEFORE UPDATE ON gallery_media FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
-
-ALTER TABLE public.gallery_categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.gallery_media ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow public select on gallery categories" ON public.gallery_categories FOR SELECT USING (true);
-CREATE POLICY "Admin manage gallery categories" ON public.gallery_categories FOR ALL USING (true);
-
-CREATE POLICY "Allow public select on published media" ON public.gallery_media FOR SELECT USING (is_published = true);
-CREATE POLICY "Admin manage gallery media" ON public.gallery_media FOR ALL USING (true);
-
 
 -- ==============================================================================
 -- STORAGE BUCKETS
 -- ==============================================================================
 INSERT INTO storage.buckets (id, name, public) VALUES ('receipts', 'receipts', true) ON CONFLICT (id) DO NOTHING;
 INSERT INTO storage.buckets (id, name, public) VALUES ('speaker-photos', 'speaker-photos', true) ON CONFLICT (id) DO NOTHING;
-
-CREATE POLICY "Public can upload receipts" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'receipts');
-CREATE POLICY "Public can view receipts" ON storage.objects FOR SELECT USING (bucket_id = 'receipts');
-CREATE POLICY "Public can view speaker photos" ON storage.objects FOR SELECT USING (bucket_id = 'speaker-photos');
-CREATE POLICY "Allow upload speaker photos" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'speaker-photos');
-CREATE POLICY "Allow update speaker photos" ON storage.objects FOR UPDATE USING (bucket_id = 'speaker-photos') WITH CHECK (bucket_id = 'speaker-photos');
-CREATE POLICY "Allow delete speaker photos" ON storage.objects FOR DELETE USING (bucket_id = 'speaker-photos');
 INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', true) ON CONFLICT (id) DO NOTHING;
-CREATE POLICY "Public can view documents" ON storage.objects FOR SELECT USING (bucket_id = 'documents');
-CREATE POLICY "Allow upload documents" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'documents');
-CREATE POLICY "Allow update documents" ON storage.objects FOR UPDATE USING (bucket_id = 'documents') WITH CHECK (bucket_id = 'documents');
-CREATE POLICY "Allow delete documents" ON storage.objects FOR DELETE USING (bucket_id = 'documents');
 
-INSERT INTO storage.buckets (id, name, public) VALUES ('gallery-media', 'gallery-media', true) ON CONFLICT (id) DO NOTHING;
-CREATE POLICY "Public can view gallery media" ON storage.objects FOR SELECT USING (bucket_id = 'gallery-media');
-CREATE POLICY "Allow upload gallery media" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'gallery-media');
-CREATE POLICY "Allow update gallery media" ON storage.objects FOR UPDATE USING (bucket_id = 'gallery-media') WITH CHECK (bucket_id = 'gallery-media');
-CREATE POLICY "Allow delete gallery media" ON storage.objects FOR DELETE USING (bucket_id = 'gallery-media');
+DROP POLICY IF EXISTS "Public can upload receipts" ON storage.objects;
+CREATE POLICY "Public can upload receipts" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'receipts');
+
+DROP POLICY IF EXISTS "Public can view receipts" ON storage.objects;
+CREATE POLICY "Public can view receipts" ON storage.objects FOR SELECT USING (bucket_id = 'receipts');

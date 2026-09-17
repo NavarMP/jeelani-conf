@@ -1,86 +1,201 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
-
-interface GalleryMediaItem {
-  id: string;
-  title: string;
-  category: string;
-  url?: string;
-  aspect: string;
-  color?: string;
-  isPublished: boolean;
-  createdAt: string;
-}
-
-const initialMedia: GalleryMediaItem[] = [
-  { id: "1", title: "Conference Hall Grand Setup", category: "Architecture", aspect: "4/3", color: "from-[#103E79] to-[#218EB6]", isPublished: true, createdAt: "2026-09-10" },
-  { id: "2", title: "Stage Design & Lighting", category: "Architecture", aspect: "16/9", color: "from-[#218EB6] to-[#103E79]", isPublished: true, createdAt: "2026-09-11" },
-  { id: "3", title: "Arabesque Details & Motifs", category: "Calligraphy", aspect: "1/1", color: "from-[#BA6473] to-[#103E79]", isPublished: true, createdAt: "2026-09-12" },
-  { id: "4", title: "Scholarly Discourse Round Table", category: "Gatherings", aspect: "3/2", color: "from-[#103E79] to-[#2B2A29]", isPublished: true, createdAt: "2026-09-13" },
-  { id: "5", title: "Islamic Calligraphy Artwork", category: "Calligraphy", aspect: "4/5", color: "from-[#218EB6] to-[#BA6473]", isPublished: false, createdAt: "2026-09-13" },
-  { id: "6", title: "Mawlid Gathering Audience", category: "Gatherings", aspect: "16/9", color: "from-[#2B2A29] to-[#103E79]", isPublished: true, createdAt: "2026-09-14" },
-  { id: "7", title: "Lamp Brass Detail & Ambient", category: "Heritage", aspect: "3/4", color: "from-[#FFC800]/50 to-[#103E79]", isPublished: true, createdAt: "2026-09-14" },
-  { id: "8", title: "Dome Interior Acoustics", category: "Architecture", aspect: "1/1", color: "from-[#103E79] to-[#218EB6]", isPublished: false, createdAt: "2026-09-15" },
-];
+import { X, Upload, Trash2, CheckSquare, Square, Edit2, Plus, Eye, EyeOff } from "lucide-react";
+import { 
+  getGalleryCategories, 
+  createGalleryCategory, 
+  updateGalleryCategory, 
+  deleteGalleryCategory,
+  getGalleryMedia,
+  uploadGalleryMedia,
+  togglePublishGalleryMedia,
+  deleteGalleryMedia,
+  bulkDeleteGalleryMedia,
+  bulkTogglePublishGalleryMedia
+} from "@/app/[locale]/admin/gallery-actions";
 
 export default function GalleryManager() {
-  const [items, setItems] = useState<GalleryMediaItem[]>(initialMedia);
+  const [items, setItems] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  
+  // Modals
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [previewItem, setPreviewItem] = useState<GalleryMediaItem | null>(null);
+  const [isCategoryManageOpen, setIsCategoryManageOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<any | null>(null);
+
+  // Loading states
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Bulk Selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // New Media Form state
   const [newTitle, setNewTitle] = useState("");
-  const [newCategory, setNewCategory] = useState("Architecture");
+  const [newCategory, setNewCategory] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [newAspect, setNewAspect] = useState("16/9");
   const [newPublished, setNewPublished] = useState(true);
+  const [files, setFiles] = useState<File[]>([]);
+  
+  // Category Form state
+  const [editingCategory, setEditingCategory] = useState<any | null>(null);
 
-  const categories = ["All", "Architecture", "Calligraphy", "Gatherings", "Heritage", "Nature", "Event Day"];
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [cats, media] = await Promise.all([
+        getGalleryCategories(),
+        getGalleryMedia()
+      ]);
+      setCategories(cats || []);
+      if (cats && cats.length > 0 && !newCategory) {
+        setNewCategory(cats[0].id);
+      }
+      setItems(media || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredItems = items
-    .filter((item) => (categoryFilter === "All" ? true : item.category === categoryFilter))
+    .filter((item) => (categoryFilter === "All" ? true : item.category?.name === categoryFilter))
     .sort((a, b) => {
-      const tA = new Date(a.createdAt).getTime();
-      const tB = new Date(b.createdAt).getTime();
+      const tA = new Date(a.created_at).getTime();
+      const tB = new Date(b.created_at).getTime();
       return sortOrder === "newest" ? tB - tA : tA - tB;
     });
 
-  const handleAddItem = (e: React.FormEvent) => {
+  // --- Category Handlers ---
+  const handleCategorySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
-
-    const newItem: GalleryMediaItem = {
-      id: String(Date.now()),
-      title: newTitle.trim(),
-      category: newCategory,
-      url: newUrl.trim() || undefined,
-      aspect: newAspect,
-      color: "from-[var(--color-navy)] to-[var(--color-turquoise)]",
-      isPublished: newPublished,
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-
-    setItems([newItem, ...items]);
-    setIsAddOpen(false);
-    setNewTitle("");
-    setNewUrl("");
+    setIsSaving(true);
+    const formData = new FormData(e.currentTarget);
+    
+    if (editingCategory) {
+      await updateGalleryCategory(editingCategory.id, formData);
+      setEditingCategory(null);
+    } else {
+      await createGalleryCategory(formData);
+    }
+    
+    (e.target as HTMLFormElement).reset();
+    await loadData();
+    setIsSaving(false);
   };
 
-  const handleTogglePublish = (id: string) => {
-    setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, isPublished: !it.isPublished } : it))
-    );
+  const handleDeleteCategory = async (id: string, name: string) => {
+    if (!confirm(`Delete category "${name}"? This will delete all associated media!`)) return;
+    setIsSaving(true);
+    await deleteGalleryCategory(id);
+    await loadData();
+    setIsSaving(false);
   };
 
-  const handleDelete = (id: string, title: string) => {
+  // --- Media Handlers ---
+  const handleAddItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (files.length === 0 && !newUrl) return alert("Please select a file or provide a URL.");
+    if (!newCategory) return alert("Please select a category.");
+
+    setIsSaving(true);
+    
+    try {
+      if (files.length > 0) {
+        // Bulk Upload
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("title", files.length > 1 ? `${newTitle} ${i + 1}` : newTitle);
+          fd.append("category_id", newCategory);
+          fd.append("aspect", newAspect);
+          fd.append("is_published", String(newPublished));
+          
+          await uploadGalleryMedia(fd);
+        }
+      } else if (newUrl) {
+        // URL only
+        const fd = new FormData();
+        fd.append("url", newUrl);
+        fd.append("title", newTitle);
+        fd.append("category_id", newCategory);
+        fd.append("aspect", newAspect);
+        fd.append("is_published", String(newPublished));
+        
+        await uploadGalleryMedia(fd);
+      }
+      
+      setIsAddOpen(false);
+      setNewTitle("");
+      setNewUrl("");
+      setFiles([]);
+      await loadData();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to upload media.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleTogglePublish = async (id: string, current: boolean) => {
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, is_published: !current } : it)));
+    await togglePublishGalleryMedia(id, current);
+  };
+
+  const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
     setItems((prev) => prev.filter((it) => it.id !== id));
+    await deleteGalleryMedia(id);
   };
+
+  // --- Bulk Handlers ---
+  const toggleSelection = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === filteredItems.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredItems.map(i => i.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Delete ${selectedIds.size} selected items?`)) return;
+    setIsSaving(true);
+    await bulkDeleteGalleryMedia(Array.from(selectedIds));
+    setSelectedIds(new Set());
+    await loadData();
+    setIsSaving(false);
+  };
+
+  const handleBulkPublish = async (status: boolean) => {
+    setIsSaving(true);
+    await bulkTogglePublishGalleryMedia(Array.from(selectedIds), status);
+    setSelectedIds(new Set());
+    await loadData();
+    setIsSaving(false);
+  };
+
+  if (isLoading) {
+    return <div className="p-8 text-center text-gray-500">Loading Gallery...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -92,42 +207,77 @@ export default function GalleryManager() {
             Curate photo collections, exhibition visuals, and public event media
           </p>
         </div>
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="px-4 py-2 rounded-xl text-sm font-medium bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 shadow-sm transition-colors flex items-center gap-2 self-start sm:self-auto"
-        >
-          <span>＋</span> Add Media
-        </button>
+        <div className="flex gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setIsCategoryManageOpen(true)}
+            className="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-sm transition-colors flex items-center gap-2"
+          >
+            Manage Categories
+          </button>
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="px-4 py-2 rounded-xl text-sm font-medium bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 shadow-sm transition-colors flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" /> Add Media
+          </button>
+        </div>
       </div>
 
-      {/* Filters bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
-        <div className="flex flex-wrap gap-2">
+      {/* Bulk Actions & Filters */}
+      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col lg:flex-row gap-4 justify-between items-center">
+        
+        {/* Categories */}
+        <div className="flex flex-wrap gap-2 flex-1">
+          <button
+            onClick={() => setCategoryFilter("All")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              categoryFilter === "All" ? "bg-[var(--color-navy)] text-white" : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            All
+          </button>
           {categories.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
+              key={cat.id}
+              onClick={() => setCategoryFilter(cat.name)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                categoryFilter === cat
+                categoryFilter === cat.name
                   ? "bg-[var(--color-navy)] text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              {cat}
+              {cat.name}
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>Sort by:</span>
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
-            className="border border-gray-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-[var(--color-turquoise)] bg-white font-medium text-gray-700"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-          </select>
+        {/* Bulk Actions */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+            <span className="text-xs font-bold text-amber-800">{selectedIds.size} Selected</span>
+            <div className="h-4 w-px bg-amber-300 mx-1"></div>
+            <button onClick={() => handleBulkPublish(true)} className="text-xs font-medium text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded transition-colors" title="Publish Selected"><Eye className="w-4 h-4"/></button>
+            <button onClick={() => handleBulkPublish(false)} className="text-xs font-medium text-gray-700 hover:bg-gray-200 px-2 py-1 rounded transition-colors" title="Unpublish Selected"><EyeOff className="w-4 h-4"/></button>
+            <button onClick={handleBulkDelete} className="text-xs font-medium text-red-700 hover:bg-red-100 px-2 py-1 rounded transition-colors" title="Delete Selected"><Trash2 className="w-4 h-4"/></button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-4 text-xs text-gray-500 shrink-0">
+          <button onClick={selectAll} className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+            {selectedIds.size === filteredItems.length && filteredItems.length > 0 ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+            Select All
+          </button>
+          <div className="flex items-center gap-2">
+            <span>Sort by:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
+              className="border border-gray-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-[var(--color-turquoise)] bg-white font-medium text-gray-700"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -136,8 +286,20 @@ export default function GalleryManager() {
         {filteredItems.map((item) => (
           <div
             key={item.id}
-            className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between"
+            className={`bg-white border rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between relative ${selectedIds.has(item.id) ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-gray-200'}`}
           >
+            {/* Selection Overlay */}
+            <div 
+              className="absolute top-2 left-2 z-10 cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); toggleSelection(item.id); }}
+            >
+              {selectedIds.has(item.id) ? (
+                <CheckSquare className="w-6 h-6 text-amber-500 bg-white rounded" />
+              ) : (
+                <Square className="w-6 h-6 text-white bg-black/30 rounded opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
+            </div>
+
             {/* Visual preview */}
             <div className="relative bg-gray-900 overflow-hidden" style={{ aspectRatio: item.aspect || "16/9" }}>
               {item.url ? (
@@ -157,25 +319,20 @@ export default function GalleryManager() {
               )}
 
               {/* Hover actions */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-xs">
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-xs pointer-events-none">
                 <button
-                  onClick={() => setPreviewItem(item)}
-                  className="p-2.5 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-sm transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setPreviewItem(item); }}
+                  className="p-2.5 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-sm transition-colors pointer-events-auto"
                   title="Preview"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
+                  <Eye className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(item.id, item.title)}
-                  className="p-2.5 bg-red-500/80 hover:bg-red-500 rounded-full text-white backdrop-blur-sm transition-colors"
+                  onClick={(e) => { e.stopPropagation(); handleDelete(item.id, item.title); }}
+                  className="p-2.5 bg-red-500/80 hover:bg-red-500 rounded-full text-white backdrop-blur-sm transition-colors pointer-events-auto"
                   title="Delete"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -185,22 +342,22 @@ export default function GalleryManager() {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                    {item.category}
+                    {item.category?.name || "Uncategorized"}
                   </span>
                   <button
-                    onClick={() => handleTogglePublish(item.id)}
+                    onClick={() => handleTogglePublish(item.id, item.is_published)}
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer transition-colors ${
-                      item.isPublished
+                      item.is_published
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                         : "bg-amber-50 text-amber-700 border border-amber-200"
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        item.isPublished ? "bg-emerald-500" : "bg-amber-500"
+                        item.is_published ? "bg-emerald-500" : "bg-amber-500"
                       }`}
                     ></span>
-                    {item.isPublished ? "Published" : "Draft"}
+                    {item.is_published ? "Published" : "Draft"}
                   </button>
                 </div>
                 <h4 className="text-sm font-semibold text-gray-900 truncate" title={item.title}>
@@ -210,7 +367,7 @@ export default function GalleryManager() {
 
               <div className="text-[11px] text-gray-400 border-t border-gray-100 pt-2 flex justify-between">
                 <span>{item.aspect} ratio</span>
-                <span>{item.createdAt}</span>
+                <span>{new Date(item.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -223,21 +380,112 @@ export default function GalleryManager() {
         </div>
       )}
 
+      {/* Manage Categories Modal */}
+      {isCategoryManageOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="text-lg font-bold text-gray-900">Manage Categories</h3>
+              <button onClick={() => { setIsCategoryManageOpen(false); setEditingCategory(null); }} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" strokeWidth={2} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCategorySubmit} className="flex gap-2">
+              <input 
+                type="text" 
+                name="name"
+                placeholder="New category name" 
+                defaultValue={editingCategory?.name || ""}
+                required
+                className="flex-1 text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+              />
+              <button 
+                type="submit"
+                disabled={isSaving}
+                className="px-4 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-medium hover:bg-[var(--color-navy)]/90 disabled:opacity-50"
+              >
+                {editingCategory ? "Update" : "Add"}
+              </button>
+              {editingCategory && (
+                <button type="button" onClick={() => setEditingCategory(null)} className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">Cancel</button>
+              )}
+            </form>
+            
+            <div className="max-h-60 overflow-y-auto mt-4 space-y-2 border border-gray-100 rounded-lg p-2">
+              {categories.map(cat => (
+                <div key={cat.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg group">
+                  <span className="text-sm font-medium text-gray-800">{cat.name}</span>
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => setEditingCategory(cat)} className="text-blue-600 hover:bg-blue-50 p-1 rounded"><Edit2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleDeleteCategory(cat.id, cat.name)} className="text-red-600 hover:bg-red-50 p-1 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+              ))}
+              {categories.length === 0 && <p className="text-xs text-gray-500 p-2 text-center">No categories yet.</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Media Modal */}
       {isAddOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
               <h3 className="text-lg font-bold text-gray-900">Add Gallery Media</h3>
-              <button onClick={() => setIsAddOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
+              <button onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); }} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
 
             <form onSubmit={handleAddItem} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
-                  Title / Caption
+                  Upload File(s)
+                </label>
+                <div className="flex items-center justify-center w-full">
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-6 h-6 text-gray-400 mb-2" />
+                      <p className="text-xs text-gray-500"><span className="font-semibold">Click to upload</span> (Multi-select allowed)</p>
+                    </div>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      multiple 
+                      accept="image/*,video/*"
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          setFiles(Array.from(e.target.files));
+                          setNewUrl(""); // clear URL if files selected
+                        }
+                      }} 
+                    />
+                  </label>
+                </div>
+                {files.length > 0 && (
+                  <p className="text-xs text-emerald-600 mt-1 font-medium">{files.length} file(s) selected.</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                  Or Provide Image URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={newUrl}
+                  disabled={files.length > 0}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)] disabled:bg-gray-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                  Title / Caption (Prefix for bulk)
                 </label>
                 <input
                   type="text"
@@ -258,13 +506,12 @@ export default function GalleryManager() {
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
                     className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                    required
                   >
-                    <option value="Architecture">Architecture</option>
-                    <option value="Calligraphy">Calligraphy</option>
-                    <option value="Gatherings">Gatherings</option>
-                    <option value="Heritage">Heritage</option>
-                    <option value="Nature">Nature</option>
-                    <option value="Event Day">Event Day</option>
+                    <option value="" disabled>Select category...</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -286,19 +533,6 @@ export default function GalleryManager() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
-                  Image URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://... or leave empty for geometric backdrop"
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
-                />
-              </div>
-
               <div className="flex items-center gap-2 pt-2">
                 <input
                   type="checkbox"
@@ -315,16 +549,17 @@ export default function GalleryManager() {
               <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setIsAddOpen(false)}
+                  onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); }}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-medium hover:bg-[var(--color-navy)]/90 transition-colors"
+                  disabled={isSaving || (files.length === 0 && !newUrl)}
+                  className="px-5 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-medium hover:bg-[var(--color-navy)]/90 transition-colors disabled:opacity-50"
                 >
-                  Save Media
+                  {isSaving ? "Saving..." : "Save Media"}
                 </button>
               </div>
             </form>
@@ -358,7 +593,7 @@ export default function GalleryManager() {
             </div>
             <div className="p-5 flex justify-between items-center border-t border-gray-100">
               <div>
-                <span className="text-xs font-bold text-gray-400 uppercase">{previewItem.category}</span>
+                <span className="text-xs font-bold text-gray-400 uppercase">{previewItem.category?.name || "Uncategorized"}</span>
                 <h3 className="text-base font-bold text-gray-900">{previewItem.title}</h3>
               </div>
               <button

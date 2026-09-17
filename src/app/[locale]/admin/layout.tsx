@@ -23,7 +23,7 @@ export default function AdminLayout({
               Jeelani Conference Administration
             </h1>
             <p className="text-[11px] text-gray-400 hidden sm:block">
-              as-Sanad al-Muttaṣil & Darimi Session Control Center
+              as-Sanad al-Muttaṣil & Astronomy & AI Fiqh Control Center
             </p>
           </div>
           <div className="flex items-center gap-4 text-xs sm:text-sm text-gray-500">

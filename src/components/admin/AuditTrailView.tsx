@@ -39,7 +39,7 @@ export default function AuditTrailView({ initialLogs }: Props) {
     });
   }, [logs, selectedCategory, searchQuery, dateFilter]);
 
-  const categories = ["All", "Grand Assembly", "Darimi Session", "Paper Review", "Session Entry", "Live Stream"];
+  const categories = ["All", "Grand Assembly", "Astronomy & AI Fiqh", "Session Entry", "Live Stream"];
 
   const handleExportCSV = () => {
     const headers = ["Timestamp", "Module/Admin", "IP", "Category", "Action", "Details"];

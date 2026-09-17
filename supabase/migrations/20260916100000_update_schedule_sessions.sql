@@ -1,0 +1,3 @@
+-- This migration is no longer needed as the changes have been consolidated into 
+-- 20260915222500_add_dynamic_sessions_and_speakers.sql
+-- (Kept empty to avoid breaking the migration history)

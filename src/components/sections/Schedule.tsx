@@ -95,6 +95,36 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
           {session.description}
         </p>
 
+        {/* Nested Programs */}
+        {session.programs && session.programs.length > 0 && (
+          <div className="mt-3 space-y-2.5 pl-3 border-l-2 border-[var(--border)]">
+            {session.programs.map((program) => {
+              const progSpeakers = program.speakers || [];
+              return (
+                <div key={program.id} className="relative">
+                  <p className="text-[11px] font-semibold text-[var(--color-navy)] dark:text-[var(--color-turquoise)]">
+                    {formatSessionTime(program.start_time)} - {formatSessionTime(program.end_time)}
+                  </p>
+                  <h4 className="text-xs font-semibold text-[var(--text-primary)]">
+                    {program.title}
+                  </h4>
+                  {program.title_ml && (
+                    <p className="text-[11px] text-[var(--text-muted)]" style={{ fontFamily: "var(--font-malayalam-title)" }}>
+                      {program.title_ml}
+                    </p>
+                  )}
+                  {progSpeakers.length > 0 && (
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 flex items-center gap-1">
+                      <Mic className="w-2.5 h-2.5 shrink-0" strokeWidth={2} aria-hidden="true" />
+                      {progSpeakers.map((s) => s.name).join(", ")}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Action row: Details hint on left, Registration button on right */}
         <div className="flex items-center justify-between gap-3 mt-3 pt-2 border-t border-[var(--border)]/50">
           <span className="inline-flex items-center text-xs font-medium text-[var(--color-turquoise)] group-hover:underline gap-1">

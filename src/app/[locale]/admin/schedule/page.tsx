@@ -1,6 +1,6 @@
 import React from "react";
 import ScheduleBuilder from "@/components/admin/ScheduleBuilder";
-import { getSessions, getSpeakers } from "@/lib/data";
+import { getAllSessionsFlat, getSpeakers } from "@/lib/data";
 import { ArrowUpRight } from "lucide-react";
 
 export const metadata = {
@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function ScheduleBuilderPage() {
-  const [sessions, speakers] = await Promise.all([getSessions(), getSpeakers()]);
+  const [sessions, speakers] = await Promise.all([getAllSessionsFlat(), getSpeakers()]);
 
   return (
     <div className="space-y-6">

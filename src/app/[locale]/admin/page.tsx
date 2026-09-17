@@ -97,7 +97,7 @@ export default async function AdminDashboard() {
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
                           reg.type === 'Grand Assembly' ? 'bg-blue-50 text-blue-600' :
-                          reg.type === 'Darimi Session' ? 'bg-purple-50 text-purple-600' :
+                          reg.type === 'Astronomy & AI Fiqh' ? 'bg-purple-50 text-purple-600' :
                           'bg-amber-50 text-amber-600'
                         }`}>
                           {reg.type}

@@ -49,7 +49,7 @@ export default function AdminSidebar() {
       items: [
         { label: "All Registrations", href: "/admin/registrations", Icon: ClipboardList, isAllRegs: true },
         { label: "Grand Assembly", href: "/admin/registrations?type=assembly", Icon: Building2, type: "assembly" },
-        { label: "Darimi Session", href: "/admin/registrations?type=darimi", Icon: GraduationCap, type: "darimi" },
+        { label: "Astronomy & AI Fiqh", href: "/admin/registrations?type=astro-ai-fiqh", Icon: GraduationCap, type: "darimi" },
         { label: "Dynamic Sessions", href: "/admin/sessions", Icon: Zap, exact: true },
       ],
     },

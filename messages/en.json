@@ -201,10 +201,9 @@
     "backToOptions": "← Back to registration options",
     "type": "Public • Paid (₹50)",
     "heading": "Astronomy & AI Fiqh",
-    "description": "Register for the academic sessions block on Stage 2, including Astronomy & AI Fiqh, Dr. Musthafa Darimi Session, and Ameer Husain Hudavi Session.",
-    "session1": "Astronomy and AI Fiqh — Shahul Hameed Master Melmuri",
-    "session2": "Dr. Musthafa Darimi Karippur",
-    "session3": "Ameer Husain Hudavi",
+    "description": "Register for the academic sessions block on Stage 2, including Astronomy & AI Fiqh.",
+    "session1": "Dr. Musthafa Darimi Karippur",
+    "session2": "Ameer Husain Hudawi",
     "fullName": "Full Name *",
     "fullNamePlaceholder": "Your full name",
     "phone": "Phone Number *",
@@ -244,7 +243,7 @@
     "backToHome": "← Back to Home"
   },
   "DarsManagement": {
-    "backToOptions": "← Back to registration options",
+    "backToOptions": "← Back to registration",
     "type": "Free • Group Registration",
     "heading": "Dars Management Meet",
     "description": "Register your mahall delegation for the Dars Management Meet. Minimum 1, maximum 5 members per mahall.",
