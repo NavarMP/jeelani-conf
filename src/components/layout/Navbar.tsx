@@ -2,21 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { haptic } from "@/lib/haptics";
-import { Sun, Moon, SunMoon, Menu, X } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const t = useTranslations("Nav");
   const locale = useLocale();
@@ -24,7 +22,7 @@ export function Navbar() {
   const wordmarkSrc = locale === "ar" ? "/wordmark-ar.svg" : locale === "ml" ? "/wordmark-ml.svg" : "/wordmark-en.svg";
 
   const navLinks = [
-    { href: "/#about", label: t("about") },
+    { href: "/about", label: t("about") },
     { href: "/#schedule", label: t("schedule") },
     { href: "/#speakers", label: t("speakers") },
     { href: "/#gallery", label: t("gallery") },
@@ -43,9 +41,6 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const ThemeIcon = !mounted ? SunMoon : theme === "dark" ? Sun : theme === "light" ? Moon : SunMoon;
-  const nextTheme = theme === "dark" ? "light" : theme === "light" ? "system" : "dark";
 
   return (
     <>
@@ -97,21 +92,7 @@ export function Navbar() {
             <LanguageSwitcher scrolled={solid} />
 
             {/* Theme toggle */}
-            <button
-              onClick={() => {
-                haptic("select");
-                setTheme(nextTheme);
-              }}
-              className={`w-9 h-9 flex items-center justify-center rounded-full transition-all text-lg active:scale-90 ${
-                solid
-                  ? "text-[var(--text-secondary)] hover:bg-[var(--border)]"
-                  : "text-white/70 hover:text-white hover:bg-white/10"
-              }`}
-              style={{ transition: "transform var(--transition-fast), background-color var(--transition-fast)" }}
-              aria-label={`Switch to ${nextTheme} theme`}
-            >
-              <ThemeIcon className="w-[18px] h-[18px]" strokeWidth={1.75} aria-hidden="true" />
-            </button>
+            <ThemeSwitcher scrolled={solid} />
 
             {/* Register CTA */}
             <Link

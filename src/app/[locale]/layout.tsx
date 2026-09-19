@@ -7,11 +7,8 @@ import {
 import localFont from "next/font/local";
 import "../globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { Navbar } from "@/components/layout/Navbar";
+import { PublicChrome } from "@/components/layout/PublicChrome";
 import { Footer } from "@/components/layout/Footer";
-import { MobileDock } from "@/components/layout/MobileDock";
-import { AmbientAudioPlayer } from "@/components/ui/AmbientAudioPlayer";
-import { CustomCursor } from "@/components/ui/CustomCursor";
 import { cn } from "@/lib/utils";
 
 /* ── Font Configuration ──────────────────────────────────────────────────
@@ -210,12 +207,7 @@ export default async function RootLayout(props: {
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
-            <CustomCursor />
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <MobileDock />
-            <AmbientAudioPlayer />
+            <PublicChrome footer={<Footer />}>{children}</PublicChrome>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

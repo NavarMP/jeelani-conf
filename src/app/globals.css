@@ -96,6 +96,20 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Admin Panel Semantic Tokens (auto-switch with dark mode) */
+  --admin-bg: #f3f4f6;
+  --admin-surface: #ffffff;
+  --admin-surface-alt: #f9fafb;
+  --admin-border: #e5e7eb;
+  --admin-border-subtle: #f3f4f6;
+  --admin-text: #111827;
+  --admin-text-secondary: #6b7280;
+  --admin-text-muted: #9ca3af;
+  --admin-hover: #f3f4f6;
+  --admin-input-bg: #ffffff;
+  --admin-input-border: #d1d5db;
+  --admin-badge-bg: #f3f4f6;
 }
 
 /* ---------- Dark Mode ---------- */
@@ -144,6 +158,20 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Admin Panel Semantic Tokens — Dark Mode */
+  --admin-bg: #0c0e14;
+  --admin-surface: #151821;
+  --admin-surface-alt: #1a1e29;
+  --admin-border: #252a38;
+  --admin-border-subtle: #1e2230;
+  --admin-text: #eef0f4;
+  --admin-text-secondary: #8b92a5;
+  --admin-text-muted: #565e73;
+  --admin-hover: #1e2230;
+  --admin-input-bg: #1a1e29;
+  --admin-input-border: #2d3348;
+  --admin-badge-bg: #1e2230;
 }
 
 /* ---------- Tailwind v4 Theme Extension ---------- */

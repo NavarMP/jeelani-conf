@@ -67,36 +67,36 @@ export default function AuditTrailView({ initialLogs }: Props) {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">System Audit Trail</h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <h2 className="text-2xl font-bold text-[var(--admin-text)]">System Audit Trail</h2>
+          <p className="text-[var(--admin-text-secondary)] text-sm mt-1">
             Real-time chronological activity ledger across registrations, broadcasts, and submissions
           </p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={handleExportCSV}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 text-gray-700 shadow-sm transition-colors flex items-center gap-2"
+            className="px-4 py-2 border border-[var(--admin-input-border)] rounded-lg text-sm font-medium bg-[var(--admin-surface)] hover:bg-[var(--admin-surface-alt)] text-[var(--admin-text-secondary)] shadow-sm transition-colors flex items-center gap-2"
           >
             <Download className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> Export CSV
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-[var(--admin-surface)] rounded-2xl border border-[var(--admin-border)] shadow-sm overflow-hidden">
         {/* Filter bar */}
-        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-4 bg-gray-50/50 items-center justify-between">
+        <div className="p-4 border-b border-[var(--admin-border-subtle)] flex flex-wrap gap-4 bg-[var(--admin-surface-alt)]/50 items-center justify-between">
           <div className="flex flex-wrap gap-3 items-center">
             <input
               type="text"
               placeholder="Search actions, IDs, or details..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-[var(--color-turquoise)] w-64 bg-white"
+              className="px-3 py-1.5 border border-[var(--admin-input-border)] rounded-lg text-sm outline-none focus:border-[var(--color-turquoise)] w-64 bg-[var(--admin-surface)]"
             />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-[var(--color-turquoise)] bg-white"
+              className="px-3 py-1.5 border border-[var(--admin-input-border)] rounded-lg text-sm outline-none focus:border-[var(--color-turquoise)] bg-[var(--admin-surface)]"
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
@@ -115,15 +115,15 @@ export default function AuditTrailView({ initialLogs }: Props) {
             </div>
           </div>
 
-          <div className="text-xs text-gray-500">
-            Showing <span className="font-semibold text-gray-900">{filteredLogs.length}</span> events
+          <div className="text-xs text-[var(--admin-text-secondary)]">
+            Showing <span className="font-semibold text-[var(--admin-text)]">{filteredLogs.length}</span> events
           </div>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+            <thead className="text-xs text-[var(--admin-text-secondary)] uppercase bg-[var(--admin-surface-alt)] border-b border-[var(--admin-border)]">
               <tr>
                 <th className="px-6 py-4 font-semibold">Timestamp</th>
                 <th className="px-6 py-4 font-semibold">Module / Actor</th>
@@ -134,8 +134,8 @@ export default function AuditTrailView({ initialLogs }: Props) {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredLogs.map((log, idx) => (
-                <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="px-6 py-4 text-xs font-mono text-gray-500 whitespace-nowrap">
+                <tr key={idx} className="hover:bg-[var(--admin-surface-alt)]/80 transition-colors">
+                  <td className="px-6 py-4 text-xs font-mono text-[var(--admin-text-secondary)] whitespace-nowrap">
                     {new Date(log.timestamp).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -145,8 +145,8 @@ export default function AuditTrailView({ initialLogs }: Props) {
                     })}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{log.admin}</div>
-                    <div className="text-[10px] font-mono text-gray-400 mt-0.5">{log.ip}</div>
+                    <div className="font-medium text-[var(--admin-text)]">{log.admin}</div>
+                    <div className="text-[10px] font-mono text-[var(--admin-text-muted)] mt-0.5">{log.ip}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -165,8 +165,8 @@ export default function AuditTrailView({ initialLogs }: Props) {
                       {log.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-medium text-gray-900">{log.action}</td>
-                  <td className="px-6 py-4 text-xs text-gray-600 font-mono bg-gray-50/50">
+                  <td className="px-6 py-4 font-medium text-[var(--admin-text)]">{log.action}</td>
+                  <td className="px-6 py-4 text-xs text-[var(--admin-text-secondary)] font-mono bg-[var(--admin-surface-alt)]/50">
                     {log.details}
                   </td>
                 </tr>
@@ -174,7 +174,7 @@ export default function AuditTrailView({ initialLogs }: Props) {
 
               {filteredLogs.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-[var(--admin-text-secondary)]">
                     No activity logs match the selected filters.
                   </td>
                 </tr>

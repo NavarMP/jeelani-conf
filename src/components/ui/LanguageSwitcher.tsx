@@ -7,12 +7,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Globe, ChevronDown, Check } from "lucide-react";
 
 const localeLabels: Record<string, string> = {
+  system: "SYS",
   en: "EN",
   ml: "മല",
   ar: "عر",
 };
 
 const localeFullLabels: Record<string, string> = {
+  system: "System Default",
   en: "English",
   ml: "മലയാളം",
   ar: "العربية",
@@ -23,6 +25,7 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [isSystem, setIsSystem] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -31,6 +34,10 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
+    
+    // Check if a specific locale is set in cookies
+    setIsSystem(!document.cookie.includes('NEXT_LOCALE='));
+    
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
@@ -44,6 +51,12 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
       segments.splice(1, 1);
     }
     const cleanPath = segments.join("/") || "/";
+
+    if (newLocale === "system") {
+      document.cookie = `NEXT_LOCALE=; path=/; max-age=0; SameSite=Lax`;
+      window.location.href = cleanPath;
+      return;
+    }
 
     // Routes that default to Malayalam
     const isMlDefaultRoute =
@@ -69,6 +82,9 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
     window.location.href = targetPath;
   };
 
+  const activeLabel = isSystem ? "SYS" : (localeLabels[locale] || "EN");
+  const activeKey = isSystem ? "system" : locale;
+
   return (
     <div className="relative" ref={ref}>
       <button
@@ -82,7 +98,7 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
         aria-expanded={open}
       >
         <Globe className="w-3 h-3" strokeWidth={2} aria-hidden="true" />
-        <span>{localeLabels[locale] || "EN"}</span>
+        <span>{activeLabel}</span>
         <ChevronDown
           className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
           strokeWidth={2.25}
@@ -97,21 +113,21 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 mt-2 min-w-[140px] rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-xl backdrop-blur-xl overflow-hidden z-50"
+            className="absolute top-full right-0 mt-2 min-w-[150px] rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-xl backdrop-blur-xl overflow-hidden z-50"
           >
-            {["en", "ml", "ar"].map((loc) => (
+            {["system", "en", "ml", "ar"].map((loc) => (
               <button
                 key={loc}
                 onClick={() => switchLocale(loc)}
                 className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-all ${
-                  locale === loc
+                  activeKey === loc
                     ? "bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)] font-semibold"
                     : "text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)] hover:text-[var(--text-primary)]"
                 }`}
               >
-                <span className="text-xs font-bold w-6">{localeLabels[loc]}</span>
+                <span className="text-xs font-bold w-7 text-left">{localeLabels[loc]}</span>
                 <span>{localeFullLabels[loc]}</span>
-                {locale === loc && (
+                {activeKey === loc && (
                   <Check className="w-3.5 h-3.5 ml-auto text-[var(--color-turquoise)]" strokeWidth={2.5} aria-hidden="true" />
                 )}
               </button>
@@ -122,3 +138,4 @@ export function LanguageSwitcher({ scrolled = false }: { scrolled?: boolean }) {
     </div>
   );
 }
+

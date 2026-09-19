@@ -114,14 +114,14 @@ export function BrochureUploader() {
   };
 
   return (
-    <div className="sm:col-span-6 bg-gray-50/80 p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+    <div className="sm:col-span-6 bg-[var(--admin-surface-alt)]/80 p-5 rounded-xl border border-[var(--admin-border)] shadow-sm space-y-4">
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-[var(--color-navy)]" />
-            <h4 className="text-sm font-bold text-gray-900">Conference Brochure (PDF)</h4>
+            <h4 className="text-sm font-bold text-[var(--admin-text)]">Conference Brochure (PDF)</h4>
           </div>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-[var(--admin-text-secondary)] text-xs mt-1">
             Upload the official conference brochure. This updates the "Brochure" button in the hero section.
           </p>
         </div>
@@ -131,7 +131,7 @@ export function BrochureUploader() {
         <label
           className={`cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
             isUploading
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-gray-300 text-[var(--admin-text-secondary)] cursor-not-allowed"
               : "bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 shadow-sm hover:shadow"
           }`}
         >
@@ -167,7 +167,7 @@ export function BrochureUploader() {
               type="button"
               onClick={handleDelete}
               disabled={isUploading}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-2 text-[var(--admin-text-muted)] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="Remove brochure"
             >
               <Trash2 className="w-4 h-4" />

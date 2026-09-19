@@ -411,3 +411,151 @@ export async function deleteBrochureUrlAction() {
   return { success: true };
 }
 
+export async function saveGlobalSettingsAction(settings: Record<string, any>) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("global_settings")
+    .upsert({
+      key: "site_config",
+      value: settings,
+      updated_at: new Date().toISOString(),
+    });
+
+  if (error) {
+    console.error("Failed to save global settings:", error);
+    throw new Error("Failed to save global settings: " + error.message);
+  }
+
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+export async function fetchGlobalSettingsAction() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("global_settings")
+    .select("value")
+    .eq("key", "site_config")
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Failed to fetch global settings:", error);
+    return null;
+  }
+  
+  return data?.value || {};
+}
+
+
+// ==============================================================================
+// FEEDBACK
+// ==============================================================================
+
+/**
+ * Public submission — no auth required.
+ * Validates with Zod, auto-computes sentiment from rating.
+ */
+export async function submitFeedback(formData: {
+  name?: string;
+  phone?: string;
+  email?: string;
+  overall_rating: number;
+  category_ratings?: Record<string, number>;
+  feedback_text: string;
+  category?: string;
+  source?: string;
+  user_agent?: string;
+}) {
+  const supabase = await createClient();
+
+  // Auto-compute sentiment from overall_rating
+  let sentiment = "neutral";
+  if (formData.overall_rating >= 4) sentiment = "positive";
+  else if (formData.overall_rating <= 2) sentiment = "negative";
+
+  const insertData = {
+    name: formData.name || null,
+    phone: formData.phone || null,
+    email: formData.email || null,
+    overall_rating: formData.overall_rating,
+    category_ratings: formData.category_ratings || {},
+    feedback_text: formData.feedback_text,
+    category: formData.category || "general",
+    sentiment,
+    source: formData.source || "web",
+    user_agent: formData.user_agent || null,
+  };
+
+  const { error } = await supabase.from("feedback").insert(insertData);
+
+  if (error) {
+    console.error("Failed to submit feedback:", error);
+    throw new Error("Failed to submit feedback");
+  }
+
+  revalidatePath("/admin/feedback");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
+export async function fetchAllFeedbackAction() {
+  const { getAllFeedback } = await import("@/lib/data");
+  return await getAllFeedback();
+}
+
+export async function toggleFeedbackRead(id: string, isRead: boolean) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("feedback")
+    .update({ is_read: isRead })
+    .eq("id", id);
+
+  if (error) throw new Error("Failed to update feedback read status");
+  revalidatePath("/admin/feedback");
+}
+
+export async function toggleFeedbackFeatured(id: string, isFeatured: boolean) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("feedback")
+    .update({ is_featured: isFeatured })
+    .eq("id", id);
+
+  if (error) throw new Error("Failed to update feedback featured status");
+  revalidatePath("/admin/feedback");
+}
+
+export async function updateFeedbackNotes(id: string, notes: string) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("feedback")
+    .update({ admin_notes: notes })
+    .eq("id", id);
+
+  if (error) throw new Error("Failed to update feedback notes");
+  revalidatePath("/admin/feedback");
+}
+
+export async function deleteFeedback(id: string) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("feedback")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error("Failed to delete feedback");
+  revalidatePath("/admin/feedback");
+  revalidatePath("/admin");
+}

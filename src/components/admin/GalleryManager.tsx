@@ -219,7 +219,7 @@ export default function GalleryManager() {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-gray-500">Loading Gallery...</div>;
+    return <div className="p-8 text-center text-[var(--admin-text-secondary)]">Loading Gallery...</div>;
   }
 
   return (
@@ -227,15 +227,15 @@ export default function GalleryManager() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Gallery Manager</h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <h2 className="text-2xl font-bold text-[var(--admin-text)]">Gallery Manager</h2>
+          <p className="text-[var(--admin-text-secondary)] text-sm mt-1">
             Curate photo collections, exhibition visuals, and public event media
           </p>
         </div>
         <div className="flex gap-2 self-start sm:self-auto">
           <button
             onClick={() => setIsCategoryManageOpen(true)}
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-sm transition-colors flex items-center gap-2"
+            className="px-4 py-2 rounded-xl text-sm font-medium bg-[var(--admin-surface)] text-[var(--admin-text)] hover:bg-[var(--admin-hover)] border border-[var(--admin-border)] shadow-sm transition-colors flex items-center gap-2"
           >
             Manage Categories
           </button>
@@ -249,14 +249,14 @@ export default function GalleryManager() {
       </div>
 
       {/* Bulk Actions & Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col lg:flex-row gap-4 justify-between items-center">
+      <div className="bg-[var(--admin-surface)] p-4 rounded-2xl border border-[var(--admin-border)] shadow-sm flex flex-col lg:flex-row gap-4 justify-between items-center">
         
         {/* Categories */}
         <div className="flex flex-wrap gap-2 flex-1">
           <button
             onClick={() => setCategoryFilter("All")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              categoryFilter === "All" ? "bg-[var(--color-navy)] text-white" : "text-gray-600 hover:bg-gray-100"
+              categoryFilter === "All" ? "bg-[var(--color-navy)] text-white" : "text-[var(--admin-text-secondary)] hover:bg-[var(--admin-hover)]"
             }`}
           >
             All
@@ -268,7 +268,7 @@ export default function GalleryManager() {
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 categoryFilter === cat.name
                   ? "bg-[var(--color-navy)] text-white"
-                  : "text-gray-600 hover:bg-gray-100"
+                  : "text-[var(--admin-text-secondary)] hover:bg-[var(--admin-hover)]"
               }`}
             >
               {cat.name}
@@ -278,17 +278,17 @@ export default function GalleryManager() {
 
         {/* Bulk Actions */}
         {selectedIds.size > 0 && (
-          <div className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
-            <span className="text-xs font-bold text-amber-800">{selectedIds.size} Selected</span>
-            <div className="h-4 w-px bg-amber-300 mx-1"></div>
-            <button onClick={() => handleBulkPublish(true)} className="text-xs font-medium text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded transition-colors" title="Publish Selected"><Eye className="w-4 h-4"/></button>
-            <button onClick={() => handleBulkPublish(false)} className="text-xs font-medium text-gray-700 hover:bg-gray-200 px-2 py-1 rounded transition-colors" title="Unpublish Selected"><EyeOff className="w-4 h-4"/></button>
-            <button onClick={handleBulkDelete} className="text-xs font-medium text-red-700 hover:bg-red-100 px-2 py-1 rounded transition-colors" title="Delete Selected"><Trash2 className="w-4 h-4"/></button>
+          <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
+            <span className="text-xs font-bold text-amber-700 dark:text-amber-500">{selectedIds.size} Selected</span>
+            <div className="h-4 w-px bg-amber-500/30 mx-1"></div>
+            <button onClick={() => handleBulkPublish(true)} className="text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 px-2 py-1 rounded transition-colors" title="Publish Selected"><Eye className="w-4 h-4"/></button>
+            <button onClick={() => handleBulkPublish(false)} className="text-xs font-medium text-[var(--admin-text-secondary)] hover:bg-[var(--admin-hover)] px-2 py-1 rounded transition-colors" title="Unpublish Selected"><EyeOff className="w-4 h-4"/></button>
+            <button onClick={handleBulkDelete} className="text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-500/20 px-2 py-1 rounded transition-colors" title="Delete Selected"><Trash2 className="w-4 h-4"/></button>
           </div>
         )}
 
-        <div className="flex items-center gap-4 text-xs text-gray-500 shrink-0">
-          <button onClick={selectAll} className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+        <div className="flex items-center gap-4 text-xs text-[var(--admin-text-secondary)] shrink-0">
+          <button onClick={selectAll} className="flex items-center gap-1 hover:text-[var(--admin-text)] transition-colors">
             {selectedIds.size === filteredItems.length && filteredItems.length > 0 ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
             Select All
           </button>
@@ -297,7 +297,7 @@ export default function GalleryManager() {
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
-              className="border border-gray-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-[var(--color-turquoise)] bg-white font-medium text-gray-700"
+              className="border border-[var(--admin-input-border)] rounded-lg px-2.5 py-1.5 outline-none focus:border-[var(--color-turquoise)] bg-[var(--admin-input-bg)] font-medium text-[var(--admin-text)]"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -315,7 +315,7 @@ export default function GalleryManager() {
           return (
           <div
             key={item.id}
-            className={`bg-white border rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between relative ${selectedIds.has(item.id) ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-gray-200'}`}
+            className={`bg-[var(--admin-surface)] border rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between relative ${selectedIds.has(item.id) ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-[var(--admin-border)]'}`}
           >
             {/* Selection Overlay */}
             <div 
@@ -380,18 +380,18 @@ export default function GalleryManager() {
             </div>
 
             {/* Info & Status */}
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3 bg-[var(--admin-surface)]">
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  <span className="text-[11px] font-bold text-[var(--admin-text-muted)] uppercase tracking-wider">
                     {item.category?.name || "Uncategorized"}
                   </span>
                   <button
                     onClick={() => handleTogglePublish(item.id, item.is_published)}
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer transition-colors ${
                       item.is_published
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"
                     }`}
                   >
                     <span
@@ -402,12 +402,12 @@ export default function GalleryManager() {
                     {item.is_published ? "Published" : "Draft"}
                   </button>
                 </div>
-                <h4 className="text-sm font-semibold text-gray-900 truncate" title={item.title}>
+                <h4 className="text-sm font-semibold text-[var(--admin-text)] truncate" title={item.title}>
                   {item.title}
                 </h4>
               </div>
 
-              <div className="text-[11px] text-gray-400 border-t border-gray-100 pt-2 flex justify-between">
+              <div className="text-[11px] text-[var(--admin-text-muted)] border-t border-[var(--admin-border)] pt-2 flex justify-between">
                 <span>{item.aspect} ratio</span>
                 <span>{new Date(item.created_at).toLocaleDateString()}</span>
               </div>
@@ -417,7 +417,7 @@ export default function GalleryManager() {
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500">
+        <div className="bg-[var(--admin-surface)] rounded-2xl border border-[var(--admin-border)] p-12 text-center text-[var(--admin-text-secondary)]">
           No media items in this category. Click &quot;Add Media&quot; to upload or add.
         </div>
       )}
@@ -425,10 +425,10 @@ export default function GalleryManager() {
       {/* Manage Categories Modal */}
       {isCategoryManageOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <h3 className="text-lg font-bold text-gray-900">Manage Categories</h3>
-              <button onClick={() => { setIsCategoryManageOpen(false); setEditingCategory(null); }} className="text-gray-400 hover:text-gray-600">
+          <div className="bg-[var(--admin-surface)] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-[var(--admin-border)]">
+             <div className="flex justify-between items-center border-b border-[var(--admin-border)] pb-3">
+              <h3 className="text-lg font-bold text-[var(--admin-text)]">Manage Categories</h3>
+              <button onClick={() => { setIsCategoryManageOpen(false); setEditingCategory(null); }} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]">
                 <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
@@ -440,7 +440,7 @@ export default function GalleryManager() {
                 placeholder="New category name" 
                 defaultValue={editingCategory?.name || ""}
                 required
-                className="flex-1 text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                className="flex-1 text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
               />
               <button 
                 type="submit"
@@ -450,21 +450,21 @@ export default function GalleryManager() {
                 {editingCategory ? "Update" : "Add"}
               </button>
               {editingCategory && (
-                <button type="button" onClick={() => setEditingCategory(null)} className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">Cancel</button>
+                <button type="button" onClick={() => setEditingCategory(null)} className="px-3 py-2 bg-[var(--admin-surface-alt)] border border-[var(--admin-border)] text-[var(--admin-text)] rounded-lg text-sm">Cancel</button>
               )}
             </form>
             
-            <div className="max-h-60 overflow-y-auto mt-4 space-y-2 border border-gray-100 rounded-lg p-2">
+            <div className="max-h-60 overflow-y-auto mt-4 space-y-2 border border-[var(--admin-border)] rounded-lg p-2">
               {categories.map(cat => (
-                <div key={cat.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg group">
-                  <span className="text-sm font-medium text-gray-800">{cat.name}</span>
+                <div key={cat.id} className="flex justify-between items-center p-2 hover:bg-[var(--admin-hover)] rounded-lg group">
+                  <span className="text-sm font-medium text-[var(--admin-text)]">{cat.name}</span>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setEditingCategory(cat)} className="text-blue-600 hover:bg-blue-50 p-1 rounded"><Edit2 className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => handleDeleteCategory(cat.id, cat.name)} className="text-red-600 hover:bg-red-50 p-1 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => setEditingCategory(cat)} className="text-blue-500 hover:bg-blue-500/10 p-1 rounded"><Edit2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleDeleteCategory(cat.id, cat.name)} className="text-red-500 hover:bg-red-500/10 p-1 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
               ))}
-              {categories.length === 0 && <p className="text-xs text-gray-500 p-2 text-center">No categories yet.</p>}
+              {categories.length === 0 && <p className="text-xs text-[var(--admin-text-muted)] p-2 text-center">No categories yet.</p>}
             </div>
           </div>
         </div>
@@ -473,24 +473,24 @@ export default function GalleryManager() {
       {/* Add Media Modal */}
       {isAddOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <h3 className="text-lg font-bold text-gray-900">Add Gallery Media</h3>
-              <button onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); }} className="text-gray-400 hover:text-gray-600">
+          <div className="bg-[var(--admin-surface)] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-[var(--admin-border)]">
+            <div className="flex justify-between items-center border-b border-[var(--admin-border)] pb-3">
+              <h3 className="text-lg font-bold text-[var(--admin-text)]">Add Gallery Media</h3>
+              <button onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); }} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]">
                 <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
 
             <form onSubmit={handleAddItem} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                   Upload File(s)
                 </label>
                 <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-[var(--admin-border)] border-dashed rounded-lg cursor-pointer bg-[var(--admin-surface-alt)] hover:bg-[var(--admin-hover)] transition-colors">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-6 h-6 text-gray-400 mb-2" />
-                      <p className="text-xs text-gray-500"><span className="font-semibold">Click to upload</span> (Multi-select allowed)</p>
+                      <Upload className="w-6 h-6 text-[var(--admin-text-muted)] mb-2" />
+                      <p className="text-xs text-[var(--admin-text-secondary)]"><span className="font-semibold">Click to upload</span> (Multi-select allowed)</p>
                     </div>
                     <input 
                       type="file" 
@@ -507,12 +507,12 @@ export default function GalleryManager() {
                   </label>
                 </div>
                 {files.length > 0 && (
-                  <p className="text-xs text-emerald-600 mt-1 font-medium">{files.length} file(s) selected.</p>
+                  <p className="text-xs text-emerald-500 mt-1 font-medium">{files.length} file(s) selected.</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                   Or Provide Image URL
                 </label>
                 <input
@@ -521,12 +521,12 @@ export default function GalleryManager() {
                   value={newUrl}
                   disabled={files.length > 0}
                   onChange={(e) => setNewUrl(e.target.value)}
-                  className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)] disabled:bg-gray-100"
+                  className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)] disabled:opacity-50"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                   Title / Caption (Prefix for bulk)
                 </label>
                 <input
@@ -534,20 +534,20 @@ export default function GalleryManager() {
                   placeholder="e.g. Alathoorpadi Dars Inauguration"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                  className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                     Category
                   </label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                    className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
                     required
                   >
                     <option value="" disabled>Select category...</option>
@@ -558,13 +558,13 @@ export default function GalleryManager() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                     Aspect Ratio
                   </label>
                   <select
                     value={newAspect}
                     onChange={(e) => setNewAspect(e.target.value)}
-                    className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                    className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
                   >
                     <option value="16/9">16:9 Landscape</option>
                     <option value="4/3">4:3 Standard</option>
@@ -581,18 +581,18 @@ export default function GalleryManager() {
                   id="pub-check"
                   checked={newPublished}
                   onChange={(e) => setNewPublished(e.target.checked)}
-                  className="w-4 h-4 rounded text-[var(--color-navy)] focus:ring-0"
+                  className="w-4 h-4 rounded text-[var(--color-navy)] border-[var(--admin-input-border)] focus:ring-0 bg-[var(--admin-input-bg)]"
                 />
-                <label htmlFor="pub-check" className="text-sm text-gray-700 font-medium">
+                <label htmlFor="pub-check" className="text-sm text-[var(--admin-text)] font-medium">
                   Publish immediately to public gallery
                 </label>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+              <div className="pt-4 flex justify-end gap-3 border-t border-[var(--admin-border)]">
                 <button
                   type="button"
                   onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); }}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-[var(--admin-border)] text-[var(--admin-text)] rounded-lg text-sm hover:bg-[var(--admin-hover)] transition-colors"
                 >
                   Cancel
                 </button>
@@ -623,7 +623,7 @@ export default function GalleryManager() {
           onClick={() => setPreviewItem(null)}
         >
           <div
-            className="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl cursor-default"
+            className="bg-[var(--admin-surface)] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <div
@@ -648,7 +648,7 @@ export default function GalleryManager() {
                     />
                   );
                 } else if (type === 'instagram') {
-                  return <div className="max-w-[400px] max-h-full overflow-y-auto bg-white rounded-xl shadow-2xl p-4"><InstagramEmbed url={previewItem.url} width="100%" /></div>;
+                  return <div className="max-w-[400px] max-h-full overflow-y-auto bg-[var(--admin-surface)] rounded-xl shadow-2xl p-4"><InstagramEmbed url={previewItem.url} width="100%" /></div>;
                 } else if (previewItem.url) {
                   return <img src={previewItem.url} alt={previewItem.title} className="max-h-full object-contain" />;
                 } else {
@@ -656,14 +656,14 @@ export default function GalleryManager() {
                 }
               })()}
             </div>
-            <div className="p-5 flex justify-between items-center border-t border-gray-100">
+            <div className="p-5 flex justify-between items-center border-t border-[var(--admin-border)]">
               <div>
-                <span className="text-xs font-bold text-gray-400 uppercase">{previewItem.category?.name || "Uncategorized"}</span>
-                <h3 className="text-base font-bold text-gray-900">{previewItem.title}</h3>
+                <span className="text-xs font-bold text-[var(--admin-text-muted)] uppercase">{previewItem.category?.name || "Uncategorized"}</span>
+                <h3 className="text-base font-bold text-[var(--admin-text)]">{previewItem.title}</h3>
               </div>
               <button
                 onClick={() => setPreviewItem(null)}
-                className="px-4 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50"
+                className="px-4 py-1.5 border border-[var(--admin-border)] rounded-lg text-xs font-medium text-[var(--admin-text)] hover:bg-[var(--admin-hover)] bg-[var(--admin-surface-alt)]"
               >
                 Close
               </button>

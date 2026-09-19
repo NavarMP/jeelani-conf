@@ -103,8 +103,8 @@ export default function LiveStreamControl({ initialStreams }: Props) {
 
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Live Stream Control Center</h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <h2 className="text-2xl font-bold text-[var(--admin-text)]">Live Stream Control Center</h2>
+          <p className="text-[var(--admin-text-secondary)] text-sm mt-1">
             Manage live broadcast feeds, video IDs, and active transmission status for the conference
           </p>
         </div>
@@ -112,20 +112,20 @@ export default function LiveStreamControl({ initialStreams }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Stage 1 Control */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-[var(--admin-surface)] rounded-2xl border border-[var(--admin-border)] shadow-sm overflow-hidden flex flex-col">
           <div className="h-2.5 bg-[var(--color-navy)]"></div>
           <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Stage 1 (Main Hall)</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Grand Assembly & Major Keynotes</p>
+                  <h3 className="text-lg font-bold text-[var(--admin-text)]">Stage 1 (Main Hall)</h3>
+                  <p className="text-xs text-[var(--admin-text-secondary)] mt-0.5">Grand Assembly & Major Keynotes</p>
                 </div>
                 <span
                   className={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1.5 transition-colors ${
                     s1?.is_live
                       ? "bg-red-100 text-red-700"
-                      : "bg-gray-100 text-gray-600"
+                      : "bg-[var(--admin-hover)] text-[var(--admin-text-secondary)]"
                   }`}
                 >
                   <span
@@ -148,7 +148,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
                     allowFullScreen
                   ></iframe>
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 text-xs">
+                  <div className="w-full h-full flex flex-col items-center justify-center text-[var(--admin-text-secondary)] text-xs">
                     <VideoOff className="w-5 h-5 mb-1" strokeWidth={1.75} aria-hidden="true" />
                     No Video ID Configured
                   </div>
@@ -157,11 +157,11 @@ export default function LiveStreamControl({ initialStreams }: Props) {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                     YouTube Video ID or Key
                   </label>
-                  <div className="flex rounded-lg shadow-xs overflow-hidden border border-gray-300 focus-within:border-[var(--color-turquoise)]">
-                    <span className="inline-flex items-center bg-gray-50 px-3 text-gray-500 text-xs font-mono border-r border-gray-200">
+                  <div className="flex rounded-lg shadow-xs overflow-hidden border border-[var(--admin-input-border)] focus-within:border-[var(--color-turquoise)]">
+                    <span className="inline-flex items-center bg-[var(--admin-surface-alt)] px-3 text-[var(--admin-text-secondary)] text-xs font-mono border-r border-[var(--admin-border)]">
                       watch?v=
                     </span>
                     <input
@@ -175,10 +175,10 @@ export default function LiveStreamControl({ initialStreams }: Props) {
                 </div>
 
                 <div className="pt-2">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center justify-between p-3 bg-[var(--admin-surface-alt)] rounded-xl border border-[var(--admin-border-subtle)]">
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900">Broadcast Transmission</h4>
-                      <p className="text-xs text-gray-500">
+                      <h4 className="text-sm font-semibold text-[var(--admin-text)]">Broadcast Transmission</h4>
+                      <p className="text-xs text-[var(--admin-text-secondary)]">
                         {s1?.is_live ? "Stream is visible on homepage" : "Stream is hidden from public"}
                       </p>
                     </div>
@@ -190,7 +190,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
                       }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                        className={`inline-block h-5 w-5 transform rounded-full bg-[var(--admin-surface)] shadow-sm ring-0 transition duration-200 ease-in-out ${
                           s1?.is_live ? "translate-x-5" : "translate-x-0"
                         }`}
                       ></span>
@@ -200,7 +200,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-gray-100">
+            <div className="pt-4 border-t border-[var(--admin-border-subtle)]">
               <button
                 onClick={() => handleSaveVideoId(1)}
                 disabled={isPending}
@@ -213,20 +213,20 @@ export default function LiveStreamControl({ initialStreams }: Props) {
         </div>
 
         {/* Stage 2 Control */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-[var(--admin-surface)] rounded-2xl border border-[var(--admin-border)] shadow-sm overflow-hidden flex flex-col">
           <div className="h-2.5 bg-[var(--color-turquoise)]"></div>
           <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Stage 2 (Academic Hall)</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Astronomy & AI Fiqh</p>
+                  <h3 className="text-lg font-bold text-[var(--admin-text)]">Stage 2 (Academic Hall)</h3>
+                  <p className="text-xs text-[var(--admin-text-secondary)] mt-0.5">Astronomy & AI Fiqh</p>
                 </div>
                 <span
                   className={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1.5 transition-colors ${
                     s2?.is_live
                       ? "bg-red-100 text-red-700"
-                      : "bg-gray-100 text-gray-600"
+                      : "bg-[var(--admin-hover)] text-[var(--admin-text-secondary)]"
                   }`}
                 >
                   <span
@@ -249,7 +249,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
                     allowFullScreen
                   ></iframe>
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 text-xs">
+                  <div className="w-full h-full flex flex-col items-center justify-center text-[var(--admin-text-secondary)] text-xs">
                     <VideoOff className="w-5 h-5 mb-1" strokeWidth={1.75} aria-hidden="true" />
                     No Video ID Configured
                   </div>
@@ -258,11 +258,11 @@ export default function LiveStreamControl({ initialStreams }: Props) {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                     YouTube Video ID or Key
                   </label>
-                  <div className="flex rounded-lg shadow-xs overflow-hidden border border-gray-300 focus-within:border-[var(--color-turquoise)]">
-                    <span className="inline-flex items-center bg-gray-50 px-3 text-gray-500 text-xs font-mono border-r border-gray-200">
+                  <div className="flex rounded-lg shadow-xs overflow-hidden border border-[var(--admin-input-border)] focus-within:border-[var(--color-turquoise)]">
+                    <span className="inline-flex items-center bg-[var(--admin-surface-alt)] px-3 text-[var(--admin-text-secondary)] text-xs font-mono border-r border-[var(--admin-border)]">
                       watch?v=
                     </span>
                     <input
@@ -276,10 +276,10 @@ export default function LiveStreamControl({ initialStreams }: Props) {
                 </div>
 
                 <div className="pt-2">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center justify-between p-3 bg-[var(--admin-surface-alt)] rounded-xl border border-[var(--admin-border-subtle)]">
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900">Broadcast Transmission</h4>
-                      <p className="text-xs text-gray-500">
+                      <h4 className="text-sm font-semibold text-[var(--admin-text)]">Broadcast Transmission</h4>
+                      <p className="text-xs text-[var(--admin-text-secondary)]">
                         {s2?.is_live ? "Stream is visible on homepage" : "Stream is hidden from public"}
                       </p>
                     </div>
@@ -291,7 +291,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
                       }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                        className={`inline-block h-5 w-5 transform rounded-full bg-[var(--admin-surface)] shadow-sm ring-0 transition duration-200 ease-in-out ${
                           s2?.is_live ? "translate-x-5" : "translate-x-0"
                         }`}
                       ></span>
@@ -301,7 +301,7 @@ export default function LiveStreamControl({ initialStreams }: Props) {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-gray-100">
+            <div className="pt-4 border-t border-[var(--admin-border-subtle)]">
               <button
                 onClick={() => handleSaveVideoId(2)}
                 disabled={isPending}

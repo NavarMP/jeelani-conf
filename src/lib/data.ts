@@ -48,6 +48,35 @@ export interface RegistrationSession {
   order_index?: number;
 }
 
+export interface CategoryRatings {
+  sessions_content?: number;
+  speakers?: number;
+  venue_logistics?: number;
+  food_hospitality?: number;
+  registration_process?: number;
+  [key: string]: number | undefined;
+}
+
+export interface Feedback {
+  id: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  overall_rating: number;
+  category_ratings: CategoryRatings;
+  feedback_text: string;
+  category: string;
+  sentiment: string;
+  is_featured: boolean;
+  is_read: boolean;
+  admin_notes?: string;
+  source: string;
+  user_agent?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+
 export async function getSpeakers(): Promise<Speaker[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -375,3 +404,76 @@ export async function getPublishedGalleryMedia() {
   return data || [];
 }
 
+
+// ==============================================================================
+// FEEDBACK
+// ==============================================================================
+
+export async function getFeedbackStats() {
+  const supabase = await createClient();
+
+  const { data: allFeedback, count } = await supabase
+    .from("feedback")
+    .select("overall_rating, sentiment, is_read, category", { count: "exact" });
+
+  const total = count || 0;
+  const feedbackList = allFeedback || [];
+
+  const avgRating =
+    feedbackList.length > 0
+      ? feedbackList.reduce((sum, f) => sum + f.overall_rating, 0) /
+        feedbackList.length
+      : 0;
+
+  const unreadCount = feedbackList.filter((f) => !f.is_read).length;
+
+  const sentimentCounts = { positive: 0, neutral: 0, negative: 0 };
+  feedbackList.forEach((f) => {
+    if (f.sentiment in sentimentCounts) {
+      sentimentCounts[f.sentiment as keyof typeof sentimentCounts]++;
+    }
+  });
+
+  const categoryCounts: Record<string, number> = {};
+  feedbackList.forEach((f) => {
+    categoryCounts[f.category] = (categoryCounts[f.category] || 0) + 1;
+  });
+
+  return {
+    total,
+    avgRating: Math.round(avgRating * 10) / 10,
+    unreadCount,
+    sentimentCounts,
+    categoryCounts,
+  };
+}
+
+export async function getAllFeedback(): Promise<Feedback[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("feedback")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching feedback:", error);
+    return [];
+  }
+  return (data as Feedback[]) || [];
+}
+
+export async function getFeaturedFeedback(): Promise<Feedback[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("feedback")
+    .select("*")
+    .eq("is_featured", true)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  if (error) {
+    console.error("Error fetching featured feedback:", error);
+    return [];
+  }
+  return (data as Feedback[]) || [];
+}

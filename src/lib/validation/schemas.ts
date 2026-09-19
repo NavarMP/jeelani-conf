@@ -30,3 +30,16 @@ export const paperPresentationSchema = z.object({
 export type GrandAssemblyFormData = z.infer<typeof grandAssemblySchema>;
 export type DarimiSessionFormData = z.infer<typeof darimiSessionSchema>;
 export type PaperPresentationFormData = z.infer<typeof paperPresentationSchema>;
+
+// Feedback form validation
+export const feedbackSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").optional().or(z.literal("")),
+  phone: z.string().regex(/^[0-9]{10}$/, "Must be a valid 10-digit phone number").optional().or(z.literal("")),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  overall_rating: z.number().int().min(1, "Please select a rating").max(5),
+  category_ratings: z.record(z.number().int().min(1).max(5)).optional(),
+  feedback_text: z.string().min(10, "Feedback must be at least 10 characters").max(2000, "Feedback must be under 2000 characters"),
+  category: z.enum(["general", "sessions", "speakers", "venue", "food", "registration", "suggestion"]).default("general"),
+});
+
+export type FeedbackFormData = z.infer<typeof feedbackSchema>;

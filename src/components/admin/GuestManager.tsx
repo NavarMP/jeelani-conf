@@ -305,7 +305,7 @@ export default function GuestManager() {
     (g.title && g.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  if (isLoading) return <div className="p-8 text-center text-gray-500">Loading guests...</div>;
+  if (isLoading) return <div className="p-8 text-center text-[var(--admin-text-secondary)]">Loading guests...</div>;
 
   return (
     <div className="space-y-6">
@@ -313,7 +313,7 @@ export default function GuestManager() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-gray-900">Guest Management</h2>
+            <h2 className="text-2xl font-bold text-[var(--admin-text)]">Guest Management</h2>
             {saveStatus === "saving" && (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full animate-pulse border border-blue-200">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving order...
@@ -330,33 +330,33 @@ export default function GuestManager() {
               </span>
             )}
           </div>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-[var(--admin-text-secondary)] text-sm mt-1">
             Drag rows/cards or use ▲/▼ arrows to reorder guests. Featured guests appear on the home page in this exact order.
           </p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)]" />
             <input
               type="text"
               placeholder="Search guests..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-turquoise)]/20 focus:border-[var(--color-turquoise)] outline-none"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-[var(--admin-input-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-turquoise)]/20 focus:border-[var(--color-turquoise)] outline-none"
             />
           </div>
-          <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200">
+          <div className="flex bg-[var(--admin-hover)] rounded-xl p-1 border border-[var(--admin-border)]">
             <button
               onClick={() => setViewMode("table")}
               title="Table view"
-              className={`p-1.5 rounded-lg transition-colors ${viewMode === "table" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+              className={`p-1.5 rounded-lg transition-colors ${viewMode === "table" ? "bg-[var(--admin-surface)] shadow-sm text-[var(--admin-text)]" : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text-secondary)]"}`}
             >
               <List className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode("grid")}
               title="Grid view"
-              className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+              className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[var(--admin-surface)] shadow-sm text-[var(--admin-text)]" : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text-secondary)]"}`}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
@@ -401,17 +401,17 @@ export default function GuestManager() {
       )}
 
       {viewMode === "table" ? (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-[var(--admin-surface)] rounded-xl border border-[var(--admin-border)] shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200 select-none">
+              <thead className="bg-[var(--admin-surface-alt)] text-[var(--admin-text-secondary)] font-medium border-b border-[var(--admin-border)] select-none">
                 <tr>
                   <th className="px-4 py-3 w-10 text-center">
                     <input
                       type="checkbox"
                       checked={selectedIds.size === filteredGuests.length && filteredGuests.length > 0}
                       onChange={toggleAll}
-                      className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-gray-300"
+                      className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-[var(--admin-input-border)]"
                     />
                   </th>
                   <th className="px-4 py-3 w-32">Order / Move</th>
@@ -437,9 +437,9 @@ export default function GuestManager() {
                       onDragEnd={handleDragEnd}
                       onDrop={(e) => handleDrop(e, guest.id)}
                       className={`transition-all ${
-                        isDragging ? "opacity-30 bg-gray-100" : ""
+                        isDragging ? "opacity-30 bg-[var(--admin-hover)]" : ""
                       } ${
-                        isOver ? "bg-[var(--color-turquoise)]/15 border-t-2 border-[var(--color-turquoise)] shadow-inner" : "hover:bg-gray-50/70"
+                        isOver ? "bg-[var(--color-turquoise)]/15 border-t-2 border-[var(--color-turquoise)] shadow-inner" : "hover:bg-[var(--admin-surface-alt)]/70"
                       }`}
                     >
                       {/* Selection Checkbox */}
@@ -448,7 +448,7 @@ export default function GuestManager() {
                           type="checkbox"
                           checked={selectedIds.has(guest.id)}
                           onChange={() => toggleSelection(guest.id)}
-                          className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-gray-300"
+                          className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-[var(--admin-input-border)]"
                         />
                       </td>
 
@@ -457,12 +457,12 @@ export default function GuestManager() {
                         <div className="flex items-center gap-1.5">
                           <div 
                             title="Drag to reorder" 
-                            className="p-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-[var(--color-navy)] rounded hover:bg-gray-100 transition-colors"
+                            className="p-1 cursor-grab active:cursor-grabbing text-[var(--admin-text-muted)] hover:text-[var(--color-navy)] rounded hover:bg-[var(--admin-hover)] transition-colors"
                           >
                             <GripVertical className="w-4 h-4" />
                           </div>
 
-                          <span className="w-7 text-center text-xs font-mono font-bold text-gray-600 bg-gray-100 border border-gray-200 px-1 py-0.5 rounded shadow-2xs">
+                          <span className="w-7 text-center text-xs font-mono font-bold text-[var(--admin-text-secondary)] bg-[var(--admin-hover)] border border-[var(--admin-border)] px-1 py-0.5 rounded shadow-2xs">
                             #{actualIdx + 1}
                           </span>
 
@@ -475,7 +475,7 @@ export default function GuestManager() {
                                 moveGuestByIndex(actualIdx, actualIdx - 1);
                               }}
                               title="Move Up"
-                              className="p-0.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
+                              className="p-0.5 rounded hover:bg-[var(--admin-border)] text-[var(--admin-text-secondary)] disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
                             >
                               <ChevronUp className="w-3.5 h-3.5" />
                             </button>
@@ -487,7 +487,7 @@ export default function GuestManager() {
                                 moveGuestByIndex(actualIdx, actualIdx + 1);
                               }}
                               title="Move Down"
-                              className="p-0.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
+                              className="p-0.5 rounded hover:bg-[var(--admin-border)] text-[var(--admin-text-secondary)] disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
                             >
                               <ChevronDown className="w-3.5 h-3.5" />
                             </button>
@@ -497,7 +497,7 @@ export default function GuestManager() {
 
                       {/* Photo */}
                       <td className="px-4 py-3 align-middle">
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 select-none">
+                        <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--admin-hover)] border border-[var(--admin-border)] select-none">
                           {guest.image_url ? (
                             <img 
                               src={guest.image_url} 
@@ -506,7 +506,7 @@ export default function GuestManager() {
                               className="w-full h-full object-cover pointer-events-none" 
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]">
                               <Camera className="w-4 h-4" />
                             </div>
                           )}
@@ -534,9 +534,9 @@ export default function GuestManager() {
                           />
                         ) : (
                           <div>
-                            <div className="font-bold text-gray-900">{guest.name}</div>
+                            <div className="font-bold text-[var(--admin-text)]">{guest.name}</div>
                             {guest.name_ml && (
-                              <div className="text-xs text-gray-500" style={{ fontFamily: "var(--font-malayalam-title)" }}>
+                              <div className="text-xs text-[var(--admin-text-secondary)]" style={{ fontFamily: "var(--font-malayalam-title)" }}>
                                 {guest.name_ml}
                               </div>
                             )}
@@ -555,7 +555,7 @@ export default function GuestManager() {
                           className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                             guest.featured 
                               ? "bg-[var(--color-brass)]/15 text-[var(--color-brass)] ring-1 ring-[var(--color-brass)]/30" 
-                              : "text-gray-300 hover:text-gray-500 hover:bg-gray-100"
+                              : "text-gray-300 hover:text-[var(--admin-text-secondary)] hover:bg-[var(--admin-hover)]"
                           }`}
                         >
                           <Star className="w-4 h-4" fill={guest.featured ? "currentColor" : "none"} />
@@ -582,7 +582,7 @@ export default function GuestManager() {
                 })}
                 {filteredGuests.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-[var(--admin-text-secondary)]">
                       No guests found matching your criteria.
                     </td>
                   </tr>
@@ -608,10 +608,10 @@ export default function GuestManager() {
                 onDragLeave={(e) => handleDragLeave(e, guest.id)}
                 onDragEnd={handleDragEnd}
                 onDrop={(e) => handleDrop(e, guest.id)}
-                className={`bg-white rounded-xl border ${
+                className={`bg-[var(--admin-surface)] rounded-xl border ${
                   selectedIds.has(guest.id) 
                     ? "border-[var(--color-turquoise)] ring-2 ring-[var(--color-turquoise)]/20" 
-                    : "border-gray-200"
+                    : "border-[var(--admin-border)]"
                 } shadow-sm overflow-hidden hover:shadow-md transition-all relative ${
                   isDragging ? "opacity-30 scale-95" : ""
                 } ${
@@ -620,20 +620,20 @@ export default function GuestManager() {
               >
                 {/* Top Overlay Bar: Order Controls, Drag Handle, and Checkbox */}
                 <div className="absolute top-2.5 left-2.5 right-2.5 z-10 flex items-center justify-between select-none">
-                  <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2 py-1 rounded-lg shadow-sm border border-gray-200/80">
+                  <div className="flex items-center gap-1.5 bg-[var(--admin-surface)]/95 backdrop-blur-md px-2 py-1 rounded-lg shadow-sm border border-[var(--admin-border)]/80">
                     <input
                       type="checkbox"
                       checked={selectedIds.has(guest.id)}
                       onChange={() => toggleSelection(guest.id)}
-                      className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-gray-300 shadow-xs mr-0.5 cursor-pointer"
+                      className="rounded text-[var(--color-turquoise)] focus:ring-[var(--color-turquoise)] border-[var(--admin-input-border)] shadow-xs mr-0.5 cursor-pointer"
                     />
                     <div 
                       title="Drag to rearrange" 
-                      className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-700 p-0.5"
+                      className="cursor-grab active:cursor-grabbing text-[var(--admin-text-muted)] hover:text-[var(--admin-text-secondary)] p-0.5"
                     >
                       <GripVertical className="w-3.5 h-3.5" />
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-gray-700 px-1 bg-gray-100 rounded border border-gray-200">
+                    <span className="text-[11px] font-mono font-bold text-[var(--admin-text-secondary)] px-1 bg-[var(--admin-hover)] rounded border border-[var(--admin-border)]">
                       #{actualIdx + 1}
                     </span>
                     <div className="flex items-center">
@@ -645,7 +645,7 @@ export default function GuestManager() {
                           moveGuestByIndex(actualIdx, actualIdx - 1);
                         }}
                         title="Move Up"
-                        className="p-0.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                        className="p-0.5 rounded hover:bg-[var(--admin-border)] text-[var(--admin-text-secondary)] disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
                       >
                         <ChevronUp className="w-3.5 h-3.5" />
                       </button>
@@ -657,7 +657,7 @@ export default function GuestManager() {
                           moveGuestByIndex(actualIdx, actualIdx + 1);
                         }}
                         title="Move Down"
-                        className="p-0.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                        className="p-0.5 rounded hover:bg-[var(--admin-border)] text-[var(--admin-text-secondary)] disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
                       >
                         <ChevronDown className="w-3.5 h-3.5" />
                       </button>
@@ -712,18 +712,18 @@ export default function GuestManager() {
                     />
                   ) : (
                     <>
-                      <h3 className="font-bold text-gray-900 text-sm">{guest.name}</h3>
+                      <h3 className="font-bold text-[var(--admin-text)] text-sm">{guest.name}</h3>
                       {guest.name_ml && (
-                        <p className="text-xs text-gray-500 mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>
+                        <p className="text-xs text-[var(--admin-text-secondary)] mt-0.5" style={{ fontFamily: "var(--font-malayalam-title)" }}>
                           {guest.name_ml}
                         </p>
                       )}
                       <p className="text-xs text-[var(--color-turquoise)] font-medium mt-1">{guest.title || "No Title"}</p>
-                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">{guest.bio}</p>
-                      <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                      <p className="text-xs text-[var(--admin-text-secondary)] mt-2 line-clamp-2">{guest.bio}</p>
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-[var(--admin-border-subtle)]">
                         <button 
                           onClick={() => setEditingGuest(guest)} 
-                          className="flex-1 py-1.5 text-xs font-medium text-[var(--color-navy)] bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+                          className="flex-1 py-1.5 text-xs font-medium text-[var(--color-navy)] bg-[var(--admin-hover)] hover:bg-[var(--admin-border)] rounded-lg transition-colors cursor-pointer"
                         >
                           Edit
                         </button>
@@ -731,7 +731,7 @@ export default function GuestManager() {
                           onClick={() => handleUpdate(guest.id, { featured: !guest.featured })} 
                           title={guest.featured ? "Unfeature from home page" : "Feature on home page"}
                           className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
-                            guest.featured ? "bg-[var(--color-brass)]/15 text-[var(--color-brass)] ring-1 ring-[var(--color-brass)]/30" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            guest.featured ? "bg-[var(--color-brass)]/15 text-[var(--color-brass)] ring-1 ring-[var(--color-brass)]/30" : "bg-[var(--admin-hover)] text-[var(--admin-text-secondary)] hover:bg-[var(--admin-border)]"
                           }`}
                         >
                           <Star className="w-3.5 h-3.5" fill={guest.featured ? "currentColor" : "none"} />
@@ -772,7 +772,7 @@ function EditGuestForm({
     description: guest.description || "" 
   });
 
-  const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-[var(--color-turquoise)] focus:ring-1 focus:ring-[var(--color-turquoise)]/30";
+  const inputClass = "w-full px-3 py-2 border border-[var(--admin-input-border)] rounded-lg text-xs outline-none focus:border-[var(--color-turquoise)] focus:ring-1 focus:ring-[var(--color-turquoise)]/30";
 
   return (
     <div className="space-y-2">
@@ -820,7 +820,7 @@ function EditGuestForm({
         </button>
         <button 
           onClick={onCancel} 
-          className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+          className="px-3 py-1.5 text-xs font-medium bg-[var(--admin-hover)] text-[var(--admin-text-secondary)] rounded-lg hover:bg-[var(--admin-border)] transition-colors cursor-pointer"
         >
           Cancel
         </button>

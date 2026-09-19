@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -18,18 +18,22 @@ import {
   Images,
   PenLine,
   ShieldCheck,
-  Menu,
+  MessageSquare,
   X,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentType = searchParams.get("type");
   const router = useRouter();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -71,6 +75,7 @@ export default function AdminSidebar() {
     {
       title: "Administration",
       items: [
+        { label: "Feedback", href: "/admin/feedback", Icon: MessageSquare, exact: true },
         { label: "Content Manager", href: "/admin/content", Icon: PenLine, exact: true },
         { label: "System Audit Trail", href: "/admin/audit", Icon: ShieldCheck, exact: true },
       ],
@@ -92,42 +97,42 @@ export default function AdminSidebar() {
 
   return (
     <>
-      {/* Mobile Hamburger Toggle */}
-      <div className="lg:hidden fixed top-3 left-4 z-40">
-        <button
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="p-2.5 rounded-xl bg-[var(--color-navy)] text-white shadow-md focus:outline-none"
-        >
-          {isMobileOpen ? <X className="w-4 h-4" strokeWidth={2} /> : <Menu className="w-4 h-4" strokeWidth={2} />}
-        </button>
-      </div>
-
       {/* Backdrop for mobile */}
-      {isMobileOpen && (
+      {isOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-30 lg:hidden backdrop-blur-xs"
-          onClick={() => setIsMobileOpen(false)}
+          onClick={onClose}
         />
       )}
 
       {/* Sidebar Container */}
       <aside
         className={`fixed lg:static top-0 bottom-0 left-0 z-40 w-64 bg-[var(--color-navy)] text-white flex flex-col transition-transform duration-300 ease-in-out ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Logo / Header */}
         <div
-          className="h-16 flex items-center justify-between px-6 border-b border-white/10 font-bold text-lg"
+          className="h-14 flex items-center justify-between px-5 border-b border-white/10 font-bold text-base"
           style={{ fontFamily: "var(--font-bodoni-moda)" }}
         >
           <div className="flex items-center">
-            <span className="text-[var(--color-brass)] mr-2.5">✦</span>
+            <span className="text-[var(--color-brass)] mr-2">✦</span>
             <span>GJC Admin</span>
           </div>
-          <span className="text-[10px] font-sans font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-white/10 text-white/70">
-            2026
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-sans font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-white/10 text-white/70">
+              2026
+            </span>
+            {/* Mobile close button */}
+            <button
+              onClick={onClose}
+              className="lg:hidden p-1 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+              aria-label="Close sidebar"
+            >
+              <X className="w-4 h-4" strokeWidth={2} />
+            </button>
+          </div>
         </div>
 
         {/* Navigation Sections */}
@@ -143,7 +148,7 @@ export default function AdminSidebar() {
                   <Link
                     key={iIdx}
                     href={item.href}
-                    onClick={() => setIsMobileOpen(false)}
+                    onClick={onClose}
                     className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                       active
                         ? "bg-white/15 text-white font-semibold shadow-xs ring-1 ring-white/20"

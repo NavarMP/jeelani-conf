@@ -13,9 +13,9 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
   const t = useTranslations("Location");
   useSectionEnterHaptic(isInView);
 
-  /* Use OpenStreetMap free embed instead of Google Maps API */
-  /* Coordinates for Alathurpadi, Melmuri — approx 10.9°N, 76.0°E */
-  const osmEmbedUrl = "https://www.openstreetmap.org/export/embed.html?bbox=76.0%2C10.89%2C76.02%2C10.91&layer=mapnik&marker=10.9%2C76.01";
+  /* Embed URL using Google Maps (reliable fallback that doesn't require WebGL) */
+  /* Coordinates for M.M.E.T.H.S.S Melmuri, Alathurpadi: 11.071439, 76.076833 */
+  const mapEmbedUrl = "https://maps.google.com/maps?q=11.071439,76.076833&hl=en&z=15&output=embed";
 
   return (
     <section id="location" className="relative py-20 md:py-28" ref={ref}>
@@ -47,7 +47,7 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
             className="rounded-2xl overflow-hidden border border-[var(--border)] shadow-sm"
           >
             <iframe
-              src={osmEmbedUrl}
+              src={mapEmbedUrl}
               width="100%"
               height="350"
               style={{ border: 0 }}
@@ -121,7 +121,7 @@ export function Location({ locationMapUrl }: { locationMapUrl: string }) {
                 </Magnetic>
                 <Magnetic pattern="tap">
                   <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=10.9,76.01`}
+                    href={`https://www.google.com/maps/dir/?api=1&destination=11.071439,76.076833`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-colors"

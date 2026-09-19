@@ -171,13 +171,13 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Zones & Slots Manager</h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <h2 className="text-2xl font-bold text-[var(--admin-text)]">Zones & Slots Manager</h2>
+          <p className="text-[var(--admin-text-secondary)] text-sm mt-1">
             Manage Grand Assembly venue layout, zone capacities, and attendee seat assignments
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs bg-gray-100 border border-gray-200 px-3 py-2 rounded-lg text-gray-600 font-medium">
+          <div className="text-xs bg-[var(--admin-hover)] border border-[var(--admin-border)] px-3 py-2 rounded-lg text-[var(--admin-text-secondary)] font-medium">
             Unseated: <span className="text-amber-600 font-bold">{unseated.length}</span> attendees
           </div>
           <button
@@ -197,9 +197,9 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Zones List */}
-        <div className="lg:col-span-1 bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[650px]">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">Assembly Zones</h3>
+        <div className="lg:col-span-1 bg-[var(--admin-surface)] rounded-xl border border-[var(--admin-border)] shadow-sm flex flex-col h-[650px]">
+          <div className="p-4 border-b border-[var(--admin-border-subtle)] flex items-center justify-between">
+            <h3 className="font-semibold text-[var(--admin-text)]">Assembly Zones</h3>
             <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-medium">
               {zones.length} Zones
             </span>
@@ -219,15 +219,15 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                   className={`p-4 rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? "bg-blue-50/70 border-blue-300 ring-2 ring-blue-500/20 shadow-sm"
-                      : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
+                      : "bg-[var(--admin-surface)] border-[var(--admin-border)] hover:border-[var(--admin-input-border)] hover:bg-[var(--admin-surface-alt)]/50"
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <span className={`font-bold text-sm ${isSelected ? "text-blue-900" : "text-gray-900"}`}>
+                      <span className={`font-bold text-sm ${isSelected ? "text-blue-900" : "text-[var(--admin-text)]"}`}>
                         {zone.name}
                       </span>
-                      <p className="text-xs text-gray-500 font-mono mt-0.5">{zone.id}</p>
+                      <p className="text-xs text-[var(--admin-text-secondary)] font-mono mt-0.5">{zone.id}</p>
                     </div>
                     <span
                       className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
@@ -243,7 +243,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden mt-3">
+                  <div className="w-full bg-[var(--admin-hover)] h-2 rounded-full overflow-hidden mt-3">
                     <div
                       className={`h-full transition-all duration-300 ${
                         isFull ? "bg-red-500" : zone.percentage > 75 ? "bg-amber-500" : "bg-blue-600"
@@ -253,7 +253,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                   </div>
 
                   <div className="flex justify-between items-center text-xs mt-3">
-                    <span className="text-gray-600 font-medium">
+                    <span className="text-[var(--admin-text-secondary)] font-medium">
                       {zone.allocatedCount} / {zone.capacity} allocated
                     </span>
                     <button
@@ -272,10 +272,10 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
             })}
           </div>
 
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-[var(--admin-border-subtle)]">
             <button
               onClick={() => setIsAddZoneOpen(true)}
-              className="w-full py-2.5 border border-dashed border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium transition-colors flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 border border-dashed border-[var(--admin-input-border)] rounded-lg text-sm text-[var(--admin-text-secondary)] hover:bg-[var(--admin-surface-alt)] hover:border-gray-400 font-medium transition-colors flex items-center justify-center gap-1.5"
             >
               <span>+</span> Add New Zone
             </button>
@@ -283,27 +283,27 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
         </div>
 
         {/* Right Column: Visual Seating Grid & Details */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[650px] overflow-hidden">
-          <div className="p-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4 bg-gray-50/50">
+        <div className="lg:col-span-2 bg-[var(--admin-surface)] rounded-xl border border-[var(--admin-border)] shadow-sm flex flex-col h-[650px] overflow-hidden">
+          <div className="p-4 border-b border-[var(--admin-border)] flex flex-wrap justify-between items-center gap-4 bg-[var(--admin-surface-alt)]/50">
             <div>
-              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+              <h3 className="font-bold text-[var(--admin-text)] flex items-center gap-2">
                 <span>{selectedZone?.name || "Zone"}</span>
-                <span className="text-xs font-normal text-gray-500 bg-white border border-gray-200 px-2 py-0.5 rounded">
+                <span className="text-xs font-normal text-[var(--admin-text-secondary)] bg-[var(--admin-surface)] border border-[var(--admin-border)] px-2 py-0.5 rounded">
                   Capacity: {selectedZone?.capacity}
                 </span>
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-[var(--admin-text-secondary)] mt-0.5">
                 Click on any seat to view assigned attendee details or assign an unseated attendee
               </p>
             </div>
             <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1.5 text-gray-600 font-medium">
+              <span className="flex items-center gap-1.5 text-[var(--admin-text-secondary)] font-medium">
                 <span className="w-3 h-3 rounded bg-blue-600 block shadow-sm"></span> Assigned
               </span>
-              <span className="flex items-center gap-1.5 text-gray-600 font-medium">
-                <span className="w-3 h-3 rounded border border-gray-300 bg-white block shadow-sm"></span> Available
+              <span className="flex items-center gap-1.5 text-[var(--admin-text-secondary)] font-medium">
+                <span className="w-3 h-3 rounded border border-[var(--admin-input-border)] bg-[var(--admin-surface)] block shadow-sm"></span> Available
               </span>
-              <span className="flex items-center gap-1.5 text-gray-600 font-medium">
+              <span className="flex items-center gap-1.5 text-[var(--admin-text-secondary)] font-medium">
                 <span className="w-3 h-3 rounded ring-2 ring-amber-500 bg-blue-100 block"></span> Selected
               </span>
             </div>
@@ -321,7 +321,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                 const rowNum = rIdx + 1;
                 return (
                   <div key={rowNum} className="flex gap-2 items-center justify-center">
-                    <div className="w-7 text-[11px] font-bold text-gray-400 text-right select-none">
+                    <div className="w-7 text-[11px] font-bold text-[var(--admin-text-muted)] text-right select-none">
                       R{rowNum}
                     </div>
                     <div className="flex gap-1.5">
@@ -346,7 +346,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                                 ? "ring-2 ring-amber-500 scale-110 z-10 bg-amber-400 text-amber-950 font-bold"
                                 : isOccupied
                                 ? "bg-blue-600 hover:bg-blue-700 text-white"
-                                : "bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-100 text-gray-400"
+                                : "bg-[var(--admin-surface)] border border-[var(--admin-input-border)] hover:border-gray-400 hover:bg-[var(--admin-hover)] text-[var(--admin-text-muted)]"
                             }`}
                           >
                             {seatNum}
@@ -361,7 +361,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
           </div>
 
           {/* Seat Inspector / Assignment Bar */}
-          <div className="p-4 bg-white border-t border-gray-200">
+          <div className="p-4 bg-[var(--admin-surface)] border-t border-[var(--admin-border)]">
             {selectedSeat ? (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -371,21 +371,21 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                   <div>
                     {selectedSeat.attendee ? (
                       <div>
-                        <div className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        <div className="text-sm font-bold text-[var(--admin-text)] flex items-center gap-2">
                           <span>{selectedSeat.attendee.name}</span>
-                          <span className="text-xs font-mono text-gray-500">
+                          <span className="text-xs font-mono text-[var(--admin-text-secondary)]">
                             ({selectedSeat.attendee.registration_id})
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-[var(--admin-text-secondary)]">
                           {selectedSeat.attendee.dars_name} • {selectedSeat.attendee.place} •{" "}
                           {selectedSeat.attendee.phone}
                         </div>
                       </div>
                     ) : (
                       <div>
-                        <div className="text-sm font-semibold text-gray-800">Available Seat</div>
-                        <div className="text-xs text-gray-500">Assign an unseated attendee to this slot</div>
+                        <div className="text-sm font-semibold text-[var(--admin-text)]">Available Seat</div>
+                        <div className="text-xs text-[var(--admin-text-secondary)]">Assign an unseated attendee to this slot</div>
                       </div>
                     )}
                   </div>
@@ -405,7 +405,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                       <select
                         value={attendeeToAssign}
                         onChange={(e) => setAttendeeToAssign(e.target.value)}
-                        className="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-[var(--color-turquoise)] max-w-xs"
+                        className="text-xs border border-[var(--admin-input-border)] rounded-lg px-2.5 py-1.5 outline-none focus:border-[var(--color-turquoise)] max-w-xs"
                       >
                         <option value="">Select unseated attendee...</option>
                         {unseated.map((u) => (
@@ -425,14 +425,14 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                   )}
                   <button
                     onClick={() => setSelectedSeat(null)}
-                    className="text-xs text-gray-400 hover:text-gray-600 p-1"
+                    className="text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text-secondary)] p-1"
                   >
                     <X className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="text-xs text-gray-500 text-center py-1">
+              <div className="text-xs text-[var(--admin-text-secondary)] text-center py-1">
                 Select any seat above to view its occupant or assign an attendee.
               </div>
             )}
@@ -443,12 +443,12 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
       {/* Add Zone Modal */}
       {isAddZoneOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <h3 className="text-lg font-bold text-gray-900">Add New Assembly Zone</h3>
+          <div className="bg-[var(--admin-surface)] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-[var(--admin-border-subtle)] pb-3">
+              <h3 className="text-lg font-bold text-[var(--admin-text)]">Add New Assembly Zone</h3>
               <button
                 onClick={() => setIsAddZoneOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text-secondary)]"
               >
                 <X className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
               </button>
@@ -456,7 +456,7 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
 
             <form onSubmit={handleCreateZone} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                   Zone Name
                 </label>
                 <input
@@ -464,14 +464,14 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                   placeholder="e.g. Zone E - Balcony North"
                   value={newZoneName}
                   onChange={(e) => setNewZoneName(e.target.value)}
-                  className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                  className="w-full text-sm border border-[var(--admin-input-border)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                     Capacity
                   </label>
                   <input
@@ -480,18 +480,18 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                     max="5000"
                     value={newZoneCapacity}
                     onChange={(e) => setNewZoneCapacity(Number(e.target.value))}
-                    className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                    className="w-full text-sm border border-[var(--admin-input-border)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                     Theme Color
                   </label>
                   <select
                     value={newZoneColor}
                     onChange={(e) => setNewZoneColor(e.target.value)}
-                    className="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                    className="w-full text-sm border border-[var(--admin-input-border)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
                   >
                     <option value="blue">Blue</option>
                     <option value="turquoise">Turquoise</option>
@@ -502,11 +502,11 @@ export default function ZoneManager({ initialZones, initialUnseated, initialAtte
                 </div>
               </div>
 
-              <div className="pt-3 flex justify-end gap-3 border-t border-gray-100">
+              <div className="pt-3 flex justify-end gap-3 border-t border-[var(--admin-border-subtle)]">
                 <button
                   type="button"
                   onClick={() => setIsAddZoneOpen(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-[var(--admin-input-border)] text-[var(--admin-text-secondary)] rounded-lg text-sm hover:bg-[var(--admin-surface-alt)] transition-colors"
                 >
                   Cancel
                 </button>

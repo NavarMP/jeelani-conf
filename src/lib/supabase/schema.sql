@@ -259,3 +259,50 @@ CREATE POLICY "Public can view gallery media" ON storage.objects FOR SELECT USIN
 CREATE POLICY "Allow upload gallery media" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'gallery-media');
 CREATE POLICY "Allow update gallery media" ON storage.objects FOR UPDATE USING (bucket_id = 'gallery-media') WITH CHECK (bucket_id = 'gallery-media');
 CREATE POLICY "Allow delete gallery media" ON storage.objects FOR DELETE USING (bucket_id = 'gallery-media');
+
+
+-- ==============================================================================
+-- FEEDBACK
+-- ==============================================================================
+
+CREATE TABLE public.feedback (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    -- Identity (optional for anonymous submissions)
+    name VARCHAR(255),
+    phone VARCHAR(50),
+    email VARCHAR(255),
+    -- Rating (1-5 stars)
+    overall_rating INTEGER NOT NULL CHECK (overall_rating >= 1 AND overall_rating <= 5),
+    -- Category-specific ratings (JSONB for flexibility)
+    -- e.g. {"sessions_content": 4, "speakers": 5, "venue": 3, "food": 4}
+    category_ratings JSONB DEFAULT '{}'::jsonb,
+    -- Text feedback
+    feedback_text TEXT NOT NULL,
+    -- Category tag
+    category VARCHAR(50) DEFAULT 'general',
+    -- Sentiment (auto-computed from rating or admin-set)
+    sentiment VARCHAR(20) DEFAULT 'neutral',
+    -- Admin fields
+    is_featured BOOLEAN DEFAULT false,
+    is_read BOOLEAN DEFAULT false,
+    admin_notes TEXT,
+    -- Metadata
+    source VARCHAR(20) DEFAULT 'web',
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TRIGGER update_feedback_modtime
+    BEFORE UPDATE ON feedback
+    FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+
+-- Public can submit feedback (insert only)
+CREATE POLICY "Allow public insert on feedback"
+    ON public.feedback FOR INSERT WITH CHECK (true);
+
+-- Admin can manage all feedback
+CREATE POLICY "Admin manage feedback"
+    ON public.feedback FOR ALL USING (true) WITH CHECK (true);
