@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import {
-  Fraunces,
-  Manrope,
   Noto_Serif_Malayalam,
   Noto_Naskh_Arabic,
   Reem_Kufi,
@@ -17,35 +15,39 @@ import { CustomCursor } from "@/components/ui/CustomCursor";
 import { cn } from "@/lib/utils";
 
 /* ── Font Configuration ──────────────────────────────────────────────────
-   Two families instead of the previous four-family Latin stack (Geist +
-   Inter + Bodoni Moda, with Inter loaded but never actually referenced
-   anywhere in the app — pure dead weight). Variable names are kept as
-   `--font-sans` / `--font-bodoni-moda` so the rest of the app (which
-   already references these tokens in ~25 files) doesn't need to change;
-   only what they point to does.
-
-   - Manrope (`--font-sans`): the UI workhorse — warmer and slightly more
-     characterful than Inter/Geist at display sizes, still fully neutral
-     and highly legible at body sizes.
-   - Fraunces (`--font-bodoni-moda`): display serif for headings and the
-     wordmark surrounds. Soft, slightly inky serif with real optical-size
-     personality — closer to the manuscript/Persianate warmth of the brief
-     than a stark high-contrast Didone like Bodoni Moda, which reads as a
-     very common "AI display serif" default.
+   General Sans is used across the entire app for body text, headings,
+   and titles — providing a crisp, modern, premium aesthetic (similar to
+   Google Sans). Both `--font-sans` and `--font-bodoni-moda` are bound to
+   General Sans so legacy heading references instantly adopt it.
    ── ────────────────────────────────────────────────────────────────── */
-const sans = Manrope({
+const generalSans = localFont({
+  src: [
+    {
+      path: "../../../public/fonts/GeneralSans-Variable.woff2",
+      style: "normal",
+    },
+    {
+      path: "../../../public/fonts/GeneralSans-VariableItalic.woff2",
+      style: "italic",
+    },
+  ],
   variable: "--font-sans",
-  subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
 });
 
-const display = Fraunces({
+const display = localFont({
+  src: [
+    {
+      path: "../../../public/fonts/GeneralSans-Variable.woff2",
+      style: "normal",
+    },
+    {
+      path: "../../../public/fonts/GeneralSans-VariableItalic.woff2",
+      style: "italic",
+    },
+  ],
   variable: "--font-bodoni-moda",
-  subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
-  style: ["normal", "italic"],
 });
 
 const malayalamText = Noto_Serif_Malayalam({
@@ -150,7 +152,7 @@ export default async function RootLayout(props: {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const fontVars = [
-    sans.variable,
+    generalSans.variable,
     display.variable,
     malayalamText.variable,
     malayalamTitle.variable,

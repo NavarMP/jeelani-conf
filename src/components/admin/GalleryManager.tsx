@@ -16,6 +16,8 @@ import {
   bulkTogglePublishGalleryMedia
 } from "@/app/[locale]/admin/gallery-actions";
 import imageCompression from 'browser-image-compression';
+import { getMediaType, getYouTubeThumbnail, getEmbedUrl } from "@/lib/mediaUtils";
+import { InstagramEmbed } from 'react-social-media-embed';
 
 export default function GalleryManager() {
   const [items, setItems] = useState<any[]>([]);
@@ -31,6 +33,7 @@ export default function GalleryManager() {
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [progressStatus, setProgressStatus] = useState("");
 
   // Bulk Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -110,6 +113,7 @@ export default function GalleryManager() {
     if (!newCategory) return alert("Please select a category.");
 
     setIsSaving(true);
+    setProgressStatus("Preparing upload...");
     
     try {
       if (files.length > 0) {
@@ -118,6 +122,7 @@ export default function GalleryManager() {
           let file = files[i];
           
           if (file.type.startsWith('image/')) {
+            setProgressStatus(`Compressing image ${i + 1} of ${files.length}...`);
             const options = {
               maxSizeMB: 4.5, // Keep under 5MB limit
               maxWidthOrHeight: 2560, // Keep high quality resolution
@@ -138,9 +143,11 @@ export default function GalleryManager() {
           fd.append("aspect", newAspect);
           fd.append("is_published", String(newPublished));
           
+          setProgressStatus(`Uploading file ${i + 1} of ${files.length}...`);
           await uploadGalleryMedia(fd);
         }
       } else if (newUrl) {
+        setProgressStatus("Saving media record...");
         // URL only
         const fd = new FormData();
         fd.append("url", newUrl);
@@ -156,12 +163,14 @@ export default function GalleryManager() {
       setNewTitle("");
       setNewUrl("");
       setFiles([]);
+      setProgressStatus("Reloading gallery...");
       await loadData();
     } catch (error) {
       console.error(error);
       alert("Failed to upload media.");
     } finally {
       setIsSaving(false);
+      setProgressStatus("");
     }
   };
 
@@ -299,7 +308,11 @@ export default function GalleryManager() {
 
       {/* Media Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {filteredItems.map((item) => (
+        {filteredItems.map((item) => {
+          const mediaType = getMediaType(item.url);
+          const ytThumb = mediaType === 'youtube' ? getYouTubeThumbnail(item.url) : null;
+          
+          return (
           <div
             key={item.id}
             className={`bg-white border rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow group flex flex-col justify-between relative ${selectedIds.has(item.id) ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-gray-200'}`}
@@ -318,7 +331,20 @@ export default function GalleryManager() {
 
             {/* Visual preview */}
             <div className="relative bg-gray-900 overflow-hidden" style={{ aspectRatio: item.aspect || "16/9" }}>
-              {item.url ? (
+              {mediaType === 'video' ? (
+                <video
+                  src={item.url}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  muted
+                  playsInline
+                />
+              ) : mediaType === 'youtube' && ytThumb ? (
+                <img
+                  src={ytThumb}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              ) : item.url ? (
                 <img
                   src={item.url}
                   alt={item.title}
@@ -326,7 +352,7 @@ export default function GalleryManager() {
                 />
               ) : (
                 <div
-                  className={`w-full h-full bg-gradient-to-br ${item.color || "from-blue-700 to-indigo-900"} flex items-center justify-center p-4`}
+                  className={`w-full h-full bg-gradient-to-br ${item.color || "from-[#103E79] to-[#218EB6]"} flex items-center justify-center p-4`}
                 >
                   <span className="text-white/40 text-xs font-mono select-none text-center">
                     {item.aspect} Preview
@@ -387,7 +413,7 @@ export default function GalleryManager() {
               </div>
             </div>
           </div>
-        ))}
+        )})}
       </div>
 
       {filteredItems.length === 0 && (
@@ -573,9 +599,16 @@ export default function GalleryManager() {
                 <button
                   type="submit"
                   disabled={isSaving || (files.length === 0 && !newUrl)}
-                  className="px-5 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-medium hover:bg-[var(--color-navy)]/90 transition-colors disabled:opacity-50"
+                  className="px-5 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-medium hover:bg-[var(--color-navy)]/90 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isSaving ? "Saving..." : "Save Media"}
+                  {isSaving ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      {progressStatus || "Saving..."}
+                    </>
+                  ) : (
+                    "Save Media"
+                  )}
                 </button>
               </div>
             </form>
@@ -596,16 +629,32 @@ export default function GalleryManager() {
             <div
               className={`w-full ${
                 previewItem.url ? "bg-black" : `bg-gradient-to-br ${previewItem.color}`
-              } flex items-center justify-center`}
+              } flex items-center justify-center relative`}
               style={{ aspectRatio: previewItem.aspect }}
             >
-              {previewItem.url ? (
-                <img src={previewItem.url} alt={previewItem.title} className="max-h-full object-contain" />
-              ) : (
-                <span className="text-white text-lg font-serif tracking-wider text-center p-6">
-                  {previewItem.title}
-                </span>
-              )}
+              {(() => {
+                const type = getMediaType(previewItem.url);
+                if (type === 'video') {
+                  return <video src={previewItem.url} controls className="w-full h-full object-contain" autoPlay />;
+                } else if (type === 'youtube' || type === 'vimeo') {
+                  const embedUrl = getEmbedUrl(previewItem.url, type);
+                  return (
+                    <iframe
+                      src={embedUrl}
+                      title={previewItem.title || "Embedded video"}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  );
+                } else if (type === 'instagram') {
+                  return <div className="max-w-[400px] max-h-full overflow-y-auto bg-white rounded-xl shadow-2xl p-4"><InstagramEmbed url={previewItem.url} width="100%" /></div>;
+                } else if (previewItem.url) {
+                  return <img src={previewItem.url} alt={previewItem.title} className="max-h-full object-contain" />;
+                } else {
+                  return <span className="text-white text-lg font-serif tracking-wider text-center p-6">{previewItem.title}</span>;
+                }
+              })()}
             </div>
             <div className="p-5 flex justify-between items-center border-t border-gray-100">
               <div>

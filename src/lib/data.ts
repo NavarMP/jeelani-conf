@@ -196,7 +196,6 @@ export async function getAdminDashboardStats() {
   const supabase = await createClient();
   
   const { count: grandAssemblyCount } = await supabase.from('registrations_grand_assembly').select('*', { count: 'exact', head: true });
-  const { count: darimiCount } = await supabase.from('registrations_darimi_session').select('*', { count: 'exact', head: true });
   const { count: dynamicCount } = await supabase.from('dynamic_registrations').select('*', { count: 'exact', head: true });
   
   const { data: zones } = await supabase.from('zones').select('capacity');
@@ -207,7 +206,7 @@ export async function getAdminDashboardStats() {
   const isAnyLive = liveStreams?.some((stream: any) => stream.is_live) || false;
 
   return {
-    totalRegistrations: (grandAssemblyCount || 0) + (darimiCount || 0) + (dynamicCount || 0),
+    totalRegistrations: (grandAssemblyCount || 0) + (dynamicCount || 0),
     assemblyCapacityPercentage: Math.min(assemblyCapacityPercentage, 100),
     dynamicRegistrations: dynamicCount || 0,
     isAnyLive,
@@ -218,12 +217,10 @@ export async function getRecentRegistrations() {
   const supabase = await createClient();
   
   const { data: assemblyData } = await supabase.from('registrations_grand_assembly').select('id, name, place, created_at').order('created_at', { ascending: false }).limit(5);
-  const { data: darimiData } = await supabase.from('registrations_darimi_session').select('id, name, place, created_at').order('created_at', { ascending: false }).limit(5);
   const { data: dynamicData } = await supabase.from('dynamic_registrations').select('id, name, place, session_slug, created_at').order('created_at', { ascending: false }).limit(5);
   
   const allRegistrations = [
     ...(assemblyData || []).map(r => ({ ...r, type: 'Grand Assembly' })),
-    ...(darimiData || []).map(r => ({ ...r, type: 'Astronomy & AI Fiqh' })),
     ...(dynamicData || []).map((r: any) => ({ ...r, type: r.session_slug || 'Dynamic' }))
   ];
   
@@ -235,13 +232,11 @@ export async function getAllRegistrations() {
   
   // Fetch from all tables
   const { data: assemblyData } = await supabase.from('registrations_grand_assembly').select('*').order('created_at', { ascending: false });
-  const { data: darimiData } = await supabase.from('registrations_darimi_session').select('*').order('created_at', { ascending: false });
   const { data: dynamicData } = await supabase.from('dynamic_registrations').select('*, registration_sessions(title)').order('created_at', { ascending: false });
   
   // Map them into a unified format
   const allRegistrations = [
     ...(assemblyData || []).map(r => ({ ...r, tableName: 'registrations_grand_assembly', typeSlug: 'assembly', typeName: 'Grand Assembly' })),
-    ...(darimiData || []).map(r => ({ ...r, tableName: 'registrations_darimi_session', typeSlug: 'AstroAIFiqh', typeName: 'Astronomy & AI Fiqh' })),
     ...(dynamicData || []).map((r: any) => ({ ...r, tableName: 'dynamic_registrations', typeSlug: r.session_slug, typeName: r.registration_sessions?.title || r.session_slug }))
   ];
   
@@ -317,9 +312,8 @@ export async function getLiveStreamsData() {
 export async function getAuditTrailData() {
   const supabase = await createClient();
 
-  const [assembly, darimi, dynamic, streams] = await Promise.all([
+  const [assembly, dynamic, streams] = await Promise.all([
     supabase.from('registrations_grand_assembly').select('id, registration_id, name, created_at, updated_at, status').order('updated_at', { ascending: false }).limit(10),
-    supabase.from('registrations_darimi_session').select('id, registration_id, name, created_at, updated_at, status, payment_status').order('updated_at', { ascending: false }).limit(10),
     supabase.from('dynamic_registrations').select('id, registration_id, name, session_slug, created_at, updated_at').order('updated_at', { ascending: false }).limit(10),
     supabase.from('live_streams').select('stage, youtube_id, is_live, updated_at').order('updated_at', { ascending: false }).limit(5)
   ]);
@@ -335,18 +329,6 @@ export async function getAuditTrailData() {
       color: 'blue',
       action: `Registration ${r.registration_id} (${r.name})`,
       details: `Status: ${r.status}`
-    });
-  });
-
-  (darimi.data || []).forEach(r => {
-    logs.push({
-      timestamp: r.updated_at || r.created_at,
-      admin: 'System / Gateway',
-      ip: '192.168.1.12',
-      category: 'Astronomy & AI Fiqh',
-      color: 'emerald',
-      action: `Paid Entry ${r.registration_id} (${r.name})`,
-      details: `Payment: ${r.payment_status} • Status: ${r.status}`
     });
   });
 
@@ -376,3 +358,20 @@ export async function getAuditTrailData() {
 
   return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
+
+export async function getPublishedGalleryMedia() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("gallery_media")
+    .select("*, category:gallery_categories(*)")
+    .eq("is_published", true)
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  if (error) {
+    console.error("Error fetching gallery media:", error);
+    return [];
+  }
+  return data || [];
+}
+

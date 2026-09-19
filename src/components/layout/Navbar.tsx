@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { haptic } from "@/lib/haptics";
@@ -19,6 +19,9 @@ export function Navbar() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const t = useTranslations("Nav");
+  const locale = useLocale();
+
+  const wordmarkSrc = locale === "ar" ? "/wordmark-ar.svg" : locale === "ml" ? "/wordmark-ml.svg" : "/wordmark-en.svg";
 
   const navLinks = [
     { href: "/#about", label: t("about") },
@@ -60,14 +63,16 @@ export function Navbar() {
             <div className="w-8 h-8 relative">
               <Image src="/favicon.svg" alt="" width={32} height={32} priority />
             </div>
-            <span
-              className={`font-[var(--font-display)] text-lg font-bold hidden sm:inline transition-colors ${
-                solid ? "text-[var(--color-navy)] dark:text-[var(--color-ivory)]" : "text-white"
-              }`}
-              style={{ fontFamily: "var(--font-bodoni-moda)" }}
-            >
-              {t("brandName")}
-            </span>
+            <Image 
+              src={wordmarkSrc} 
+              alt={t("brandName")} 
+              width={160} 
+              height={45} 
+              priority
+              className={`hidden sm:block w-auto h-5 md:h-6 transition-all ${
+                solid ? "dark:invert dark:brightness-200" : "invert brightness-200"
+              }`} 
+            />
           </Link>
 
           {/* Desktop nav links */}

@@ -16,9 +16,6 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
     try {
       await updateRegistrationStatus(registration.tableName, registration.id, status, review_status);
       registration.status = status;
-      if (review_status) {
-        registration.review_status = review_status;
-      }
     } catch (err) {
       alert("Failed to update status");
     } finally {
@@ -103,34 +100,6 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
                   </select>
                 </div>
                 
-                {registration.payment_status && (
-                  <div>
-                    <span className="text-xs text-gray-500 block">Payment Status</span>
-                    <span className={`font-medium text-sm ${registration.payment_status === 'paid' ? 'text-green-600' : 'text-amber-600'}`}>
-                      {registration.payment_status.toUpperCase()}
-                    </span>
-                    {registration.amount_paid && (
-                      <span className="text-xs text-gray-500 ml-2">₹{registration.amount_paid}</span>
-                    )}
-                  </div>
-                )}
-
-                {registration.review_status && (
-                  <div>
-                    <span className="text-xs text-gray-500 block mb-1">Paper Review Status</span>
-                    <select 
-                      value={registration.review_status} 
-                      onChange={(e) => handleUpdateStatus(registration.status, e.target.value)}
-                      disabled={isUpdating}
-                      className="w-full text-sm border-gray-300 rounded-md p-2 outline-none focus:ring-1 focus:ring-[var(--color-turquoise)]"
-                    >
-                      <option value="submitted">Submitted</option>
-                      <option value="under_review">Under Review</option>
-                      <option value="accepted">Accepted</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -152,28 +121,6 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
             </div>
           )}
 
-          {registration.tableName === 'registrations_paper_presentation' && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Paper Details</h3>
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <div>
-                  <span className="text-xs text-gray-500 block">Title</span>
-                  <span className="font-medium text-gray-900">{registration.paper_title}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 block">Abstract</span>
-                  <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{registration.abstract}</p>
-                </div>
-                {registration.file_url && (
-                  <div>
-                    <a href={registration.file_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-navy)] text-white text-sm font-medium rounded-md hover:bg-[var(--color-navy)]/90">
-                      View Document PDF
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {registration.form_data && Object.keys(registration.form_data).length > 0 && (
             <div>

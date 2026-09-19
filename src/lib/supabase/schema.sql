@@ -24,39 +24,6 @@ CREATE TABLE public.registrations_grand_assembly (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Musthafa Darimi Session Registrations (Paid)
-CREATE TABLE public.registrations_darimi_session (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    registration_id VARCHAR(20) UNIQUE NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    email VARCHAR(255),
-    place VARCHAR(255) NOT NULL,
-    razorpay_order_id VARCHAR(255),
-    razorpay_payment_id VARCHAR(255),
-    payment_status payment_status DEFAULT 'pending',
-    amount_paid DECIMAL(10,2) DEFAULT 0.00,
-    status registration_status DEFAULT 'pending',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Paper Presentation Registrations (Free) — ARCHIVED, kept for historical data
-CREATE TABLE public.registrations_paper_presentation (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    registration_id VARCHAR(20) UNIQUE NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    email VARCHAR(255),
-    place VARCHAR(255) NOT NULL,
-    paper_title VARCHAR(500) NOT NULL,
-    abstract TEXT NOT NULL,
-    file_url VARCHAR(1000),
-    review_status VARCHAR(50) DEFAULT 'submitted',
-    status registration_status DEFAULT 'confirmed',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
 
 -- 4. Speakers
 CREATE TABLE public.speakers (
@@ -140,13 +107,6 @@ CREATE TRIGGER update_reg_assembly_modtime
     BEFORE UPDATE ON registrations_grand_assembly
     FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
-CREATE TRIGGER update_reg_darimi_modtime
-    BEFORE UPDATE ON registrations_darimi_session
-    FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
-
-CREATE TRIGGER update_reg_paper_modtime
-    BEFORE UPDATE ON registrations_paper_presentation
-    FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
 CREATE TRIGGER update_speakers_modtime
     BEFORE UPDATE ON speakers
@@ -158,8 +118,7 @@ CREATE TRIGGER update_sessions_modtime
 
 -- Row Level Security (RLS)
 ALTER TABLE public.registrations_grand_assembly ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.registrations_darimi_session ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.registrations_paper_presentation ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE public.speakers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.session_speakers ENABLE ROW LEVEL SECURITY;
@@ -169,8 +128,7 @@ ALTER TABLE public.zones ENABLE ROW LEVEL SECURITY;
 
 -- Policies
 CREATE POLICY "Allow public insert on assembly" ON public.registrations_grand_assembly FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public insert on darimi" ON public.registrations_darimi_session FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public insert on paper" ON public.registrations_paper_presentation FOR INSERT WITH CHECK (true);
+
 
 CREATE POLICY "Allow public select on speakers" ON public.speakers FOR SELECT USING (true);
 CREATE POLICY "Admin manage speakers" ON public.speakers FOR ALL USING (true) WITH CHECK (true);
@@ -233,6 +191,12 @@ CREATE POLICY "Allow public select on active sessions" ON public.registration_se
 CREATE POLICY "Allow public insert on dynamic registrations" ON public.dynamic_registrations FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admin manage sessions" ON public.registration_sessions FOR ALL USING (true);
 CREATE POLICY "Admin read dynamic registrations" ON public.dynamic_registrations FOR SELECT USING (true);
+
+-- Missing Admin CRUD policies added
+CREATE POLICY "Admin manage grand assembly" ON public.registrations_grand_assembly FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Admin manage dynamic" ON public.dynamic_registrations FOR ALL USING (true) WITH CHECK (true);
+
 
 -- ==============================================================================
 -- GALLERY

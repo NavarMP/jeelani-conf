@@ -111,7 +111,7 @@ export function Opening({ targetDate, brochureUrl }: { targetDate: string; broch
 
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }} className="mb-6">
             <div className="inline-block rounded-lg px-8 py-5 md:px-12 md:py-7" style={{ clipPath: "url(#scallopClip)" }}>
-              <Image src={wordmarkSrc} alt="Grand Jeelani Conference" width={400} height={140} priority className="w-[220px] md:w-[320px] lg:w-[380px] h-auto invert brightness-200" />
+              <Image src={wordmarkSrc} alt="Grand Jeelani Conference" width={1200} height={400} priority className="w-[560px] md:w-[840px] lg:w-[1000px] h-auto invert brightness-200" />
             </div>
           </motion.div>
 

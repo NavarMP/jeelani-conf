@@ -162,8 +162,8 @@
   --color-spiritual-black: var(--color-black);
 
   /* Font families */
-  --font-display: var(--font-bodoni-moda); /* now bound to Fraunces — see layout.tsx */
-  --font-sans: var(--font-sans); /* now bound to Manrope — see layout.tsx */
+  --font-display: var(--font-sans);
+  --font-sans: var(--font-sans);
   --font-malayalam: var(--font-malayalam-text);
   --font-malayalam-title: var(--font-malayalam-title);
   --font-arabic: var(--font-noto-naskh-arabic);
@@ -237,7 +237,7 @@ html {
 }
 
 body {
-  font-family: var(--font-sans, 'Manrope', system-ui, sans-serif), var(--font-malayalam-text);
+  font-family: var(--font-sans, 'General Sans', system-ui, sans-serif), var(--font-malayalam-text);
   font-size: var(--text-base);
   line-height: 1.6;
   min-height: 100dvh;
@@ -248,7 +248,8 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display, 'Fraunces', serif), var(--font-malayalam-title);
+  font-family: var(--font-display, var(--font-sans), 'General Sans', sans-serif), var(--font-malayalam-title);
+  letter-spacing: -0.02em;
 }
 
 /* ---------- Malayalam Typography Support ---------- */

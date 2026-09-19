@@ -151,7 +151,7 @@ export async function uploadGalleryMedia(formData: FormData) {
       url,
       aspect,
       is_published: isPublished,
-      color: "from-[var(--color-navy)] to-[var(--color-turquoise)]"
+      color: "from-[#103E79] to-[#218EB6]"
     }])
     .select()
     .single();

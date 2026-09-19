@@ -51,10 +51,29 @@ export async function deleteRegistration(table: string, id: string) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Unauthorized");
 
+  // 1. Fetch the registration first to check for any associated storage files
+  const { data: regData } = await supabase
+    .from(table)
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (regData) {
+    // If it's a dynamic registration and has a receipt image
+    if (table === "dynamic_registrations" && regData.receipt_url) {
+      if (regData.receipt_url.includes("receipts")) {
+        const fileName = regData.receipt_url.split("/").pop();
+        if (fileName) {
+          await supabase.storage.from("receipts").remove([fileName]);
+        }
+      }
+    }
+  }
+
+  // 2. Delete the record from the database
   const { error } = await supabase.from(table).delete().eq("id", id);
   if (error) throw new Error("Failed to delete registration");
   revalidatePath("/admin/registrations");
-  revalidatePath("/admin/papers");
 }
 
 // Session (Schedule) Management
