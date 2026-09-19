@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { fetchRegistrationsAction } from "@/app/[locale]/admin/actions";
+import { fetchRegistrationsAction, updateRegistrationStatus } from "@/app/[locale]/admin/actions";
 import RegistrationDetailModal from "@/components/admin/RegistrationDetailModal";
 import { RefreshCw, ArrowUpRight, Download, ChevronUp, ChevronDown, CheckSquare, Square, Trash2, CheckCircle, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -23,6 +23,22 @@ function RegistrationsContent({ initialRegistrations }: Props) {
   const [registrations, setRegistrations] = useState<any[]>(initialRegistrations);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedReg, setSelectedReg] = useState<any | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+
+  const handleStatusChange = async (reg: any, newStatus: string) => {
+    setUpdatingStatusId(reg.id);
+    try {
+      await updateRegistrationStatus(reg.tableName, reg.id, newStatus);
+      setRegistrations((prev) =>
+        prev.map((r) => (r.id === reg.id ? { ...r, status: newStatus } : r))
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Failed to update status");
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>("created_at");
@@ -387,19 +403,24 @@ function RegistrationsContent({ initialRegistrations }: Props) {
                     <div>{reg.phone}</div>
                     {reg.email && <div className="text-[var(--admin-text-muted)] font-sans mt-0.5">{reg.email}</div>}
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-col gap-1 items-start">
-                      <span
-                        className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                      <select
+                        value={reg.status || "pending"}
+                        onChange={(e) => handleStatusChange(reg, e.target.value)}
+                        disabled={updatingStatusId === reg.id}
+                        className={`px-2 py-1 rounded text-[11px] font-bold border-none outline-none appearance-none cursor-pointer ${
                           reg.status === "confirmed" || reg.status === "approved"
                             ? "bg-green-500/10 text-green-700 dark:text-green-400"
                             : reg.status === "cancelled" || reg.status === "rejected"
                             ? "bg-red-500/10 text-red-700 dark:text-red-400"
                             : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                        }`}
+                        } ${updatingStatusId === reg.id ? "opacity-50" : ""}`}
                       >
-                        {reg.status || "Pending"}
-                      </span>
+                        <option value="pending" className="bg-[var(--admin-surface)] text-[var(--admin-text)]">Pending</option>
+                        <option value="confirmed" className="bg-[var(--admin-surface)] text-[var(--admin-text)]">Confirmed</option>
+                        <option value="cancelled" className="bg-[var(--admin-surface)] text-[var(--admin-text)]">Cancelled</option>
+                      </select>
                       {reg.payment_status && (
                         <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                           Payment: {reg.payment_status}

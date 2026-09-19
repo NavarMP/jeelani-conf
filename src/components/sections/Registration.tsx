@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -8,7 +8,8 @@ import { type RegistrationSession } from "@/lib/data";
 import { haptic } from "@/lib/haptics";
 import { useSectionEnterHaptic } from "@/hooks/useHaptics";
 import { Magnetic } from "@/components/ui/Magnetic";
-import { Building2, ArrowRight, ArrowUpRight, ClipboardList } from "lucide-react";
+import { Building2, ArrowRight, ArrowUpRight, ClipboardList, Search } from "lucide-react";
+import { CheckStatusModal } from "./CheckStatusModal";
 
 const GRAND_ASSEMBLY_EXTERNAL_URL = "https://grand-jeelani-conference-2026.web.app/";
 
@@ -30,6 +31,7 @@ function getRegistrationHref(session: RegistrationSession): string {
 export function Registration({ registrationSessions }: { registrationSessions: RegistrationSession[] }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const t = useTranslations("Registration");
   useSectionEnterHaptic(isInView);
 
@@ -176,7 +178,25 @@ export function Registration({ registrationSessions }: { registrationSessions: R
             );
           })}
         </div>
+
+        {/* Check Status Button */}
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="mt-12 flex justify-center"
+        >
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="group flex items-center gap-2 px-6 py-3 rounded-xl border border-[var(--color-turquoise)]/40 bg-[var(--color-turquoise)]/5 text-[var(--color-turquoise)] font-semibold hover:bg-[var(--color-turquoise)]/15 transition-all shadow-sm"
+          >
+            <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            Check Registration Status
+          </button>
+        </motion.div>
       </div>
+
+      <CheckStatusModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 }

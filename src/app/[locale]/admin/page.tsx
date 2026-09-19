@@ -39,16 +39,18 @@ export default async function AdminDashboard() {
           <h3 className="text-sm font-medium text-[var(--admin-text-secondary)] mb-2">Total Registrations</h3>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold text-[var(--admin-text)]">{stats.totalRegistrations}</span>
-            <span className="text-xs text-green-500 font-medium">Active</span>
+            <span className="text-xs text-green-500 font-medium">Dynamic Live</span>
           </div>
+          <p className="text-xs text-[var(--admin-text-muted)] mt-1">{stats.confirmedCount} verified • {stats.receiptsUploaded} receipts</p>
         </div>
         
         <div className="bg-[var(--admin-surface)] p-5 rounded-xl border border-[var(--admin-border)] shadow-sm">
-          <h3 className="text-sm font-medium text-[var(--admin-text-secondary)] mb-2">Dynamic Registrations</h3>
+          <h3 className="text-sm font-medium text-[var(--admin-text-secondary)] mb-2">Est. Money Flow</h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-[var(--admin-text)]">{stats.dynamicRegistrations}</span>
-            <span className="text-xs text-purple-500 font-medium">Burda, Astro & AI Fiqh, Dars</span>
+            <span className="text-3xl font-bold text-[var(--color-navy)] dark:text-[var(--color-turquoise)]">₹{stats.totalRevenue.toLocaleString()}</span>
+            <span className="text-xs text-emerald-500 font-medium">INR</span>
           </div>
+          <p className="text-xs text-[var(--admin-text-muted)] mt-1">Burda (₹300) & Astro-AI (₹50)</p>
         </div>
         
         <div className="bg-[var(--admin-surface)] p-5 rounded-xl border border-[var(--admin-border)] shadow-sm relative overflow-hidden">
@@ -67,7 +69,7 @@ export default async function AdminDashboard() {
               </>
             )}
           </div>
-          <p className="text-xs text-[var(--admin-text-muted)] mt-2">{stats.isAnyLive ? 'Active Streams' : 'Stage 1 & 2 idle'}</p>
+          <p className="text-xs text-[var(--admin-text-muted)] mt-2">{stats.isAnyLive ? 'Active Broadcast' : 'Stage 1 & 2 idle'}</p>
         </div>
 
         <div className="bg-[var(--admin-surface)] p-5 rounded-xl border border-[var(--admin-border)] shadow-sm">
@@ -83,20 +85,26 @@ export default async function AdminDashboard() {
               View All →
             </a>
           </div>
+          <p className="text-xs text-[var(--admin-text-muted)] mt-1">{feedbackStats.unreadCount} unread responses</p>
         </div>
       </div>
 
       {/* Two column layout for recent activity and quick actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-[var(--admin-surface)] rounded-xl border border-[var(--admin-border)] shadow-sm p-6">
-          <h3 className="text-lg font-bold text-[var(--admin-text)] mb-4">Recent Registrations</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-[var(--admin-text)]">Recent Dynamic Registrations</h3>
+            <a href="/admin/registrations" className="text-xs text-[var(--color-turquoise)] font-medium hover:underline">
+              View All Registrations →
+            </a>
+          </div>
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-[var(--admin-text-secondary)] uppercase bg-[var(--admin-surface-alt)]">
                 <tr>
                   <th className="px-4 py-3 rounded-tl-lg">Name</th>
-                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">Program</th>
                   <th className="px-4 py-3">Place</th>
                   <th className="px-4 py-3 rounded-tr-lg">Time</th>
                 </tr>
@@ -111,11 +119,7 @@ export default async function AdminDashboard() {
                     <tr key={reg.id} className="border-b border-[var(--admin-border-subtle)]">
                       <td className="px-4 py-3 font-medium text-[var(--admin-text)]">{reg.name}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          reg.type === 'Grand Assembly' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
-                          reg.type === 'Astronomy & AI Fiqh' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' :
-                          'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                        }`}>
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400">
                           {reg.type}
                         </span>
                       </td>
@@ -138,22 +142,22 @@ export default async function AdminDashboard() {
           </h3>
           
           <div className="space-y-3 relative z-10">
-            <button className="w-full text-left px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors border border-white/5 flex justify-between items-center">
-              Export Registration CSV
+            <a href="/admin/analytics" className="w-full text-left px-4 py-3 bg-[var(--color-turquoise)]/20 hover:bg-[var(--color-turquoise)]/30 text-white rounded-lg text-sm font-medium transition-colors border border-[var(--color-turquoise)]/40 flex justify-between items-center">
+              <span>📊 Real-Time Analytics & Stats</span>
               <span>→</span>
-            </button>
-            <button className="w-full text-left px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors border border-white/5 flex justify-between items-center">
-              Generate Badges Batch
+            </a>
+            <a href="/admin/registrations" className="w-full text-left px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors border border-white/5 flex justify-between items-center">
+              Manage Registrations
               <span>→</span>
-            </button>
-            <button className="w-full text-left px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors border border-white/5 flex justify-between items-center">
-              Send Reminder Emails
+            </a>
+            <a href="/admin/feedback" className="w-full text-left px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors border border-white/5 flex justify-between items-center">
+              View Attendee Feedback
               <span>→</span>
-            </button>
-            <button className="w-full text-left px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg text-sm font-medium transition-colors border border-red-500/30 flex justify-between items-center mt-6">
-              Manage Live Stream
+            </a>
+            <a href="/admin/live" className="w-full text-left px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg text-sm font-medium transition-colors border border-red-500/30 flex justify-between items-center mt-6">
+              Live Stream Broadcast
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
-            </button>
+            </a>
           </div>
         </div>
       </div>

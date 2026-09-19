@@ -498,3 +498,12 @@ body::before {
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg;
+  }
+  .glass-panel-hover {
+    @apply hover:bg-white/90 dark:hover:bg-black/60 transition-all duration-300;
+  }
+}

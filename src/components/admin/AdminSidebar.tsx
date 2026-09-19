@@ -7,13 +7,12 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
+  BarChart3,
   ClipboardList,
-  Building2,
   GraduationCap,
   Zap,
   CalendarRange,
   Mic,
-  Armchair,
   Radio,
   Images,
   PenLine,
@@ -46,14 +45,16 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       title: "Overview",
       items: [
         { label: "Dashboard", href: "/admin", Icon: LayoutDashboard, exact: true },
+        { label: "Event Intelligence", href: "/admin/analytics", Icon: BarChart3, exact: true },
+        { label: "System Telemetry", href: "/admin/telemetry", Icon: Zap, exact: true },
       ],
     },
     {
       title: "Registrations & Entries",
       items: [
         { label: "All Registrations", href: "/admin/registrations", Icon: ClipboardList, isAllRegs: true },
-        { label: "Grand Assembly", href: "/admin/registrations?type=assembly", Icon: Building2, type: "assembly" },
-        { label: "Astronomy & AI Fiqh", href: "/admin/registrations?type=astro-ai-fiqh", Icon: GraduationCap, type: "darimi" },
+        { label: "Astronomy & AI Fiqh", href: "/admin/registrations?type=astro-ai-fiqh", Icon: GraduationCap, type: "astro-ai-fiqh" },
+        { label: "Burda & Qawwali", href: "/admin/registrations?type=burda-qawwali", Icon: Zap, type: "burda-qawwali" },
         { label: "Dynamic Sessions", href: "/admin/sessions", Icon: Zap, exact: true },
       ],
     },
@@ -62,7 +63,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       items: [
         { label: "Schedule Builder", href: "/admin/schedule", Icon: CalendarRange, exact: true },
         { label: "Guests", href: "/admin/guests", Icon: Mic, exact: true },
-        { label: "Zones & Slots", href: "/admin/zones", Icon: Armchair, exact: true },
       ],
     },
     {

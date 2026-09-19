@@ -103,22 +103,6 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
             </div>
           </div>
 
-          {/* Type-specific details */}
-          {registration.tableName === 'registrations_grand_assembly' && (
-            <div>
-              <h3 className="text-sm font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-3">Assembly Details</h3>
-              <div className="bg-[var(--admin-surface-alt)] border border-[var(--admin-border-subtle)] p-4 rounded-lg flex flex-wrap gap-6">
-                <div>
-                  <span className="text-xs text-[var(--admin-text-muted)] block">Dars Name</span>
-                  <span className="font-medium text-[var(--admin-text)]">{registration.dars_name}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-[var(--admin-text-muted)] block">Zone Assigned</span>
-                  <span className="font-medium text-[var(--admin-text)]">{registration.zone || 'Not Assigned'}</span>
-                </div>
-              </div>
-            </div>
-          )}
 
 
           {registration.form_data && Object.keys(registration.form_data).length > 0 && (
