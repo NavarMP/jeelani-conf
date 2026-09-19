@@ -22,17 +22,18 @@ export function AboutCTA() {
       ref={ref}
     >
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-navy)] via-[#0d3160] to-[#0a2544]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-navy)] via-[#0d3160] to-[var(--color-black)]" />
 
       {/* Arabesque pattern overlay */}
-      <div className="absolute inset-0 opacity-[0.04]">
-        <Image
-          src="/about/arabesque-pattern.jpg"
-          alt=""
-          fill
-          className="object-cover"
-        />
-      </div>
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: "url('/motifs/arabesque-tile-pattern.svg')",
+          backgroundRepeat: "repeat",
+          backgroundSize: "140px 140px",
+        }}
+        aria-hidden="true"
+      />
 
       {/* Decorative accent lines */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--color-brass)]/40 to-transparent" />

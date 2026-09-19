@@ -5,7 +5,7 @@ import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, ChevronDown, FileText } from "lucide-react";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { useSectionEnterHaptic } from "@/hooks/useHaptics";
 
@@ -19,10 +19,22 @@ import { useSectionEnterHaptic } from "@/hooks/useHaptics";
  * behind all three, so scrolling from the title card into the story and
  * into the countdown reads as one motion rather than three page loads.
  */
-export function Opening({ targetDate, brochureUrl }: { targetDate: string; brochureUrl?: string }) {
+export function Opening({ targetDate, conferenceDocuments = [] }: { targetDate: string; conferenceDocuments?: { id: string, title: string, url: string }[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const aboutRef = useRef(null);
   const countdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isDocsOpen, setIsDocsOpen] = useState(false);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDocsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const aboutInView = useInView(aboutRef, { once: true, margin: "-100px" });
   const countdownInView = useInView(countdownRef, { once: true, margin: "-50px" });
@@ -138,29 +150,47 @@ export function Opening({ targetDate, brochureUrl }: { targetDate: string; broch
               </Link>
             </Magnetic>
             <Magnetic pattern="tap">
-              {brochureUrl ? (
-                <a
-                  href={brochureUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 backdrop-blur-sm transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-                  {tHero("brochure")}
-                </a>
-              ) : (
-                <a
-                  href="#brochure"
+              <div className="relative" ref={dropdownRef}>
+                <button
                   onClick={(e) => {
                     e.preventDefault();
-                    alert("Brochure will be available soon!");
+                    if (conferenceDocuments.length === 0) {
+                      alert("Documents will be available soon!");
+                    } else if (conferenceDocuments.length === 1) {
+                      window.open(conferenceDocuments[0].url, "_blank");
+                    } else {
+                      setIsDocsOpen(!isDocsOpen);
+                    }
                   }}
-                  className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 backdrop-blur-sm transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-semibold bg-white/5 text-white/90 border border-white/20 hover:bg-white/10 backdrop-blur-sm transition-all hover:border-white/30"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-                  {tHero("brochure")}
-                </a>
-              )}
+                  {tHero("brochure") || "Documents"}
+                  {conferenceDocuments.length > 1 && (
+                    <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${isDocsOpen ? "rotate-180" : ""}`} />
+                  )}
+                </button>
+
+                {isDocsOpen && conferenceDocuments.length > 1 && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-[var(--color-navy)]/95 backdrop-blur-md border border-[var(--color-turquoise)]/20 rounded-xl shadow-xl overflow-hidden z-50">
+                    <div className="py-2">
+                      {conferenceDocuments.map((doc) => (
+                        <a
+                          key={doc.id}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-white/90 hover:bg-white/10 transition-colors"
+                          onClick={() => setIsDocsOpen(false)}
+                        >
+                          <FileText className="w-4 h-4 text-[var(--color-brass)] shrink-0" />
+                          <span className="truncate">{doc.title}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </Magnetic>
           </motion.div>
         </div>

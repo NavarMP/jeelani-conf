@@ -559,3 +559,23 @@ export async function deleteFeedback(id: string) {
   revalidatePath("/admin/feedback");
   revalidatePath("/admin");
 }
+
+export async function saveConferenceDocumentsAction(documents: { id: string, title: string, url: string }[]) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("global_settings")
+    .upsert({
+      key: "conference_documents",
+      value: documents,
+      updated_at: new Date().toISOString(),
+    });
+
+  if (error) {
+    console.error("Failed to save conference documents:", error);
+    throw new Error("Failed to save conference documents: " + error.message);
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/content");
+  return { success: true };
+}

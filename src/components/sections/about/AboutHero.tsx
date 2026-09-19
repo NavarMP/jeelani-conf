@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,92 +16,145 @@ export function AboutHero() {
     offset: ["start start", "end start"],
   });
 
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  // Golden celestial glints - identical to homepage Opening
+  const [glints] = useState(() =>
+    Array.from({ length: 6 }, (_, i) => ({
+      top: 15 + Math.random() * 60,
+      left: 10 + Math.random() * 80,
+      size: 8 + Math.random() * 14,
+      duration: 3 + Math.random() * 2,
+      delay: i * 0.8,
+    }))
+  );
 
   return (
     <section
       ref={containerRef}
-      className="relative min-h-[70dvh] md:min-h-[80dvh] flex items-center justify-center overflow-hidden"
+      className="relative min-h-[75dvh] md:min-h-[85dvh] flex items-center justify-center overflow-hidden"
     >
-      {/* Background layers */}
-      <motion.div className="absolute inset-0 z-0" style={{ y: bgY }}>
-        {/* Deep navy gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a2544] via-[var(--color-navy)] to-[#0d3160]" />
+      {/* ── Background: Continuous canvas matching homepage Opening ── */}
+      <div
+        className="absolute inset-0 -z-10 pointer-events-none"
+        style={{
+          background: `linear-gradient(180deg,
+            var(--color-navy) 0%,
+            color-mix(in srgb, var(--color-navy) 84%, var(--color-turquoise)) 24%,
+            color-mix(in srgb, var(--color-navy) 45%, var(--surface)) 55%,
+            var(--surface) 80%,
+            var(--surface) 100%)`,
+        }}
+        aria-hidden="true"
+      />
 
-        {/* Arabesque pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.06]">
-          <Image
-            src="/about/arabesque-pattern.jpg"
-            alt=""
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
+      {/* Shared arabesque tile pattern motif */}
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.045] pointer-events-none"
+        style={{
+          backgroundImage: "url('/motifs/arabesque-tile-pattern.svg')",
+          backgroundRepeat: "repeat",
+          backgroundSize: "140px 140px",
+        }}
+        aria-hidden="true"
+      />
 
-        {/* Radial glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(33,142,182,0.15)_0%,transparent_70%)]" />
-
-        {/* Bottom gradient fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--surface)] dark:from-[var(--background)] to-transparent" />
-      </motion.div>
+      {/* Floating celestial glints */}
+      {glints.map((g, i) => (
+        <motion.div
+          key={i}
+          className="absolute text-[var(--color-brass)] pointer-events-none"
+          style={{
+            top: `${g.top}%`,
+            left: `${g.left}%`,
+            fontSize: `${g.size}px`,
+          }}
+          animate={{ opacity: [0, 0.65, 0], scale: [0.5, 1.1, 0.5], rotate: [0, 180] }}
+          transition={{ duration: g.duration, repeat: Infinity, delay: g.delay, ease: "easeInOut" }}
+          aria-hidden="true"
+        >
+          ✦
+        </motion.div>
+      ))}
 
       {/* Content */}
       <motion.div
-        className="relative z-10 text-center px-6 max-w-3xl mx-auto"
-        style={{ opacity }}
+        className="relative z-10 text-center px-6 max-w-3xl mx-auto pt-8 pb-14"
+        style={{ y: contentY, opacity }}
       >
         {/* Breadcrumb */}
         <motion.nav
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="flex items-center justify-center gap-1.5 text-xs text-white/50 mb-8"
+          className="flex items-center justify-center gap-1.5 text-xs text-white/60 mb-6"
           aria-label="Breadcrumb"
         >
-          <Link href="/" className="hover:text-white/80 transition-colors">
+          <Link href="/" className="hover:text-white transition-colors">
             {t("breadcrumbHome")}
           </Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-[var(--color-brass)]">{t("breadcrumbAbout")}</span>
+          <ChevronRight className="w-3 h-3 text-white/40" />
+          <span className="text-[var(--color-brass)] font-medium">{t("breadcrumbAbout")}</span>
         </motion.nav>
 
-        {/* Eyebrow */}
-        <motion.span
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+        {/* Dars Typography Motif */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
-          className="inline-block text-[var(--color-brass)] text-xs font-semibold tracking-[0.25em] uppercase mb-4"
+          className="mb-5"
         >
-          {t("eyebrow")}
-        </motion.span>
+          <Image
+            src="/dars-typo.svg"
+            alt="الدرس بجامع النور بادري"
+            width={260}
+            height={55}
+            className="w-[160px] md:w-[220px] h-auto mx-auto invert opacity-90 drop-shadow-sm"
+          />
+        </motion.div>
+
+        {/* Eyebrow */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="mb-3"
+        >
+          <span className="text-[var(--color-brass)] text-xs md:text-sm font-medium tracking-[0.2em] uppercase">
+            ✦ &nbsp; {t("eyebrow")} &nbsp; ✦
+          </span>
+        </motion.div>
 
         {/* Main heading */}
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.7 }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
+          transition={{ delay: 0.5, duration: 0.7 }}
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight"
           style={{ fontFamily: "var(--font-bodoni-moda)" }}
         >
           {t("heading")}
         </motion.h1>
 
-        {/* Decorative divider */}
+        {/* Ornamental divider */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="mx-auto mt-6 mb-6 h-[2px] w-24 bg-gradient-to-r from-transparent via-[var(--color-brass)] to-transparent"
-        />
+          className="flex items-center justify-center gap-3 my-6"
+        >
+          <div className="h-[1px] w-20 bg-gradient-to-r from-transparent to-[var(--color-brass)]" />
+          <span className="text-[var(--color-brass)] text-xs">✦</span>
+          <div className="h-[1px] w-20 bg-gradient-to-l from-transparent to-[var(--color-brass)]" />
+        </motion.div>
 
         {/* Description */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.6 }}
-          className="text-white/70 text-sm md:text-base leading-relaxed max-w-2xl mx-auto"
+          className="text-white/80 text-sm md:text-base leading-relaxed max-w-2xl mx-auto"
         >
           {t("description")}
         </motion.p>
@@ -111,17 +164,17 @@ export function AboutHero() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+        transition={{ delay: 1.1, duration: 0.5 }}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 pointer-events-none"
       >
-        <span className="text-white/40 text-[10px] tracking-widest uppercase">
+        <span className="text-white/50 text-[10px] tracking-widest uppercase font-medium">
           {t("scrollDown")}
         </span>
         <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ y: [0, 6, 0] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ChevronDown className="w-4 h-4 text-white/40" />
+          <ChevronDown className="w-4 h-4 text-[var(--color-brass)]" />
         </motion.div>
       </motion.div>
     </section>

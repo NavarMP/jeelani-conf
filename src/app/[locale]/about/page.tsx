@@ -28,7 +28,7 @@ export default function AboutPage({
   setRequestLocale(locale);
 
   return (
-    <main className="bg-[var(--background)] min-h-screen">
+    <main className="bg-[var(--surface)] min-h-screen">
       <AboutHero />
       <DarsSection />
       <UstadSection />

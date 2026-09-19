@@ -20,7 +20,10 @@ export default async function HomePage(props: { params: Promise<{ locale: string
 
   return (
     <>
-      <Opening targetDate={siteSettings.eventDate} brochureUrl={siteSettings.brochure_url?.url} />
+      <Opening 
+        targetDate={siteSettings.eventDate} 
+        conferenceDocuments={siteSettings.conference_documents || (siteSettings.brochure_url ? [{id: "old", title: "Brochure", url: siteSettings.brochure_url.url}] : [])} 
+      />
       <Schedule sessions={sessions} />
       <Speakers speakers={speakers.filter(s => s.featured)} />
       <Registration registrationSessions={registrationSessions} />
