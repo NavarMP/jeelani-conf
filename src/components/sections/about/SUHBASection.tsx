@@ -3,7 +3,8 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { Landmark, Palette, BookOpenCheck, UsersRound } from "lucide-react";
+import { Landmark, Palette, BookOpenCheck, UsersRound, Mail } from "lucide-react";
+import { FaFacebookF, FaInstagram, FaThreads } from "react-icons/fa6";
 import { useSectionEnterHaptic } from "@/hooks/useHaptics";
 
 export function SUHBASection() {
@@ -120,6 +121,27 @@ export function SUHBASection() {
             </motion.div>
           ))}
         </div>
+
+        {/* Social Links */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className="flex justify-center gap-6 mt-12"
+        >
+          <a href="mailto:suhba313@gmail.com" aria-label="Email" className="text-[var(--text-muted)] hover:text-[var(--color-turquoise)] transition-colors">
+            <Mail className="w-5 h-5" />
+          </a>
+          <a href="https://www.facebook.com/p/SUHBA_Alathurpadi_Dars-100089424082394/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[var(--text-muted)] hover:text-[var(--color-turquoise)] transition-colors">
+            <FaFacebookF className="w-5 h-5" />
+          </a>
+          <a href="https://www.instagram.com/suhba_alathurpadidars/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[var(--text-muted)] hover:text-[var(--color-turquoise)] transition-colors">
+            <FaInstagram className="w-5 h-5" />
+          </a>
+          <a href="https://www.threads.com/@suhba_alathurpadidars" target="_blank" rel="noopener noreferrer" aria-label="Threads" className="text-[var(--text-muted)] hover:text-[var(--color-turquoise)] transition-colors">
+            <FaThreads className="w-5 h-5" />
+          </a>
+        </motion.div>
       </div>
     </section>
   );

@@ -3,7 +3,8 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { GraduationCap, Clock, UserCheck, Sparkles, ArrowRight } from "lucide-react";
+import { GraduationCap, Clock, UserCheck, Sparkles, ArrowRight, Mail } from "lucide-react";
+import { FaFacebookF, FaInstagram, FaYoutube, FaThreads } from "react-icons/fa6";
 import { useSectionEnterHaptic } from "@/hooks/useHaptics";
 
 export function SUFFASection() {
@@ -131,6 +132,30 @@ export function SUFFASection() {
           <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
             {t("impactDesc")}
           </p>
+        </motion.div>
+
+        {/* Social Links */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.7 }}
+          className="flex flex-wrap justify-center gap-6 mt-12"
+        >
+          <a href="mailto:suffa@alathurpadidars.in" aria-label="Email" className="text-[var(--text-muted)] hover:text-[var(--color-brass)] transition-colors">
+            <Mail className="w-5 h-5" />
+          </a>
+          <a href="https://www.facebook.com/suffa.alumni/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[var(--text-muted)] hover:text-[var(--color-brass)] transition-colors">
+            <FaFacebookF className="w-5 h-5" />
+          </a>
+          <a href="https://www.instagram.com/suffa_alathurpadidars/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[var(--text-muted)] hover:text-[var(--color-brass)] transition-colors">
+            <FaInstagram className="w-5 h-5" />
+          </a>
+          <a href="https://www.youtube.com/@suffa-alumniofalathurpadid3009" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-[var(--text-muted)] hover:text-[var(--color-brass)] transition-colors">
+            <FaYoutube className="w-5 h-5" />
+          </a>
+          <a href="https://www.threads.com/@alathurpadi_dars" target="_blank" rel="noopener noreferrer" aria-label="Threads" className="text-[var(--text-muted)] hover:text-[var(--color-brass)] transition-colors">
+            <FaThreads className="w-5 h-5" />
+          </a>
         </motion.div>
       </div>
     </section>

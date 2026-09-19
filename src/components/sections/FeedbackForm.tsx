@@ -192,9 +192,9 @@ export default function FeedbackForm() {
     const result = feedbackSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
-        const field = err.path[0] as string;
-        fieldErrors[field] = err.message;
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as string;
+        fieldErrors[field] = issue.message;
       });
       setErrors(fieldErrors);
       return;

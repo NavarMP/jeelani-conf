@@ -38,6 +38,7 @@ export function UstadSection() {
     { name: t("teacher1Name"), role: t("teacher1Role") },
     { name: t("teacher2Name"), role: t("teacher2Role") },
     { name: t("teacher3Name"), role: t("teacher3Role") },
+    { name: t("teacher4Name"), role: t("teacher4Role") },
   ];
 
   return (
@@ -81,13 +82,13 @@ export function UstadSection() {
               {/* Frame image */}
               <div className="aspect-[3/4] relative">
                 <Image
-                  src="/about/ustad-frame.jpg"
-                  alt="Decorative Islamic frame"
+                  src="/about/ustad.jpg"
+                  alt={t("fullName")}
                   fill
-                  className="object-cover"
+                  className="object-cover object-top"
                 />
                 {/* Overlay with profile info */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-navy)]/90 via-[var(--color-navy)]/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
                   <p className="text-[var(--color-brass)] text-[10px] font-semibold tracking-[0.15em] uppercase mb-1">
                     {t("role")}
@@ -157,7 +158,7 @@ export function UstadSection() {
           <h3 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider text-center mb-6">
             {t("otherTeachers")}
           </h3>
-          <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto">
             {teachers.map((teacher, i) => (
               <motion.div
                 key={i}

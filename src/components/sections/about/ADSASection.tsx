@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { BookOpen, Newspaper, CalendarDays, HeartHandshake } from "lucide-react";
+import { FaYoutube, FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { useSectionEnterHaptic } from "@/hooks/useHaptics";
 
 export function ADSASection() {
@@ -110,14 +111,38 @@ export function ADSASection() {
           <span className="text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider">
             {t("publicationsHeading")}:
           </span>
-          {[t("pub1"), t("pub2")].map((pub, i) => (
-            <span
+          {[
+            { label: t("pub1"), href: "https://darshanammagazine.com/" },
+            { label: t("pub2"), href: "https://alzahra.in/" },
+          ].map((pub, i) => (
+            <a
               key={i}
-              className="px-4 py-1.5 rounded-full text-xs font-medium border border-[var(--color-brass)]/30 text-[var(--color-brass)] bg-[var(--color-brass)]/5"
+              href={pub.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-1.5 rounded-full text-xs font-medium border border-[var(--color-brass)]/30 text-[var(--color-brass)] bg-[var(--color-brass)]/5 hover:bg-[var(--color-brass)]/15 transition-colors"
             >
-              {pub}
-            </span>
+              {pub.label}
+            </a>
           ))}
+        </motion.div>
+
+        {/* Social Links */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className="flex justify-center gap-6 mt-10"
+        >
+          <a href="https://www.youtube.com/@alathurpadidars" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-[var(--text-muted)] hover:text-[var(--color-turquoise)] transition-colors">
+            <FaYoutube className="w-5 h-5" />
+          </a>
+          <a href="https://www.instagram.com/alathurpadi_dars" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[var(--text-muted)] hover:text-[var(--color-turquoise)] transition-colors">
+            <FaInstagram className="w-5 h-5" />
+          </a>
+          <a href="https://x.com/ALATHURPADARS" target="_blank" rel="noopener noreferrer" aria-label="X" className="text-[var(--text-muted)] hover:text-[var(--color-turquoise)] transition-colors">
+            <FaXTwitter className="w-5 h-5" />
+          </a>
         </motion.div>
       </div>
     </section>

@@ -48,7 +48,7 @@ export function DarsSection() {
   useSectionEnterHaptic(isInView);
 
   const stats = [
-    { value: 234, suffix: "+", label: t("statsStudentsLabel"), icon: Users },
+    { value: 200, suffix: "+", label: t("statsStudentsLabel"), icon: Users },
     { value: 23, suffix: "", label: t("statsRanksLabel"), icon: Award },
     { value: 12, suffix: "", label: t("statsFirstRanksLabel"), icon: GraduationCap },
     { value: 100, suffix: "+", label: t("statsYearsLabel"), icon: Calendar },
@@ -96,7 +96,7 @@ export function DarsSection() {
           >
             <div className="aspect-[16/10] relative">
               <Image
-                src="/about/dars-institution.jpg"
+                src="/about/dars.jpg"
                 alt="Alathurpadi Dars & Juma Masjid"
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -108,7 +108,7 @@ export function DarsSection() {
                 Alathurpadi Dars & Juma Masjid
               </p>
               <p className="text-white/50 text-[10px] mt-0.5">
-                Podiyad, Melmuri, Malappuram
+                Alathurpadi, Melmuri, Malappuram
               </p>
             </div>
           </motion.div>
