@@ -15,6 +15,7 @@ import {
   bulkDeleteGalleryMedia,
   bulkTogglePublishGalleryMedia
 } from "@/app/[locale]/admin/gallery-actions";
+import imageCompression from 'browser-image-compression';
 
 export default function GalleryManager() {
   const [items, setItems] = useState<any[]>([]);
@@ -114,7 +115,22 @@ export default function GalleryManager() {
       if (files.length > 0) {
         // Bulk Upload
         for (let i = 0; i < files.length; i++) {
-          const file = files[i];
+          let file = files[i];
+          
+          if (file.type.startsWith('image/')) {
+            const options = {
+              maxSizeMB: 4.5, // Keep under 5MB limit
+              maxWidthOrHeight: 2560, // Keep high quality resolution
+              useWebWorker: true,
+              initialQuality: 0.9, // High quality output
+            };
+            try {
+              file = await imageCompression(file, options);
+            } catch (error) {
+              console.error("Image compression error:", error);
+            }
+          }
+
           const fd = new FormData();
           fd.append("file", file);
           fd.append("title", files.length > 1 ? `${newTitle} ${i + 1}` : newTitle);

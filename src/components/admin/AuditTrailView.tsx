@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Download } from "lucide-react";
+import { DateTimePicker } from "@/components/ui/DateTimePicker";
 
 export interface AuditLog {
   timestamp: string;
@@ -103,12 +104,15 @@ export default function AuditTrailView({ initialLogs }: Props) {
                 </option>
               ))}
             </select>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-[var(--color-turquoise)] bg-white text-gray-700"
-            />
+            <div className="w-48">
+              <DateTimePicker
+                mode="date"
+                value={dateFilter}
+                onChange={(d) => setDateFilter(d)}
+                placeholder="Filter by date..."
+                clearable
+              />
+            </div>
           </div>
 
           <div className="text-xs text-gray-500">
