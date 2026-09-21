@@ -127,11 +127,11 @@ const themeScript = `
   })();
 `;
 
-/* ── Root Layout ─────────────────────────────────────────────────────── */
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n';
+import { getSessions, getSpeakers, getRegistrationSessions, getPublishedGalleryMedia, getSiteSettings } from '@/lib/data';
 
 export default async function RootLayout(props: {
   children: React.ReactNode;
@@ -145,7 +145,24 @@ export default async function RootLayout(props: {
 
   setRequestLocale(locale);
 
-  const messages = await getMessages();
+  // Fetch search data
+  const [sessions, speakers, registrationSessions, galleryMedia, siteSettings, messages] = await Promise.all([
+    getSessions(),
+    getSpeakers(),
+    getRegistrationSessions(),
+    getPublishedGalleryMedia(),
+    getSiteSettings(),
+    getMessages(),
+  ]);
+
+  const searchData = {
+    sessions,
+    speakers,
+    registrationSessions,
+    galleryMedia,
+    siteSettings,
+  };
+
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const fontVars = [
@@ -207,7 +224,7 @@ export default async function RootLayout(props: {
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
-            <PublicChrome footer={<Footer />}>{children}</PublicChrome>
+            <PublicChrome footer={<Footer />} searchData={searchData}>{children}</PublicChrome>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

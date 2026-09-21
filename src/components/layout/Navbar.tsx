@@ -6,9 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { Search } from "lucide-react";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
+import { GlobalSearch } from "@/components/ui/GlobalSearch";
+import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 import { haptic } from "@/lib/haptics";
 
 export function Navbar() {
@@ -18,6 +21,7 @@ export function Navbar() {
   const [mounted, setMounted] = useState(false);
   const t = useTranslations("Nav");
   const locale = useLocale();
+  const { isOpen: searchOpen, open: openSearch, close: closeSearch } = useGlobalSearch();
 
   const wordmarkSrc = locale === "ar" ? "/wordmark-ar.svg" : locale === "ml" ? "/wordmark-ml.svg" : "/wordmark-en.svg";
 
@@ -88,6 +92,25 @@ export function Navbar() {
 
           {/* Right controls */}
           <div className="flex items-center gap-2">
+            {/* Search trigger */}
+            <button
+              onClick={() => {
+                haptic("tap");
+                openSearch();
+              }}
+              className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${
+                solid
+                  ? "text-[var(--text-secondary)] hover:text-[var(--color-turquoise)] hover:bg-[var(--border)]"
+                  : "text-white/70 hover:text-white hover:bg-white/10"
+              }`}
+              aria-label="Search (⌘K)"
+            >
+              <Search className="w-[18px] h-[18px]" strokeWidth={2} />
+            </button>
+            <span className={`hidden lg:flex search-kbd ${
+              solid ? "" : "!bg-white/10 !border-white/20 !text-white/60"
+            }`}>⌘K</span>
+
             {/* Language switcher */}
             <LanguageSwitcher scrolled={solid} />
 
@@ -191,6 +214,9 @@ export function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Global Search Modal */}
+      <GlobalSearch isOpen={searchOpen} onClose={closeSearch} />
     </>
   );
 }

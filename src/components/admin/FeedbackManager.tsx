@@ -23,6 +23,8 @@ import {
   Check,
 } from "lucide-react";
 import { type Feedback } from "@/lib/data";
+import { type ExportColumn, type ActiveFilter } from "@/lib/exportUtils";
+import ExportModal from "@/components/admin/ExportModal";
 import {
   toggleFeedbackRead,
   toggleFeedbackFeatured,
@@ -310,6 +312,7 @@ export default function FeedbackManager({
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Refetch after mutations
   const handleRefetch = async () => {
@@ -391,29 +394,37 @@ export default function FeedbackManager({
     handleRefetch();
   };
 
-  // CSV export
-  const handleExportCSV = () => {
-    const headers = ["Name", "Email", "Phone", "Rating", "Category", "Sentiment", "Feedback", "Date"];
-    const rows = filteredFeedback.map((f) => [
-      f.name || "Anonymous",
-      f.email || "",
-      f.phone || "",
-      f.overall_rating.toString(),
-      f.category,
-      f.sentiment,
-      `"${f.feedback_text.replace(/"/g, '""')}"`,
-      new Date(f.created_at).toISOString(),
-    ]);
+  // Export column definitions
+  const exportColumns: ExportColumn[] = useMemo(() => [
+    { key: "name", label: "Name", format: (v: any) => v || "Anonymous" },
+    { key: "email", label: "Email" },
+    { key: "phone", label: "Phone" },
+    { key: "overall_rating", label: "Rating", format: (v: any) => String(v) },
+    { key: "category", label: "Category" },
+    { key: "sentiment", label: "Sentiment" },
+    { key: "feedback_text", label: "Feedback" },
+    { key: "is_featured", label: "Featured", format: (v: any) => v ? "Yes" : "No" },
+    { key: "is_read", label: "Read", format: (v: any) => v ? "Yes" : "No" },
+    { key: "admin_notes", label: "Admin Notes" },
+    { key: "created_at", label: "Date", format: (v: any) => v ? new Date(v).toISOString() : "" },
+  ], []);
 
-    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `feedback_export_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  // Active filters for export
+  const exportActiveFilters: ActiveFilter[] = useMemo(() => {
+    const filters: ActiveFilter[] = [];
+    if (search) filters.push({ label: "Search", value: search });
+    if (filterCategory !== "all") filters.push({ label: "Category", value: filterCategory });
+    if (filterRating > 0) filters.push({ label: "Rating", value: `${filterRating} stars` });
+    if (filterSentiment !== "all") filters.push({ label: "Sentiment", value: filterSentiment });
+    if (filterReadStatus !== "all") filters.push({ label: "Status", value: filterReadStatus });
+    if (sortBy !== "newest") filters.push({ label: "Sort", value: sortBy });
+    return filters;
+  }, [search, filterCategory, filterRating, filterSentiment, filterReadStatus, sortBy]);
+
+  // Selected feedback data for export
+  const selectedFeedbackData = useMemo(() => {
+    return filteredFeedback.filter((f) => selectedIds.has(f.id));
+  }, [filteredFeedback, selectedIds]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -530,7 +541,7 @@ export default function FeedbackManager({
 
           {/* Export */}
           <button
-            onClick={handleExportCSV}
+            onClick={() => setShowExportModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-navy)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
           >
             <Download className="w-4 h-4" />
@@ -798,6 +809,19 @@ export default function FeedbackManager({
           onAction={handleRefetch}
         />
       )}
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title="Feedback"
+        allData={feedback}
+        filteredData={filteredFeedback}
+        selectedData={selectedIds.size > 0 ? selectedFeedbackData : undefined}
+        columns={exportColumns}
+        activeFilters={exportActiveFilters}
+        defaultFilename="feedback"
+      />
     </div>
   );
 }

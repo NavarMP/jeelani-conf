@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from "react";
 import { Download } from "lucide-react";
 import { DateTimePicker } from "@/components/ui/DateTimePicker";
+import { type ExportColumn, type ActiveFilter } from "@/lib/exportUtils";
+import ExportModal from "@/components/admin/ExportModal";
 
 export interface AuditLog {
   timestamp: string;
@@ -23,6 +25,7 @@ export default function AuditTrailView({ initialLogs }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
@@ -42,26 +45,24 @@ export default function AuditTrailView({ initialLogs }: Props) {
 
   const categories = ["All", "Grand Assembly", "Astronomy & AI Fiqh", "Session Entry", "Live Stream"];
 
-  const handleExportCSV = () => {
-    const headers = ["Timestamp", "Module/Admin", "IP", "Category", "Action", "Details"];
-    const rows = filteredLogs.map((l) => [
-      `"${l.timestamp}"`,
-      `"${l.admin}"`,
-      `"${l.ip}"`,
-      `"${l.category}"`,
-      `"${l.action.replace(/"/g, '""')}"`,
-      `"${l.details.replace(/"/g, '""')}"`,
-    ]);
+  // Export column definitions
+  const exportColumns: ExportColumn[] = useMemo(() => [
+    { key: "timestamp", label: "Timestamp", format: (v: any) => v ? new Date(v).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "" },
+    { key: "admin", label: "Module / Actor" },
+    { key: "ip", label: "IP Address" },
+    { key: "category", label: "Category" },
+    { key: "action", label: "Action" },
+    { key: "details", label: "Details" },
+  ], []);
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `audit_trail_${new Date().toISOString().split("T")[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // Active filters for export
+  const exportActiveFilters: ActiveFilter[] = useMemo(() => {
+    const filters: ActiveFilter[] = [];
+    if (selectedCategory !== "All") filters.push({ label: "Category", value: selectedCategory });
+    if (searchQuery) filters.push({ label: "Search", value: searchQuery });
+    if (dateFilter) filters.push({ label: "Date", value: dateFilter });
+    return filters;
+  }, [selectedCategory, searchQuery, dateFilter]);
 
   return (
     <div className="space-y-6">
@@ -74,10 +75,10 @@ export default function AuditTrailView({ initialLogs }: Props) {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={handleExportCSV}
+            onClick={() => setShowExportModal(true)}
             className="px-4 py-2 border border-[var(--admin-input-border)] rounded-lg text-sm font-medium bg-[var(--admin-surface)] hover:bg-[var(--admin-surface-alt)] text-[var(--admin-text-secondary)] shadow-sm transition-colors flex items-center gap-2"
           >
-            <Download className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> Export CSV
+            <Download className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> Export
           </button>
         </div>
       </div>
@@ -183,6 +184,18 @@ export default function AuditTrailView({ initialLogs }: Props) {
           </table>
         </div>
       </div>
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title="Audit Trail"
+        allData={logs}
+        filteredData={filteredLogs}
+        columns={exportColumns}
+        activeFilters={exportActiveFilters}
+        defaultFilename="audit_trail"
+      />
     </div>
   );
 }

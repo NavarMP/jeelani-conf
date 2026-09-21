@@ -426,5 +426,58 @@
       "registration": "Registration",
       "suggestion": "Suggestion"
     }
+  },
+  "Search": {
+    "placeholder": "Search sessions, speakers, events...",
+    "recentSearches": "Recent Searches",
+    "quickActions": "Quick Actions",
+    "noResults": "No results found",
+    "noResultsHint": "Try searching for sessions, speakers, or topics",
+    "clearRecent": "Clear",
+    "viewAll": "View all →",
+    "close": "Close",
+    "categories": {
+      "all": "All",
+      "sessions": "Sessions",
+      "speakers": "Speakers",
+      "registration": "Registration",
+      "gallery": "Gallery",
+      "info": "Info"
+    },
+    "quickActionLabels": {
+      "registerNow": "Register Now",
+      "viewSchedule": "View Schedule",
+      "getDirections": "Get Directions",
+      "watchLive": "Watch Live",
+      "contactUs": "Contact"
+    },
+    "resultMeta": {
+      "stage": "Stage",
+      "paid": "Paid",
+      "free": "Free",
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "hint": "to search",
+    "typeToSearch": "Type to search..."
+  },
+  "Agent": {
+    "title": "GJC Assistant",
+    "subtitle": "Ask me anything about the conference",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "clear": "Clear conversation",
+    "close": "Close",
+    "thinking": "Thinking...",
+    "error": "Something went wrong. Please try again.",
+    "welcome": "Salaam! 👋 I'm the Grand Jeelani Conference Assistant. I can help you with the schedule, speakers, registration, directions, and more. How can I assist you?",
+    "chips": {
+      "schedule": "📅 What's the schedule?",
+      "speakers": "🎤 Who are the speakers?",
+      "register": "🎫 How do I register?",
+      "directions": "📍 How to reach the venue?",
+      "live": "📺 Is the event live?",
+      "language": "🌐 Switch to Malayalam"
+    }
   }
 }
