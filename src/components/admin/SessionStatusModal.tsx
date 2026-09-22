@@ -43,7 +43,7 @@ export default function SessionStatusModal({ isOpen, onClose, session, onSave }:
       await onSave(session.id, {
         status,
         scheduledOpenTime: status === 'scheduled' && scheduledOpenTime ? new Date(scheduledOpenTime).toISOString() : null,
-        scheduledCloseTime: status === 'scheduled' && scheduledCloseTime ? new Date(scheduledCloseTime).toISOString() : null,
+        scheduledCloseTime: (status === 'scheduled' || status === 'open') && scheduledCloseTime ? new Date(scheduledCloseTime).toISOString() : null,
         customClosedMessage: status === 'temporarily_closed' ? customClosedMessage : null,
       });
       onClose();
@@ -116,6 +116,29 @@ export default function SessionStatusModal({ isOpen, onClose, session, onSave }:
 
               {/* Dynamic Fields */}
               <AnimatePresence mode="popLayout">
+                {status === 'open' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2 overflow-hidden"
+                  >
+                    <label className="block text-sm font-semibold text-[var(--admin-text)]">Registration Deadline (Optional)</label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--admin-text-muted)]" />
+                      <input
+                        type="datetime-local"
+                        value={scheduledCloseTime}
+                        onChange={(e) => setScheduledCloseTime(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 bg-[var(--admin-input-bg)] border border-[var(--admin-input-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]/50 focus:border-[var(--color-turquoise)] text-[var(--admin-text)]"
+                      />
+                    </div>
+                    <p className="text-xs text-[var(--admin-text-muted)]">
+                      Leave blank for no deadline, or set a date/time to show a deadline badge on the form and automatically close when reached.
+                    </p>
+                  </motion.div>
+                )}
+
                 {status === 'temporarily_closed' && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}

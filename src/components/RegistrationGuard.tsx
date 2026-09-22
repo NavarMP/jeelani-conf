@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, createContext, useContext } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import { Lock, Clock, CalendarClock } from "lucide-react";
@@ -12,9 +12,34 @@ interface Props {
   children: React.ReactNode;
 }
 
+interface RegistrationContextType {
+  deadline: Date | null;
+}
+
+export const RegistrationContext = createContext<RegistrationContextType>({ deadline: null });
+
+export function useRegistrationContext() {
+  return useContext(RegistrationContext);
+}
+
+export function RegistrationDeadline({ className = "" }: { className?: string }) {
+  const { deadline } = useRegistrationContext();
+  if (!deadline) return null;
+
+  return (
+    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-sm ${className}`}>
+      <Clock className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+      <span>
+        Closes: {deadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} at {deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </span>
+    </div>
+  );
+}
+
 export default function RegistrationGuard({ slug, children }: Props) {
   const [status, setStatus] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [deadline, setDeadline] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -31,27 +56,33 @@ export default function RegistrationGuard({ slug, children }: Props) {
         
         if (data) {
           const currentStatus = data.status || (data.is_open ? 'open' : 'closed');
+          const closeTime = data.scheduled_close_time ? new Date(data.scheduled_close_time) : null;
+          const openTime = data.scheduled_open_time ? new Date(data.scheduled_open_time) : null;
+          const now = new Date();
+
+          setDeadline(closeTime);
           
-          if (currentStatus === 'open') {
-            setStatus('open');
-          } else if (currentStatus === 'closed') {
+          if (currentStatus === 'closed') {
             setStatus('closed');
           } else if (currentStatus === 'temporarily_closed') {
             setStatus('temporarily_closed');
             setMessage(data.custom_closed_message || "Registration is temporarily paused.");
           } else if (currentStatus === 'scheduled') {
-            const now = new Date();
-            const openTime = data.scheduled_open_time ? new Date(data.scheduled_open_time) : null;
-            const closeTime = data.scheduled_close_time ? new Date(data.scheduled_close_time) : null;
-
             if (openTime && now < openTime) {
               setStatus('scheduled_future');
-              setMessage(`Registration will open on ${openTime.toLocaleString()}`);
+              setMessage(`Registration will open on ${openTime.toLocaleDateString()} at ${openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
             } else if (closeTime && now > closeTime) {
               setStatus('closed');
               setMessage("Registration time has expired.");
             } else {
               // It's currently in the open window
+              setStatus('open');
+            }
+          } else if (currentStatus === 'open') {
+            if (closeTime && now > closeTime) {
+              setStatus('closed');
+              setMessage("Registration time has expired.");
+            } else {
               setStatus('open');
             }
           }
@@ -77,7 +108,11 @@ export default function RegistrationGuard({ slug, children }: Props) {
   }
 
   if (status === 'open') {
-    return <>{children}</>;
+    return (
+      <RegistrationContext.Provider value={{ deadline }}>
+        {children}
+      </RegistrationContext.Provider>
+    );
   }
 
   // Render blocked UI

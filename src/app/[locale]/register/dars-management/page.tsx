@@ -5,15 +5,16 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { CircleCheckBig } from "lucide-react";
-import RegistrationGuard from "@/components/RegistrationGuard";
+import { CircleCheckBig, Clock } from "lucide-react";
+import RegistrationGuard, { useRegistrationContext, RegistrationDeadline } from "@/components/RegistrationGuard";
 
 interface Member {
   name: string;
   phone: string;
 }
 
-export default function DarsManagementRegistration() {
+function DarsManagementForm() {
+  const { deadline } = useRegistrationContext();
   const [formData, setFormData] = useState({
     mahall: "",
     darsInstitution: "",
@@ -103,17 +104,19 @@ export default function DarsManagementRegistration() {
   const inputClass = "w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]/40 focus:border-[var(--color-turquoise)] transition-all placeholder:text-[var(--text-muted)]";
 
   return (
-    <RegistrationGuard slug="dars-management-meet">
     <div className="min-h-[100dvh] pt-24 pb-32 px-6">
       <div className="max-w-lg mx-auto">
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
           <Link href="/#register" className="text-xs text-[var(--color-turquoise)] hover:underline mb-4 inline-block">
             {t("backToOptions")}
           </Link>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-navy)]/10 text-[var(--color-navy)] dark:bg-[var(--color-turquoise)]/10 dark:text-[var(--color-turquoise)]">
-              {t("type")}
-            </span>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-navy)]/10 text-[var(--color-navy)] dark:bg-[var(--color-turquoise)]/10 dark:text-[var(--color-turquoise)]">
+                {t("type")}
+              </span>
+            </div>
+            <RegistrationDeadline />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-1" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
             {t("heading")}
@@ -198,6 +201,13 @@ export default function DarsManagementRegistration() {
         </motion.form>
       </div>
     </div>
+  );
+}
+
+export default function DarsManagementRegistration() {
+  return (
+    <RegistrationGuard slug="dars-management-meet">
+      <DarsManagementForm />
     </RegistrationGuard>
   );
 }

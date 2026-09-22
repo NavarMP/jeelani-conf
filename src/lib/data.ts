@@ -273,6 +273,193 @@ export async function getRecentRegistrations() {
   }));
 }
 
+// ==============================================================================
+// DASHBOARD OVERVIEW — Comprehensive single-call fetch
+// ==============================================================================
+
+export interface DashboardOverviewData {
+  stats: {
+    totalRegistrations: number;
+    confirmedCount: number;
+    pendingCount: number;
+    cancelledCount: number;
+    receiptsUploaded: number;
+    totalRevenue: number;
+    confirmedRevenue: number;
+    pendingRevenue: number;
+  };
+  recentRegistrations: {
+    id: string;
+    name: string;
+    place: string;
+    type: string;
+    session_slug: string;
+    created_at: string;
+    status: string;
+  }[];
+  feedbackStats: {
+    total: number;
+    avgRating: number;
+    unreadCount: number;
+    sentimentCounts: { positive: number; neutral: number; negative: number };
+  };
+  liveStreams: {
+    isAnyLive: boolean;
+    streams: { stage: string; youtube_id: string; is_live: boolean; updated_at: string }[];
+  };
+  sessionCounts: {
+    total: number;
+    speakers: number;
+  };
+  programBreakdown: {
+    slug: string;
+    name: string;
+    count: number;
+    fee: number;
+    revenue: number;
+    isOpen: boolean;
+    color: string;
+  }[];
+  dailyTrend: { date: string; count: number }[];
+  eventDate: string;
+}
+
+export async function getDashboardOverviewData(): Promise<DashboardOverviewData> {
+  const supabase = await createClient();
+
+  const [regsRes, feedbackRes, streamsRes, sessionsRes, speakersRes, regSessionsRes, settingsRes] = await Promise.all([
+    supabase.from('dynamic_registrations').select('id, name, place, session_slug, created_at, status, receipt_url, registration_sessions(title, color, is_open)', { count: 'exact' }).order('created_at', { ascending: false }),
+    supabase.from('feedback').select('overall_rating, sentiment, is_read', { count: 'exact' }),
+    supabase.from('live_streams').select('*'),
+    supabase.from('sessions').select('id', { count: 'exact' }),
+    supabase.from('speakers').select('id', { count: 'exact' }),
+    supabase.from('registration_sessions').select('slug, title, title_ml, color, is_open, is_archived, price_label').eq('is_archived', false).order('order_index', { ascending: true }),
+    supabase.from('global_settings').select('value').eq('key', 'site_config').single(),
+  ]);
+
+  const allRegs: any[] = regsRes.data || [];
+  const feedbackList: any[] = feedbackRes.data || [];
+  const streams: any[] = streamsRes.data || [];
+  const regSessions: any[] = regSessionsRes.data || [];
+
+  // Fee map
+  const feeMap: Record<string, number> = {
+    'burda-qawwali': 300,
+    'astro-ai-fiqh': 50,
+    'dars-management-meet': 0,
+  };
+  regSessions.forEach(rs => {
+    if (!feeMap[rs.slug] && feeMap[rs.slug] !== 0) {
+      feeMap[rs.slug] = rs.price_label?.toLowerCase().includes('paid') ? 100 : 0;
+    }
+  });
+
+  // Stats
+  let totalRevenue = 0, confirmedRevenue = 0, pendingRevenue = 0;
+  let confirmedCount = 0, pendingCount = 0, cancelledCount = 0, receiptsUploaded = 0;
+
+  // Program breakdown map
+  const programMap: Record<string, { slug: string; name: string; count: number; fee: number; revenue: number; isOpen: boolean; color: string }> = {};
+  regSessions.forEach(rs => {
+    programMap[rs.slug] = {
+      slug: rs.slug,
+      name: rs.title,
+      count: 0,
+      fee: feeMap[rs.slug] || 0,
+      revenue: 0,
+      isOpen: rs.is_open,
+      color: rs.color || '#3b82f6',
+    };
+  });
+
+  // Daily trend map (last 14 days)
+  const dailyMap: Record<string, number> = {};
+
+  allRegs.forEach((r: any) => {
+    const slug = r.session_slug || 'other';
+    const fee = feeMap[slug] || 0;
+    totalRevenue += fee;
+
+    if (r.status === 'confirmed') { confirmedRevenue += fee; confirmedCount++; }
+    else if (r.status === 'cancelled') { cancelledCount++; }
+    else { pendingRevenue += fee; pendingCount++; }
+
+    if (r.receipt_url) receiptsUploaded++;
+
+    if (programMap[slug]) {
+      programMap[slug].count++;
+      programMap[slug].revenue += fee;
+    }
+
+    const dateStr = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    dailyMap[dateStr] = (dailyMap[dateStr] || 0) + 1;
+  });
+
+  // Recent registrations (top 10)
+  const recentRegistrations = allRegs.slice(0, 10).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    place: r.place || 'Online',
+    type: (r.registration_sessions as any)?.title || r.session_slug || 'Session',
+    session_slug: r.session_slug,
+    created_at: r.created_at,
+    status: r.status,
+  }));
+
+  // Feedback stats
+  const avgRating = feedbackList.length > 0
+    ? Math.round((feedbackList.reduce((sum: number, f: any) => sum + f.overall_rating, 0) / feedbackList.length) * 10) / 10
+    : 0;
+  const unreadCount = feedbackList.filter((f: any) => !f.is_read).length;
+  const sentimentCounts = { positive: 0, neutral: 0, negative: 0 };
+  feedbackList.forEach((f: any) => {
+    if (f.sentiment in sentimentCounts) {
+      sentimentCounts[f.sentiment as keyof typeof sentimentCounts]++;
+    }
+  });
+
+  // Event date from settings
+  const siteConfig = settingsRes.data?.value || {};
+  const eventDate = (siteConfig as any)?.eventDate || '2026-09-27T10:00:00+05:30';
+
+  return {
+    stats: {
+      totalRegistrations: regsRes.count || allRegs.length,
+      confirmedCount,
+      pendingCount,
+      cancelledCount,
+      receiptsUploaded,
+      totalRevenue,
+      confirmedRevenue,
+      pendingRevenue,
+    },
+    recentRegistrations,
+    feedbackStats: {
+      total: feedbackRes.count || feedbackList.length,
+      avgRating,
+      unreadCount,
+      sentimentCounts,
+    },
+    liveStreams: {
+      isAnyLive: streams.some((s: any) => s.is_live),
+      streams: streams.map((s: any) => ({
+        stage: s.stage,
+        youtube_id: s.youtube_id,
+        is_live: s.is_live,
+        updated_at: s.updated_at,
+      })),
+    },
+    sessionCounts: {
+      total: sessionsRes.count || 0,
+      speakers: speakersRes.count || 0,
+    },
+    programBreakdown: Object.values(programMap),
+    dailyTrend: Object.entries(dailyMap).map(([date, count]) => ({ date, count })),
+    eventDate,
+  };
+}
+
+
 export async function getAllRegistrations() {
   const supabase = await createClient();
   

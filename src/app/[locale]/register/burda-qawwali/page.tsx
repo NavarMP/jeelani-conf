@@ -6,10 +6,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import { BURDA_RULES_DATA, RULES_LANGUAGES, type RulesLanguage } from "./rulesData";
-import { CircleCheckBig } from "lucide-react";
-import RegistrationGuard from "@/components/RegistrationGuard";
+import { CircleCheckBig, Clock } from "lucide-react";
+import RegistrationGuard, { useRegistrationContext, RegistrationDeadline } from "@/components/RegistrationGuard";
 
-export default function BurdaQawwaliRegistration() {
+function BurdaQawwaliForm() {
+  const { deadline } = useRegistrationContext();
   const [rulesLang, setRulesLang] = useState<RulesLanguage>("ml");
   const [formData, setFormData] = useState({ 
     teamName: "", 
@@ -160,13 +161,19 @@ export default function BurdaQawwaliRegistration() {
 
   if (submitted) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center pt-20 pb-24 px-6">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-center max-w-md bg-[var(--surface)] p-8 rounded-3xl shadow-md border border-[var(--border)]"
+      <div className="min-h-[100dvh] flex items-center justify-center pt-20 pb-24 px-4 sm:px-6 relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[var(--color-turquoise)]/10 to-transparent -z-10" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[var(--color-brass)]/5 rounded-full blur-3xl -z-10" />
+
+        <motion.div 
+          initial={{ scale: 0.95, opacity: 0, y: 20 }} 
+          animate={{ scale: 1, opacity: 1, y: 0 }} 
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="text-center max-w-lg w-full bg-[var(--surface-elevated)] p-8 sm:p-12 rounded-[2rem] shadow-xl border border-[var(--border)] relative overflow-hidden"
         >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[var(--color-brass)]/10 flex items-center justify-center text-[var(--color-brass)]">
+          <div className="absolute top-0 left-0 w-full h-2 bg-[var(--color-turquoise)]" />
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[var(--color-turquoise)]/10 flex items-center justify-center text-[var(--color-turquoise)] rotate-3">
             <CircleCheckBig className="w-10 h-10" strokeWidth={1.75} aria-hidden="true" />
           </div>
           <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-3" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
@@ -217,7 +224,6 @@ export default function BurdaQawwaliRegistration() {
   const currentRules = BURDA_RULES_DATA[rulesLang] || BURDA_RULES_DATA.ml;
 
   return (
-    <RegistrationGuard slug="burda-qawwali">
     <div className="min-h-[100dvh] pt-24 pb-32 px-4 sm:px-6 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[var(--color-turquoise)]/10 to-transparent -z-10" />
@@ -237,10 +243,13 @@ export default function BurdaQawwaliRegistration() {
               {t("backToRegistration")}
             </Link>
             
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold bg-[var(--color-brass)]/20 text-[var(--color-brass)] border border-[var(--color-brass)]/30">
-                {t("competitionRegistration")}
-              </span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold bg-[var(--color-brass)]/20 text-[var(--color-brass)] border border-[var(--color-brass)]/30">
+                  {t("competitionRegistration")}
+                </span>
+              </div>
+              <RegistrationDeadline />
             </div>
             
             <h1 className="text-3xl md:text-5xl font-bold text-[var(--text-primary)] mb-4 leading-tight" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
@@ -499,6 +508,13 @@ export default function BurdaQawwaliRegistration() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function BurdaQawwaliRegistration() {
+  return (
+    <RegistrationGuard slug="burda-qawwali">
+      <BurdaQawwaliForm />
     </RegistrationGuard>
   );
 }
