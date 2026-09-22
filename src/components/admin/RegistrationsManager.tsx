@@ -356,6 +356,11 @@ function RegistrationsContent({ initialRegistrations }: Props) {
                 </th>
                 <th className="px-4 py-4 font-semibold hidden lg:table-cell">Contact</th>
                 <th className="px-4 py-4 font-semibold">
+                  <button onClick={() => handleSort("created_at")} className="group flex items-center gap-1 hover:text-[var(--admin-text)] transition-colors">
+                    Date <SortIndicator field="created_at" />
+                  </button>
+                </th>
+                <th className="px-4 py-4 font-semibold">
                   <button onClick={() => handleSort("status")} className="group flex items-center gap-1 hover:text-[var(--admin-text)] transition-colors">
                     Status <SortIndicator field="status" />
                   </button>
@@ -399,6 +404,16 @@ function RegistrationsContent({ initialRegistrations }: Props) {
                   <td className="px-4 py-4 text-xs font-mono text-[var(--admin-text-secondary)] hidden lg:table-cell">
                     <div>{reg.phone}</div>
                     {reg.email && <div className="text-[var(--admin-text-muted)] font-sans mt-0.5">{reg.email}</div>}
+                  </td>
+                  <td className="px-4 py-4">
+                    {reg.created_at ? (
+                      <div className="flex flex-col text-xs">
+                        <span className="font-medium text-[var(--admin-text)] whitespace-nowrap">{new Date(reg.created_at).toLocaleDateString()}</span>
+                        <span className="text-[var(--admin-text-muted)] whitespace-nowrap">{new Date(reg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                      </div>
+                    ) : (
+                      <span className="text-[var(--admin-text-muted)]">-</span>
+                    )}
                   </td>
                   <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-col gap-1 items-start">
@@ -461,7 +476,7 @@ function RegistrationsContent({ initialRegistrations }: Props) {
 
               {paginatedRegistrations.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-[var(--admin-text-secondary)]">
+                  <td colSpan={8} className="px-6 py-12 text-center text-[var(--admin-text-secondary)]">
                     No registrations found matching the filters.
                   </td>
                 </tr>

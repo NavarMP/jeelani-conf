@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { updateRegistrationStatus, deleteRegistration } from "@/app/[locale]/admin/actions";
-import { X } from "lucide-react";
+import { X, Copy, Check, Download, Calendar } from "lucide-react";
 
 interface RegistrationDetailModalProps {
   registration: any;
@@ -11,6 +11,14 @@ interface RegistrationDetailModalProps {
 
 export default function RegistrationDetailModal({ registration, onClose }: RegistrationDetailModalProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const handleCopy = (text: string, field: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   const handleUpdateStatus = async (status: string, review_status?: string) => {
     setIsUpdating(true);
@@ -48,7 +56,18 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
                 {registration.typeName}
               </span>
             </h2>
-            <p className="text-xs text-[var(--admin-text-muted)] mt-1 font-mono">{registration.id}</p>
+            <p className="text-xs text-[var(--admin-text-muted)] mt-1 flex items-center gap-2">
+              <span className="font-mono">{registration.id}</span>
+              {registration.created_at && (
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {new Date(registration.created_at).toLocaleString()}
+                  </span>
+                </>
+              )}
+            </p>
           </div>
           <button onClick={onClose} className="p-2 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-full hover:bg-[var(--admin-hover)] transition-colors">
             <X className="w-4 h-4" strokeWidth={2} />
@@ -95,18 +114,33 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
             <div>
               <h3 className="text-sm font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-3">Contact Info</h3>
               <div className="space-y-3 bg-[var(--admin-surface-alt)] border border-[var(--admin-border-subtle)] p-4 rounded-lg">
-                <div>
-                  <span className="text-xs text-[var(--admin-text-muted)] block">Name</span>
-                  <span className="font-medium text-[var(--admin-text)]">{registration.name}</span>
+                <div className="flex items-center justify-between group">
+                  <div>
+                    <span className="text-xs text-[var(--admin-text-muted)] block">Name</span>
+                    <span className="font-medium text-[var(--admin-text)]">{registration.name}</span>
+                  </div>
+                  <button onClick={() => handleCopy(registration.name, 'name')} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] p-1.5 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    {copiedField === 'name' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
-                <div>
-                  <span className="text-xs text-[var(--admin-text-muted)] block">Phone</span>
-                  <span className="font-medium text-[var(--admin-text)]">{registration.phone}</span>
+                <div className="flex items-center justify-between group">
+                  <div>
+                    <span className="text-xs text-[var(--admin-text-muted)] block">Phone</span>
+                    <span className="font-medium text-[var(--admin-text)]">{registration.phone}</span>
+                  </div>
+                  <button onClick={() => handleCopy(registration.phone, 'phone')} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] p-1.5 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    {copiedField === 'phone' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
                 {registration.email && (
-                  <div>
-                    <span className="text-xs text-[var(--admin-text-muted)] block">Email</span>
-                    <span className="font-medium text-[var(--admin-text)]">{registration.email}</span>
+                  <div className="flex items-center justify-between group">
+                    <div>
+                      <span className="text-xs text-[var(--admin-text-muted)] block">Email</span>
+                      <span className="font-medium text-[var(--admin-text)]">{registration.email}</span>
+                    </div>
+                    <button onClick={() => handleCopy(registration.email, 'email')} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] p-1.5 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                      {copiedField === 'email' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
                 )}
                 <div>
@@ -141,11 +175,42 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
 
           {registration.form_data && Object.keys(registration.form_data).length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-3">Custom Form Data</h3>
-              <div className="bg-[var(--admin-surface-alt)] border border-[var(--admin-border-subtle)] p-4 rounded-lg text-sm">
-                <pre className="whitespace-pre-wrap font-mono text-xs text-[var(--admin-text)]">
-                  {JSON.stringify(registration.form_data, null, 2)}
-                </pre>
+              <h3 className="text-sm font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-3">Additional Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(registration.form_data).map(([key, value], idx) => {
+                  const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => (str as string).toUpperCase());
+                  return (
+                    <div key={idx} className="bg-[var(--admin-surface-alt)] border border-[var(--admin-border-subtle)] p-4 rounded-lg flex flex-col justify-center">
+                      <div className="flex justify-between items-start group">
+                        <div className="w-full">
+                          <span className="text-xs text-[var(--admin-text-muted)] block mb-2">{displayKey}</span>
+                          {Array.isArray(value) ? (
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {value.map((item: any, i: number) => (
+                                <span key={i} className="px-2.5 py-1.5 bg-[var(--admin-surface)] border border-[var(--admin-border)] text-[var(--admin-text)] text-xs rounded-md shadow-sm">
+                                  {String(item)}
+                                </span>
+                              ))}
+                            </div>
+                          ) : typeof value === 'string' && (value.startsWith('http') || value.startsWith('www')) ? (
+                            <a href={value.startsWith('http') ? value : `https://${value}`} target="_blank" rel="noreferrer" className="text-[var(--color-turquoise)] hover:underline break-all">
+                              {value}
+                            </a>
+                          ) : (
+                            <span className="font-medium text-[var(--admin-text)] break-all">
+                              {String(value)}
+                            </span>
+                          )}
+                        </div>
+                        {typeof value === 'string' && (
+                          <button onClick={() => handleCopy(String(value), `custom_${idx}`)} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] p-1.5 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0 ml-2">
+                            {copiedField === `custom_${idx}` ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -153,9 +218,21 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
           {registration.receipt_url && (
             <div>
               <h3 className="text-sm font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-3">Payment Receipt</h3>
-              <div className="bg-[var(--admin-surface-alt)] border border-[var(--admin-border-subtle)] p-4 rounded-lg text-sm">
-                <a href={registration.receipt_url} target="_blank" rel="noreferrer" className="text-[var(--color-turquoise)] hover:underline">
-                  View Receipt Image
+              <div className="bg-[var(--admin-surface-alt)] border border-[var(--admin-border-subtle)] p-4 rounded-lg overflow-hidden flex flex-col items-center gap-4">
+                <img 
+                  src={registration.receipt_url} 
+                  alt="Payment Receipt" 
+                  className="max-w-full max-h-[400px] object-contain rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] p-1 shadow-sm"
+                />
+                <a 
+                  href={registration.receipt_url} 
+                  download={`Receipt_${registration.registration_id || registration.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)] border border-[var(--color-turquoise)]/20 rounded-md hover:bg-[var(--color-turquoise)]/20 transition-colors text-sm font-medium"
+                >
+                  <Download className="w-4 h-4" />
+                  Download / Open Image
                 </a>
               </div>
             </div>
