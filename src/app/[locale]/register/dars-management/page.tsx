@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { CircleCheckBig } from "lucide-react";
+import RegistrationGuard from "@/components/RegistrationGuard";
 
 interface Member {
   name: string;
@@ -102,6 +103,7 @@ export default function DarsManagementRegistration() {
   const inputClass = "w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]/40 focus:border-[var(--color-turquoise)] transition-all placeholder:text-[var(--text-muted)]";
 
   return (
+    <RegistrationGuard slug="dars-management-meet">
     <div className="min-h-[100dvh] pt-24 pb-32 px-6">
       <div className="max-w-lg mx-auto">
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
@@ -196,5 +198,6 @@ export default function DarsManagementRegistration() {
         </motion.form>
       </div>
     </div>
+    </RegistrationGuard>
   );
 }

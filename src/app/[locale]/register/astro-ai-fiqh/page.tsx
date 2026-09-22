@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { CircleCheckBig, ArrowRight } from "lucide-react";
 
+import RegistrationGuard from "@/components/RegistrationGuard";
+
 export default function DarimiAcademicRegistration() {
   const [formData, setFormData] = useState({
     name: "",
@@ -152,8 +154,9 @@ export default function DarimiAcademicRegistration() {
   const inputClass = "w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]/40 focus:border-[var(--color-turquoise)] transition-all placeholder:text-[var(--text-muted)]";
 
   return (
-    <div className="min-h-[100dvh] pt-24 pb-32 px-6">
-      <div className="max-w-lg mx-auto">
+    <RegistrationGuard slug="astro-ai-fiqh">
+      <div className="min-h-[100dvh] pt-24 pb-32 px-6">
+        <div className="max-w-lg mx-auto">
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
           <Link href="/#register" className="text-xs text-[var(--color-turquoise)] hover:underline mb-4 inline-block">
             {t("backToOptions")}
@@ -403,6 +406,7 @@ export default function DarimiAcademicRegistration() {
         </motion.form>
       </div>
     </div>
+    </RegistrationGuard>
   );
 }
 

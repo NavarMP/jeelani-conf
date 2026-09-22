@@ -8,7 +8,11 @@ export type Session = {
   slug: string;
   label: string; // mapped from title
   title: string;
-  isRegistrationOpen: boolean; // mapped from is_open
+  isRegistrationOpen: boolean; // mapped from is_open for backward compatibility
+  status: 'open' | 'closed' | 'temporarily_closed' | 'scheduled';
+  scheduledOpenTime: string | null;
+  scheduledCloseTime: string | null;
+  customClosedMessage: string | null;
   isArchived: boolean;
   createdAt: string;
 };
@@ -33,7 +37,11 @@ export function useSessions() {
           slug: s.slug,
           label: s.title,
           title: s.title,
-          isRegistrationOpen: s.is_open,
+          isRegistrationOpen: s.status === 'open' || s.is_open, // fallback for backward compatibility
+          status: s.status || (s.is_open ? 'open' : 'closed'),
+          scheduledOpenTime: s.scheduled_open_time,
+          scheduledCloseTime: s.scheduled_close_time,
+          customClosedMessage: s.custom_closed_message,
           isArchived: s.is_archived,
           createdAt: s.created_at,
         }));
@@ -70,13 +78,45 @@ export function useSessions() {
     try {
       const { error } = await supabase
         .from('registration_sessions')
-        .update({ is_open: !currentStatus })
+        .update({ 
+          is_open: !currentStatus,
+          status: !currentStatus ? 'open' : 'closed' 
+        })
         .eq('slug', id);
 
       if (error) throw error;
       await fetchSessions();
     } catch (error) {
       console.error("Failed to toggle registration:", error);
+    }
+  };
+
+  const updateSessionAdvancedStatus = async (
+    id: string, 
+    payload: { 
+      status: Session['status'], 
+      scheduledOpenTime?: string | null, 
+      scheduledCloseTime?: string | null, 
+      customClosedMessage?: string | null 
+    }
+  ) => {
+    try {
+      const { error } = await supabase
+        .from('registration_sessions')
+        .update({
+          status: payload.status,
+          is_open: payload.status === 'open',
+          scheduled_open_time: payload.scheduledOpenTime,
+          scheduled_close_time: payload.scheduledCloseTime,
+          custom_closed_message: payload.customClosedMessage
+        })
+        .eq('slug', id);
+
+      if (error) throw error;
+      await fetchSessions();
+    } catch (error) {
+      console.error("Failed to update advanced session status:", error);
+      throw error;
     }
   };
 
@@ -116,6 +156,7 @@ export function useSessions() {
     isLoaded,
     addSession,
     toggleRegistration,
+    updateSessionAdvancedStatus,
     toggleArchive,
     deleteSession,
     refresh: fetchSessions

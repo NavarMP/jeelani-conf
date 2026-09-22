@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import { BURDA_RULES_DATA, RULES_LANGUAGES, type RulesLanguage } from "./rulesData";
 import { CircleCheckBig } from "lucide-react";
+import RegistrationGuard from "@/components/RegistrationGuard";
 
 export default function BurdaQawwaliRegistration() {
   const [rulesLang, setRulesLang] = useState<RulesLanguage>("ml");
@@ -216,6 +217,7 @@ export default function BurdaQawwaliRegistration() {
   const currentRules = BURDA_RULES_DATA[rulesLang] || BURDA_RULES_DATA.ml;
 
   return (
+    <RegistrationGuard slug="burda-qawwali">
     <div className="min-h-[100dvh] pt-24 pb-32 px-4 sm:px-6 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[var(--color-turquoise)]/10 to-transparent -z-10" />
@@ -497,5 +499,6 @@ export default function BurdaQawwaliRegistration() {
         </motion.div>
       </div>
     </div>
+    </RegistrationGuard>
   );
 }
