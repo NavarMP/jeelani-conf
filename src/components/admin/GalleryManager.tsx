@@ -666,6 +666,7 @@ export default function GalleryManager() {
                     <option value="1/1">1:1 Square</option>
                     <option value="3/4">3:4 Portrait</option>
                     <option value="4/5">4:5 Tall</option>
+                    <option value="9/16">9:16 Portrait</option>
                   </select>
                 </div>
               </div>
@@ -782,6 +783,7 @@ export default function GalleryManager() {
                     <option value="1/1">1:1 Square</option>
                     <option value="3/4">3:4 Portrait</option>
                     <option value="4/5">4:5 Tall</option>
+                    <option value="9/16">9:16 Portrait</option>
                   </select>
                 </div>
               </div>
