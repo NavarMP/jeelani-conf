@@ -10,6 +10,8 @@ type Props = {
 
 
 
+import { constructOgImageUrl, truncateText } from "@/lib/og-utils";
+
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
@@ -18,9 +20,27 @@ export async function generateMetadata(
   const speakers = await getSpeakers();
   const speaker = speakers.find((s) => s.slug === slug);
   if (!speaker) return { title: "Not Found" };
+  
+  const ogImageUrl = constructOgImageUrl("speaker", {
+    title: speaker.name,
+    desc: truncateText(speaker.title || speaker.bio, 60),
+    image: speaker.image_url,
+  });
+
   return {
     title: `${speaker.name} | Speakers`,
     description: speaker.bio,
+    openGraph: {
+      title: speaker.name,
+      description: truncateText(speaker.bio, 160),
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: speaker.name,
+      description: truncateText(speaker.bio, 160),
+      images: [ogImageUrl],
+    },
   };
 }
 

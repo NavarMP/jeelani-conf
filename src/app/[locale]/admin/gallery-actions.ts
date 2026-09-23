@@ -261,3 +261,41 @@ export async function bulkTogglePublishGalleryMedia(ids: string[], isPublished: 
   revalidatePath("/[locale]/admin", "layout");
   return { success: true };
 }
+
+export async function updateGalleryMedia(id: string, formData: FormData) {
+  const title = formData.get("title") as string;
+  const categoryId = formData.get("category_id") as string;
+  const aspect = (formData.get("aspect") as string) || "16/9";
+  const url = formData.get("url") as string;
+  const isPublished = formData.get("is_published") === "true";
+
+  if (!title) return { error: "Title is required" };
+  if (!categoryId) return { error: "Category is required" };
+
+  const supabase = await createClient();
+  const updateData: any = {
+    title,
+    category_id: categoryId,
+    aspect,
+    is_published: isPublished,
+  };
+
+  if (url) {
+    updateData.url = url;
+  }
+
+  const { data, error } = await supabase
+    .from("gallery_media")
+    .update(updateData)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating media:", error);
+    return { error: error.message };
+  }
+
+  revalidatePath("/[locale]/admin", "layout");
+  return { data };
+}

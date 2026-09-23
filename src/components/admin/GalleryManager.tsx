@@ -10,6 +10,7 @@ import {
   deleteGalleryCategory,
   getGalleryMedia,
   uploadGalleryMedia,
+  updateGalleryMedia,
   togglePublishGalleryMedia,
   deleteGalleryMedia,
   bulkDeleteGalleryMedia,
@@ -45,6 +46,11 @@ export default function GalleryManager() {
   const [newAspect, setNewAspect] = useState("16/9");
   const [newPublished, setNewPublished] = useState(true);
   const [files, setFiles] = useState<File[]>([]);
+  const [mediaSource, setMediaSource] = useState<"upload" | "url" | "embed">("upload");
+  const [embedUrl, setEmbedUrl] = useState("");
+  
+  // Edit Media state
+  const [editingItem, setEditingItem] = useState<any | null>(null);
   
   // Category Form state
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
@@ -109,7 +115,13 @@ export default function GalleryManager() {
   // --- Media Handlers ---
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (files.length === 0 && !newUrl) return alert("Please select a file or provide a URL.");
+    
+    let submitUrl = "";
+    if (mediaSource === "url") submitUrl = newUrl;
+    if (mediaSource === "embed") submitUrl = embedUrl;
+
+    if (mediaSource === "upload" && files.length === 0) return alert("Please select a file.");
+    if (mediaSource !== "upload" && !submitUrl) return alert("Please provide a URL.");
     if (!newCategory) return alert("Please select a category.");
 
     setIsSaving(true);
@@ -146,11 +158,11 @@ export default function GalleryManager() {
           setProgressStatus(`Uploading file ${i + 1} of ${files.length}...`);
           await uploadGalleryMedia(fd);
         }
-      } else if (newUrl) {
+      } else if (submitUrl) {
         setProgressStatus("Saving media record...");
         // URL only
         const fd = new FormData();
-        fd.append("url", newUrl);
+        fd.append("url", submitUrl);
         fd.append("title", newTitle);
         fd.append("category_id", newCategory);
         fd.append("aspect", newAspect);
@@ -162,12 +174,45 @@ export default function GalleryManager() {
       setIsAddOpen(false);
       setNewTitle("");
       setNewUrl("");
+      setEmbedUrl("");
       setFiles([]);
+      setMediaSource("upload");
       setProgressStatus("Reloading gallery...");
       await loadData();
     } catch (error) {
       console.error(error);
       alert("Failed to upload media.");
+    } finally {
+      setIsSaving(false);
+      setProgressStatus("");
+    }
+  };
+
+  const handleEditItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    
+    setIsSaving(true);
+    setProgressStatus("Updating media...");
+    
+    try {
+      const fd = new FormData();
+      fd.append("title", editingItem.title);
+      fd.append("category_id", editingItem.category_id);
+      fd.append("aspect", editingItem.aspect);
+      fd.append("is_published", String(editingItem.is_published));
+      if (editingItem.newUrl) {
+        fd.append("url", editingItem.newUrl);
+      }
+      
+      await updateGalleryMedia(editingItem.id, fd);
+      
+      setEditingItem(null);
+      setProgressStatus("Reloading gallery...");
+      await loadData();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update media.");
     } finally {
       setIsSaving(false);
       setProgressStatus("");
@@ -370,6 +415,13 @@ export default function GalleryManager() {
                   <Eye className="w-4 h-4" />
                 </button>
                 <button
+                  onClick={(e) => { e.stopPropagation(); setEditingItem({ ...item, newUrl: "" }); }}
+                  className="p-2.5 bg-blue-500/80 hover:bg-blue-500 rounded-full text-white backdrop-blur-sm transition-colors pointer-events-auto"
+                  title="Edit"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button
                   onClick={(e) => { e.stopPropagation(); handleDelete(item.id, item.title); }}
                   className="p-2.5 bg-red-500/80 hover:bg-red-500 rounded-full text-white backdrop-blur-sm transition-colors pointer-events-auto"
                   title="Delete"
@@ -476,12 +528,38 @@ export default function GalleryManager() {
           <div className="bg-[var(--admin-surface)] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-[var(--admin-border)]">
             <div className="flex justify-between items-center border-b border-[var(--admin-border)] pb-3">
               <h3 className="text-lg font-bold text-[var(--admin-text)]">Add Gallery Media</h3>
-              <button onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); }} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]">
+              <button onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); setEmbedUrl(""); setMediaSource("upload"); }} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]">
                 <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
 
             <form onSubmit={handleAddItem} className="space-y-4">
+              {/* Media Source Tabs */}
+              <div className="flex p-1 bg-[var(--admin-input-bg)] border border-[var(--admin-border)] rounded-lg gap-1">
+                <button
+                  type="button"
+                  onClick={() => setMediaSource("upload")}
+                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${mediaSource === "upload" ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-sm" : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"}`}
+                >
+                  Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMediaSource("url")}
+                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${mediaSource === "url" ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-sm" : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"}`}
+                >
+                  External Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMediaSource("embed")}
+                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${mediaSource === "embed" ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-sm" : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"}`}
+                >
+                  Embed Media
+                </button>
+              </div>
+
+              {mediaSource === "upload" && (
               <div>
                 <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
                   Upload File(s)
@@ -510,20 +588,37 @@ export default function GalleryManager() {
                   <p className="text-xs text-emerald-500 mt-1 font-medium">{files.length} file(s) selected.</p>
                 )}
               </div>
+              )}
 
+              {mediaSource === "url" && (
               <div>
                 <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
-                  Or Provide Image URL
+                  External Image / Video URL
                 </label>
                 <input
                   type="url"
                   placeholder="https://..."
                   value={newUrl}
-                  disabled={files.length > 0}
                   onChange={(e) => setNewUrl(e.target.value)}
-                  className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)] disabled:opacity-50"
+                  className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
                 />
               </div>
+              )}
+
+              {mediaSource === "embed" && (
+              <div>
+                <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
+                  Embed URL (YouTube, Instagram, Vimeo)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={embedUrl}
+                  onChange={(e) => setEmbedUrl(e.target.value)}
+                  className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                />
+              </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
@@ -591,14 +686,14 @@ export default function GalleryManager() {
               <div className="pt-4 flex justify-end gap-3 border-t border-[var(--admin-border)]">
                 <button
                   type="button"
-                  onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); }}
+                  onClick={() => { setIsAddOpen(false); setFiles([]); setNewUrl(""); setEmbedUrl(""); setMediaSource("upload"); }}
                   className="px-4 py-2 border border-[var(--admin-border)] text-[var(--admin-text)] rounded-lg text-sm hover:bg-[var(--admin-hover)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isSaving || (files.length === 0 && !newUrl)}
+                  disabled={isSaving || (mediaSource === "upload" && files.length === 0) || (mediaSource === "url" && !newUrl) || (mediaSource === "embed" && !embedUrl)}
                   className="px-5 py-2 bg-[var(--color-navy)] text-white rounded-lg text-sm font-medium hover:bg-[var(--color-navy)]/90 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {isSaving ? (
@@ -608,6 +703,122 @@ export default function GalleryManager() {
                     </>
                   ) : (
                     "Save Media"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Media Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--admin-surface)] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-[var(--admin-border)]">
+            <div className="flex justify-between items-center border-b border-[var(--admin-border)] pb-3">
+              <h3 className="text-lg font-bold text-[var(--admin-text)]">Edit Media</h3>
+              <button onClick={() => setEditingItem(null)} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]">
+                <X className="w-4 h-4" strokeWidth={2} />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditItem} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
+                  Update Media URL (Leave blank to keep current)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={editingItem.newUrl || ""}
+                  onChange={(e) => setEditingItem({ ...editingItem, newUrl: e.target.value })}
+                  className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
+                  Title / Caption
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Alathoorpadi Dars Inauguration"
+                  value={editingItem.title}
+                  onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                  className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={editingItem.category_id}
+                    onChange={(e) => setEditingItem({ ...editingItem, category_id: e.target.value })}
+                    className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                    required
+                  >
+                    <option value="" disabled>Select category...</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider mb-1">
+                    Aspect Ratio
+                  </label>
+                  <select
+                    value={editingItem.aspect}
+                    onChange={(e) => setEditingItem({ ...editingItem, aspect: e.target.value })}
+                    className="w-full text-sm border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-lg p-2.5 outline-none focus:border-[var(--color-turquoise)]"
+                  >
+                    <option value="16/9">16:9 Landscape</option>
+                    <option value="4/3">4:3 Standard</option>
+                    <option value="1/1">1:1 Square</option>
+                    <option value="3/4">3:4 Portrait</option>
+                    <option value="4/5">4:5 Tall</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="pub-check-edit"
+                  checked={editingItem.is_published}
+                  onChange={(e) => setEditingItem({ ...editingItem, is_published: e.target.checked })}
+                  className="w-4 h-4 rounded text-[var(--color-navy)] border-[var(--admin-input-border)] focus:ring-0 bg-[var(--admin-input-bg)]"
+                />
+                <label htmlFor="pub-check-edit" className="text-sm text-[var(--admin-text)] font-medium">
+                  Published to public gallery
+                </label>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-[var(--admin-border)]">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2 border border-[var(--admin-border)] text-[var(--admin-text)] rounded-lg text-sm hover:bg-[var(--admin-hover)] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-600/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      {progressStatus || "Saving..."}
+                    </>
+                  ) : (
+                    "Save Changes"
                   )}
                 </button>
               </div>

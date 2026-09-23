@@ -5,13 +5,36 @@ import type { Metadata } from "next";
 import { formatSessionTimeRange, getSessionRegistration } from "@/lib/sessionHelpers";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Clock, MapPin } from "lucide-react";
 
+import { constructOgImageUrl, truncateText } from "@/lib/og-utils";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const session = await getSessionBySlug(slug);
   if (!session) return { title: "Session Not Found" };
+  
+  const timeFormatted = formatSessionTimeRange(session.start_time, session.end_time);
+  const speakersList = session.speakers?.map(s => s.name).join(", ") || "";
+  
+  const ogImageUrl = constructOgImageUrl("session", {
+    title: truncateText(session.title, 60),
+    desc: truncateText(speakersList || session.description, 60),
+    time: timeFormatted,
+  });
+
   return {
     title: session.title,
     description: session.description,
+    openGraph: {
+      title: session.title,
+      description: truncateText(session.description, 160),
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: session.title,
+      description: truncateText(session.description, 160),
+      images: [ogImageUrl],
+    },
   };
 }
 

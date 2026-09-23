@@ -77,6 +77,7 @@ const reemKufi = Reem_Kufi({
 
 /* ── Metadata ────────────────────────────────────────────────────────── */
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: {
     default: "Grand Jeelani Conference — From Baghdad to Malabar",
     template: "%s | Grand Jeelani Conference",
@@ -102,12 +103,21 @@ export const metadata: Metadata = {
     siteName: "Grand Jeelani Conference",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "/api/og?type=default",
+        width: 1200,
+        height: 630,
+        alt: "Grand Jeelani Conference",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Grand Jeelani Conference",
     description:
       "From Baghdad to Malabar — Persian Artistry. Malabar Soul.",
+    images: ["/api/og?type=default"],
   },
   robots: {
     index: true,
