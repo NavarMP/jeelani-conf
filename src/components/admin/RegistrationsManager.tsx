@@ -422,7 +422,7 @@ function RegistrationsContent({ initialRegistrations }: Props) {
                         onChange={(e) => handleStatusChange(reg, e.target.value)}
                         disabled={updatingStatusId === reg.id}
                         className={`px-2 py-1 rounded text-[11px] font-bold border-none outline-none appearance-none cursor-pointer ${
-                          reg.status === "confirmed" || reg.status === "approved"
+                          reg.status === "confirmed" || reg.status === "approved" || reg.status === "selected"
                             ? "bg-green-500/10 text-green-700 dark:text-green-400"
                             : reg.status === "cancelled" || reg.status === "rejected"
                             ? "bg-red-500/10 text-red-700 dark:text-red-400"
@@ -431,6 +431,7 @@ function RegistrationsContent({ initialRegistrations }: Props) {
                       >
                         <option value="pending" className="bg-[var(--admin-surface)] text-[var(--admin-text)]">Pending</option>
                         <option value="confirmed" className="bg-[var(--admin-surface)] text-[var(--admin-text)]">Confirmed</option>
+                        <option value="selected" className="bg-[var(--admin-surface)] text-[var(--admin-text)]">Selected</option>
                         <option value="cancelled" className="bg-[var(--admin-surface)] text-[var(--admin-text)]">Cancelled</option>
                       </select>
                       {reg.payment_status && (
@@ -441,11 +442,13 @@ function RegistrationsContent({ initialRegistrations }: Props) {
                     </div>
                   </td>
                   <td className="px-4 py-4 text-right flex items-center justify-end gap-2">
-                    <a
+                      <a
                       href={`https://wa.me/${(reg.phone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
                         `Hello ${reg.name},\n\nThank you for registering for the *${reg.typeName}*.\n\nYour Registration ID is: *${reg.registration_id}*\nCurrent Status: *${reg.status?.toUpperCase() || "PENDING"}*\n\n${
                           reg.status === "confirmed" 
                           ? "Your registration is confirmed. We look forward to seeing you!" 
+                          : reg.status === "selected"
+                          ? "Congratulations! Your team has been selected. We look forward to seeing you!"
                           : reg.status === "cancelled"
                           ? "Unfortunately, your registration has been cancelled. Please contact us if you have any questions."
                           : "Your registration is currently under review. We will notify you once it is confirmed."

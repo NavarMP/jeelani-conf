@@ -20,6 +20,11 @@ import {
   MessageSquare,
   X,
   LogOut,
+  ScanLine,
+  UserCheck,
+  Trophy,
+  Users,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 
@@ -47,6 +52,16 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         { label: "Dashboard", href: "/admin", Icon: LayoutDashboard, exact: true },
         { label: "Event Intelligence", href: "/admin/analytics", Icon: BarChart3, exact: true },
         { label: "System Telemetry", href: "/admin/telemetry", Icon: Zap, exact: true },
+      ],
+    },
+    {
+      title: "Event Day",
+      items: [
+        { label: "Live Attendance", href: "/admin/attendance", Icon: UserCheck, exact: true },
+        { label: "QR Scanner", href: "/admin/scanner", Icon: ScanLine, exact: true },
+        { label: "Competition", href: "/admin/competition", Icon: Trophy, exact: true },
+        { label: "Staff & Volunteers", href: "/admin/staff", Icon: Users, exact: true },
+        { label: "Announcements", href: "/admin/announcements", Icon: Megaphone, exact: true },
       ],
     },
     {
