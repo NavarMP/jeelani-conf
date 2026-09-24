@@ -3,6 +3,9 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { useRef, useState } from "react";
+import { toPng } from "html-to-image";
+import { Download, Share2, Printer, Check, Home } from "lucide-react";
 
 interface BadgeData {
   id: string;
@@ -38,6 +41,10 @@ const roleLabels: Record<string, string> = {
 };
 
 export default function BadgeClient({ badge, qrSvg }: BadgeClientProps) {
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const sessionSlug = badge.formData?.session_slug || "";
   const roleBandColor = roleColors[sessionSlug] || "#FFC800";
   const roleLabel = roleLabels[sessionSlug] || badge.session;
@@ -46,11 +53,59 @@ export default function BadgeClient({ badge, qrSvg }: BadgeClientProps) {
   const teamName = badge.formData?.team_name || badge.formData?.teamName || "";
   const darsName = badge.formData?.dars_name || badge.formData?.darsName || badge.place;
 
+  const downloadAsImage = async () => {
+    if (!badgeRef.current) return;
+    setIsDownloading(true);
+    try {
+      // Small delay to ensure any fonts/images are fully loaded (especially in Safari)
+      await new Promise(r => setTimeout(r, 100));
+      const image = await toPng(badgeRef.current, { 
+        cacheBust: true, 
+        pixelRatio: 3,
+        style: { transform: "none", margin: "0" } // Reset motion transforms
+      });
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `Jeelani_Badge_${badge.id}.png`;
+      link.click();
+    } catch (err) {
+      console.error("Failed to download image", err);
+    }
+    setIsDownloading(false);
+  };
+
+  const shareBadge = async () => {
+    const url = window.location.href;
+    const text = `Here is my Entry Pass for the Jeelani Conference!`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Jeelani Conference Entry Pass",
+          text,
+          url
+        });
+      } catch (err) {
+        console.error("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(`${text} ${url}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center justify-center pt-24 pb-32 px-6 bg-[var(--surface)] relative overflow-hidden">
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center pt-24 pb-32 px-6 bg-[var(--surface)] relative overflow-hidden print:pt-0 print:pb-0 print:bg-white print:items-start print:justify-start">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: auto; margin: 0mm; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+      `}} />
       {/* Background pattern */}
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.03] print:hidden"
         style={{
           backgroundImage: "url('/motifs/arabesque-tile-pattern.svg')",
           backgroundRepeat: "repeat",
@@ -59,8 +114,8 @@ export default function BadgeClient({ badge, qrSvg }: BadgeClientProps) {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 max-w-md w-full">
-        <div className="text-center mb-8">
+      <div className="relative z-10 max-w-md w-full print:max-w-none">
+        <div className="text-center mb-8 print:hidden">
           <h1
             className="text-2xl font-bold text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
@@ -77,7 +132,7 @@ export default function BadgeClient({ badge, qrSvg }: BadgeClientProps) {
           <motion.div
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="mb-4 px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-center"
+            className="mb-4 px-4 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-center print:hidden"
           >
             <span className="text-emerald-700 dark:text-emerald-400 text-sm font-semibold">
               ✅ Checked In
@@ -96,10 +151,11 @@ export default function BadgeClient({ badge, qrSvg }: BadgeClientProps) {
 
         {/* The Badge */}
         <motion.div
+          ref={badgeRef}
           initial={{ y: 30, opacity: 0, scale: 0.95 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, type: "spring" }}
-          className="bg-white rounded-3xl overflow-hidden shadow-2xl shadow-[var(--color-navy)]/10 border border-[var(--border)] relative"
+          className="bg-white rounded-[2rem] overflow-hidden shadow-2xl shadow-[var(--color-navy)]/10 border border-[var(--border)] relative print:shadow-none print:border-none print:rounded-none print:w-full print:max-w-[400px] print:mx-auto"
         >
           {/* Badge Header with Dome Graphic */}
           <div className="relative h-48 bg-gradient-to-b from-[var(--color-navy)] to-[var(--color-turquoise)] p-6 text-center flex flex-col items-center justify-center">
@@ -185,24 +241,44 @@ export default function BadgeClient({ badge, qrSvg }: BadgeClientProps) {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-8 flex justify-center gap-3"
+          className="mt-8 flex flex-col sm:flex-row justify-center gap-3 print:hidden"
         >
           <button
-            onClick={() => window.print()}
-            className="px-6 py-2.5 rounded-full text-sm font-semibold bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-all shadow-md"
+            onClick={downloadAsImage}
+            disabled={isDownloading}
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-all shadow-md disabled:opacity-50"
           >
-            Save as PDF / Print
+            <Download className="w-4 h-4" />
+            {isDownloading ? "Saving..." : "Save Image"}
           </button>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={shareBadge}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold bg-[var(--surface-alt)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] border border-[var(--border)] transition-all"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Share2 className="w-4 h-4" />}
+              {copied ? "Copied!" : "Share"}
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold bg-[var(--surface-alt)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] border border-[var(--border)] transition-all"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </button>
+          </div>
+          
           <Link
             href="/"
-            className="px-6 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-all"
           >
-            Home
+            <Home className="w-4 h-4" />
           </Link>
         </motion.div>
 
         {/* Watermark */}
-        <div className="mt-6 text-center text-[10px] text-gray-300 font-mono select-none pointer-events-none">
+        <div className="mt-6 text-center text-[10px] text-gray-300 font-mono select-none pointer-events-none print:hidden">
           {badge.id} • {badge.name.toUpperCase()}
         </div>
       </div>
