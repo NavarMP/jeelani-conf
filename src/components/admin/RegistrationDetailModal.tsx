@@ -93,7 +93,7 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
               href={`https://wa.me/${(registration.phone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
                 `Hello ${registration.name},\n\nThank you for registering for the *${registration.typeName}*.\n\nYour Registration ID is: *${registration.registration_id}*\nCurrent Status: *${registration.status?.toUpperCase() || "PENDING"}*\n\n${
                   registration.status === "confirmed" 
-                  ? "Your registration is confirmed. We look forward to seeing you!" 
+                  ? `Your registration is confirmed. We look forward to seeing you!\n\nDownload your Entry Badge here:\n${process.env.NEXT_PUBLIC_SITE_URL}/en/badge/${registration.registration_id}` 
                   : registration.status === "cancelled"
                   ? "Unfortunately, your registration has been cancelled. Please contact us if you have any questions."
                   : "Your registration is currently under review. We will notify you once it is confirmed."

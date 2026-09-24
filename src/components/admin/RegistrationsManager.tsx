@@ -446,7 +446,7 @@ function RegistrationsContent({ initialRegistrations }: Props) {
                       href={`https://wa.me/${(reg.phone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
                         `Hello ${reg.name},\n\nThank you for registering for the *${reg.typeName}*.\n\nYour Registration ID is: *${reg.registration_id}*\nCurrent Status: *${reg.status?.toUpperCase() || "PENDING"}*\n\n${
                           reg.status === "confirmed" 
-                          ? "Your registration is confirmed. We look forward to seeing you!" 
+                          ? `Your registration is confirmed. We look forward to seeing you!\n\nDownload your Entry Badge here:\n${process.env.NEXT_PUBLIC_SITE_URL}/en/badge/${reg.registration_id}` 
                           : reg.status === "selected"
                           ? "Congratulations! Your team has been selected. We look forward to seeing you!"
                           : reg.status === "cancelled"
