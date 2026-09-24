@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   fetchAllStaff,
   createStaffMember,
+  updateStaffMember,
   deleteStaffMember,
   toggleStaffActive,
 } from "@/app/[locale]/admin/event-day-actions";
@@ -17,6 +18,7 @@ import {
   UserX,
   Copy,
   CheckCircle,
+  Edit2,
 } from "lucide-react";
 
 const roleConfig: Record<string, { label: string; color: string }> = {
@@ -31,6 +33,7 @@ export default function StaffPage() {
   const [staff, setStaff] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedPin, setCopiedPin] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -59,19 +62,36 @@ export default function StaffPage() {
     setForm((f) => ({ ...f, pin_code: pin }));
   };
 
-  const handleCreate = async () => {
+  const handleCreateOrUpdate = async () => {
     if (!form.name.trim() || !form.pin_code) return;
     setIsSubmitting(true);
     try {
-      await createStaffMember(form);
+      if (editingId) {
+        await updateStaffMember(editingId, form);
+      } else {
+        await createStaffMember(form);
+      }
       setForm({ name: "", phone: "", role: "volunteer", assigned_gate: "main", pin_code: "" });
       setShowCreate(false);
+      setEditingId(null);
       loadStaff();
     } catch {
-      alert("Failed to create.");
+      alert("Failed to save.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const startEdit = (s: any) => {
+    setForm({
+      name: s.name,
+      phone: s.phone || "",
+      role: s.role,
+      assigned_gate: s.assigned_gate || "main",
+      pin_code: s.pin_code,
+    });
+    setEditingId(s.id);
+    setShowCreate(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -119,7 +139,15 @@ export default function StaffPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowCreate(!showCreate)}
+          onClick={() => {
+            if (showCreate) {
+              setShowCreate(false);
+              setEditingId(null);
+              setForm({ name: "", phone: "", role: "volunteer", assigned_gate: "main", pin_code: "" });
+            } else {
+              setShowCreate(true);
+            }
+          }}
           className="px-4 py-2 bg-[var(--color-turquoise)] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 shadow-sm"
         >
           {showCreate ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
@@ -187,12 +215,12 @@ export default function StaffPage() {
             </div>
           </div>
           <button
-            onClick={handleCreate}
+            onClick={handleCreateOrUpdate}
             disabled={isSubmitting || !form.name.trim() || form.pin_code.length !== 6}
             className="px-5 py-2.5 bg-[var(--color-navy)] text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
           >
             <Shield className="w-4 h-4" />
-            {isSubmitting ? "Creating..." : "Add Staff Member"}
+            {isSubmitting ? (editingId ? "Updating..." : "Creating...") : (editingId ? "Update Staff Member" : "Add Staff Member")}
           </button>
         </div>
       )}
@@ -257,12 +285,22 @@ export default function StaffPage() {
                       </button>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleDelete(s.id)}
-                        className="p-2 rounded-lg text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => startEdit(s)}
+                          className="p-2 rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--color-turquoise)] hover:bg-[var(--color-turquoise)]/10 transition-colors"
+                          title="Edit Staff"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(s.id)}
+                          className="p-2 rounded-lg text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                          title="Delete Staff"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

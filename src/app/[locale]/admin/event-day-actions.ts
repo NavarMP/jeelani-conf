@@ -431,6 +431,26 @@ export async function createStaffMember(staffData: {
   return { success: true };
 }
 
+export async function updateStaffMember(id: string, staffData: {
+  name: string;
+  phone?: string;
+  role: string;
+  assigned_gate?: string;
+  pin_code: string;
+  permissions?: string[];
+}) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase.from("event_staff").update(staffData).eq("id", id);
+
+  if (error) throw new Error("Failed to update staff: " + error.message);
+  revalidatePath("/admin/staff");
+  return { success: true };
+}
+
+
 export async function deleteStaffMember(id: string) {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();

@@ -23,10 +23,10 @@ export function PublicChrome({
   searchData: SearchDataPayload;
 }) {
   const pathname = usePathname();
-  const isAdmin = pathname.includes("/admin");
+  const isStandalone = pathname.includes("/admin") || pathname.includes("/scanner") || pathname.includes("/badge");
 
-  if (isAdmin) {
-    // Admin routes: render children only — no public chrome
+  if (isStandalone) {
+    // Admin, standalone scanner, and badge routes: render children only — no public chrome
     return <>{children}</>;
   }
 
