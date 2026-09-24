@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { checkInByQRToken, manualCheckIn, verifyStaffPin, type CheckInResult } from "@/app/[locale]/admin/event-day-actions";
+import { checkInByQRToken, manualCheckIn, verifyStaffPin, batchCheckIn, type CheckInResult } from "@/app/[locale]/admin/event-day-actions";
 import { decodeQRPayload } from "@/lib/qr-client";
 import {
   ScanLine,
@@ -42,13 +42,52 @@ export default function QRScannerClient() {
   const [manualSearch, setManualSearch] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [torch, setTorch] = useState(false);
+  
+  // Offline sync state
+  const [offlineQueue, setOfflineQueue] = useState<{ token: string; gate: string; checkedInBy: string; timestamp: number }[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Load offline queue on mount
+  useEffect(() => {
+    try {
+      const storedQueue = localStorage.getItem("jeelani_offline_queue");
+      if (storedQueue) setOfflineQueue(JSON.parse(storedQueue));
+      
+      const storedStaff = localStorage.getItem("jeelani_staff_info");
+      if (storedStaff) {
+        setStaff(JSON.parse(storedStaff));
+        setIsAuthenticated(true);
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, []);
+
+  // Sync offline queue when online
+  const syncOfflineQueue = useCallback(async () => {
+    if (offlineQueue.length === 0 || !isOnline || isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const results = await batchCheckIn(offlineQueue);
+      setScanCount(c => c + results.length);
+      setOfflineQueue([]);
+      localStorage.removeItem("jeelani_offline_queue");
+    } catch {
+      // Failed to sync, keep queue
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [offlineQueue, isOnline, isSyncing]);
+
+  useEffect(() => {
+    if (isOnline) syncOfflineQueue();
+  }, [isOnline, syncOfflineQueue]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const scanIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Online/offline detection
   useEffect(() => {
     const onOnline = () => setIsOnline(true);
     const onOffline = () => setIsOnline(false);
@@ -74,12 +113,13 @@ export default function QRScannerClient() {
       if (result.valid && result.staff) {
         setStaff(result.staff);
         setIsAuthenticated(true);
+        localStorage.setItem("jeelani_staff_info", JSON.stringify(result.staff));
       } else {
         setPinError("Invalid PIN. Please check with an admin.");
         setPin("");
       }
     } catch {
-      setPinError("Connection error. Please try again.");
+      setPinError("Connection error. Please try again or use cached login if offline.");
     } finally {
       setIsVerifying(false);
     }
@@ -221,9 +261,30 @@ export default function QRScannerClient() {
     setIsProcessing(true);
     setScanResult(null);
 
+    const gate = staff?.assigned_gate || "main";
+    const checkedInBy = staff?.name || "Scanner";
+
+    if (!isOnline) {
+      // Offline mode: queue scan locally
+      const newScan = { token, gate, checkedInBy, timestamp: Date.now() };
+      const newQueue = [...offlineQueue, newScan];
+      setOfflineQueue(newQueue);
+      localStorage.setItem("jeelani_offline_queue", JSON.stringify(newQueue));
+      
+      setScanResult({
+        success: true,
+        status: "checked_in",
+        message: "Offline Scan Logged 💾",
+      });
+      setScanCount((c) => c + 1);
+      playSound("success");
+      vibrate([100, 50, 100]);
+      setTimeout(() => setIsProcessing(false), 1000);
+      return;
+    }
+
     try {
-      const gate = staff?.assigned_gate || "main";
-      const result = await checkInByQRToken(token, gate, staff?.name || "Scanner");
+      const result = await checkInByQRToken(token, gate, checkedInBy);
 
       setScanResult(result);
       setScanCount((c) => c + 1);
@@ -239,13 +300,20 @@ export default function QRScannerClient() {
         vibrate([300, 100, 300]);
       }
     } catch {
+      // Fallback to offline if network request fails
+      const newScan = { token, gate, checkedInBy, timestamp: Date.now() };
+      const newQueue = [...offlineQueue, newScan];
+      setOfflineQueue(newQueue);
+      localStorage.setItem("jeelani_offline_queue", JSON.stringify(newQueue));
+      
       setScanResult({
-        success: false,
-        status: "error",
-        message: "Network error. Please try again.",
+        success: true,
+        status: "checked_in",
+        message: "Network error. Logged offline 💾",
       });
-      playSound("error");
-      vibrate([300, 100, 300]);
+      setScanCount((c) => c + 1);
+      playSound("success");
+      vibrate([100, 50, 100]);
     } finally {
       setTimeout(() => setIsProcessing(false), 1500);
     }
@@ -397,13 +465,17 @@ export default function QRScannerClient() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {isOnline ? (
+          {isSyncing ? (
+            <span className="flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+              <span className="animate-spin">⟳</span> Syncing...
+            </span>
+          ) : isOnline ? (
             <span className="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
               <Wifi className="w-3 h-3" /> Live
             </span>
           ) : (
             <span className="flex items-center gap-1 text-[10px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
-              <WifiOff className="w-3 h-3" /> Offline
+              <WifiOff className="w-3 h-3" /> Offline {offlineQueue.length > 0 && `(${offlineQueue.length} queued)`}
             </span>
           )}
           <button

@@ -234,6 +234,24 @@ export async function manualCheckIn(
 }
 
 /**
+ * Batch check-in for syncing offline scans
+ */
+export async function batchCheckIn(
+  scans: { token: string; gate: string; checkedInBy: string; timestamp: number }[]
+) {
+  const results = [];
+  for (const scan of scans) {
+    try {
+      const result = await checkInByQRToken(scan.token, scan.gate, scan.checkedInBy);
+      results.push({ token: scan.token, success: result.success || result.status === "already_checked_in" });
+    } catch (err) {
+      results.push({ token: scan.token, success: false });
+    }
+  }
+  return results;
+}
+
+/**
  * Undo a check-in (admin only)
  */
 export async function undoCheckIn(attendanceLogId: string) {
