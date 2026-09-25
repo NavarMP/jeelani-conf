@@ -811,3 +811,509 @@ export async function fetchBadgeData(registrationId: string) {
     checkedInAt: data.checked_in_at,
   };
 }
+
+/**
+ * Fetch registrations for batch badge printing
+ */
+export async function fetchRegistrationsForPrinting(
+  sessionFilter: string,
+  statusFilter: string
+) {
+  const supabase = await createClient();
+  
+  let query = supabase
+    .from("dynamic_registrations")
+    .select("registration_id, name, place, qr_token, session_slug, registration_sessions(title, title_ml, color, icon)")
+    .order("name", { ascending: true });
+
+  if (sessionFilter && sessionFilter !== "all") {
+    query = query.eq("session_slug", sessionFilter);
+  }
+
+  if (statusFilter === "confirmed") {
+    query = query.in("status", ["confirmed", "selected"]);
+  } else if (statusFilter === "pending") {
+    query = query.eq("status", "pending");
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error("Failed to fetch registrations for printing: " + error.message);
+  
+  // Return formatted data
+  return (data || []).map((d: any) => ({
+    registration_id: d.registration_id,
+    name: d.name,
+    place: d.place,
+    qr_token: d.qr_token,
+    session: d.registration_sessions?.title || d.session_slug,
+    sessionColor: d.registration_sessions?.color || "var(--color-navy)",
+  }));
+}
+
+// ==============================================================================
+// ENHANCED ATTENDEE SEARCH (for check-in without QR code)
+// ==============================================================================
+
+export interface AttendeeSearchResult {
+  id: string;
+  registration_id: string;
+  name: string;
+  phone: string;
+  place: string;
+  session_slug: string;
+  typeName: string;
+  status: string;
+  checked_in: boolean;
+  checked_in_at?: string;
+  form_data: any;
+  is_spot_registration?: boolean;
+}
+
+/**
+ * Multi-criteria attendee search for check-in without QR code.
+ * Searches by name (fuzzy), phone, registration ID, or place.
+ * Designed for gate volunteers looking up students who have no device.
+ */
+export async function searchAttendeesForCheckIn(
+  searchTerm: string,
+  filters?: {
+    sessionSlug?: string;
+    place?: string;
+    onlyUnchecked?: boolean;
+  }
+): Promise<AttendeeSearchResult[]> {
+  const supabase = await createClient();
+  const term = searchTerm.trim();
+
+  if (!term && !filters?.sessionSlug && !filters?.place) {
+    return [];
+  }
+
+  // Build query
+  let query = supabase
+    .from("dynamic_registrations")
+    .select("*, registration_sessions(title)")
+    .in("status", ["confirmed", "selected"])
+    .order("name", { ascending: true })
+    .limit(30);
+
+  // Apply filters
+  if (filters?.sessionSlug) {
+    query = query.eq("session_slug", filters.sessionSlug);
+  }
+  if (filters?.place) {
+    query = query.eq("place", filters.place);
+  }
+  if (filters?.onlyUnchecked) {
+    query = query.eq("checked_in", false);
+  }
+
+  // Search by term if provided
+  if (term) {
+    // Check if it looks like a registration ID (e.g., REG-2026-... or SPOT-2026-...)
+    if (/^(REG|SPOT|DYN)-\d{4}/i.test(term)) {
+      query = query.ilike("registration_id", `${term}%`);
+    }
+    // Check if it looks like a phone number (digits only, 7+ chars)
+    else if (/^\d{7,}$/.test(term.replace(/[\s\-+]/g, ""))) {
+      const cleanPhone = term.replace(/[\s\-+]/g, "");
+      query = query.or(`phone.eq.${cleanPhone},phone.ilike.%${cleanPhone}`);
+    }
+    // Otherwise search by name (case-insensitive prefix match)
+    else {
+      query = query.ilike("name", `%${term}%`);
+    }
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Search error:", error);
+    return [];
+  }
+
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    registration_id: r.registration_id,
+    name: r.name,
+    phone: r.phone,
+    place: r.place || "",
+    session_slug: r.session_slug,
+    typeName: (r.registration_sessions as any)?.title || r.session_slug,
+    status: r.status,
+    checked_in: r.checked_in || false,
+    checked_in_at: r.checked_in_at,
+    form_data: r.form_data || {},
+    is_spot_registration: r.is_spot_registration || false,
+  }));
+}
+
+/**
+ * Get unique place values for the place filter dropdown
+ */
+export async function getUniquePlaces(): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("dynamic_registrations")
+    .select("place")
+    .not("place", "is", null)
+    .not("place", "eq", "")
+    .in("status", ["confirmed", "selected"]);
+
+  if (error || !data) return [];
+
+  const uniquePlaces = [...new Set(data.map((r: any) => r.place).filter(Boolean))];
+  return uniquePlaces.sort();
+}
+
+/**
+ * Check in by registration UUID (used from name search results)
+ */
+export async function checkInByRegistrationId(
+  registrationUUID: string,
+  gate: string = "main",
+  checkedInBy: string = "System",
+  sessionSlug?: string
+): Promise<CheckInResult> {
+  const supabase = await createClient();
+
+  // 1. Look up the registration
+  const { data: reg, error: lookupError } = await supabase
+    .from("dynamic_registrations")
+    .select("*, registration_sessions(title)")
+    .eq("id", registrationUUID)
+    .single();
+
+  if (lookupError || !reg) {
+    return {
+      success: false,
+      status: "not_found",
+      message: "Registration not found.",
+    };
+  }
+
+  // 2. Check status
+  if (reg.status !== "confirmed" && reg.status !== "selected") {
+    return {
+      success: false,
+      status: "not_confirmed",
+      message: `Registration status is "${reg.status}".`,
+      registration: {
+        name: reg.name,
+        registration_id: reg.registration_id,
+        session_slug: reg.session_slug,
+        typeName: (reg.registration_sessions as any)?.title || reg.session_slug,
+        status: reg.status,
+      },
+    };
+  }
+
+  // 3. Check for existing check-in
+  const checkQuery = supabase
+    .from("attendance_logs")
+    .select("id, check_in_time")
+    .eq("registration_id", reg.id);
+
+  if (sessionSlug) {
+    checkQuery.eq("session_slug", sessionSlug);
+  } else {
+    checkQuery.is("session_slug", null);
+  }
+
+  const { data: existing } = await checkQuery.maybeSingle();
+
+  if (existing) {
+    return {
+      success: false,
+      status: "already_checked_in",
+      message: `Already checked in at ${new Date(existing.check_in_time).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`,
+      registration: {
+        name: reg.name,
+        registration_id: reg.registration_id,
+        session_slug: reg.session_slug,
+        typeName: (reg.registration_sessions as any)?.title || reg.session_slug,
+        status: reg.status,
+        checked_in_at: existing.check_in_time,
+      },
+    };
+  }
+
+  // 4. Record the check-in
+  const { error: insertError } = await supabase
+    .from("attendance_logs")
+    .insert({
+      registration_id: reg.id,
+      session_slug: sessionSlug || null,
+      gate,
+      checked_in_by: checkedInBy,
+      method: "manual",
+    });
+
+  if (insertError) {
+    return {
+      success: false,
+      status: "error",
+      message: "Failed to record check-in: " + insertError.message,
+    };
+  }
+
+  // 5. Update the registration's checked_in flag
+  if (!sessionSlug) {
+    await supabase
+      .from("dynamic_registrations")
+      .update({ checked_in: true, checked_in_at: new Date().toISOString() })
+      .eq("id", reg.id);
+  }
+
+  return {
+    success: true,
+    status: "checked_in",
+    message: `✓ ${reg.name} checked in successfully!`,
+    registration: {
+      name: reg.name,
+      registration_id: reg.registration_id,
+      session_slug: reg.session_slug,
+      typeName: (reg.registration_sessions as any)?.title || reg.session_slug,
+      status: reg.status,
+      checked_in_at: new Date().toISOString(),
+    },
+  };
+}
+
+// ==============================================================================
+// SPOT REGISTRATION
+// ==============================================================================
+
+export interface SpotRegistrationResult {
+  success: boolean;
+  registration?: {
+    registration_id: string;
+    qr_token: string;
+    name: string;
+    session_slug: string;
+    typeName: string;
+  };
+  error?: string;
+}
+
+/**
+ * Create a spot (walk-in) registration — registers, generates QR, and checks in.
+ */
+export async function createSpotRegistration(data: {
+  name: string;
+  phone: string;
+  place?: string;
+  sessionSlug: string;
+  paymentMethod?: "cash" | "upi" | "waived" | "none";
+  registeredBy: string;
+  gate?: string;
+}): Promise<SpotRegistrationResult> {
+  const supabase = await createClient();
+
+  // 1. Check if spot registration is enabled for this session
+  const { data: session, error: sessionError } = await supabase
+    .from("registration_sessions")
+    .select("title, spot_registration_enabled, max_capacity, spot_registration_fee")
+    .eq("slug", data.sessionSlug)
+    .single();
+
+  if (sessionError || !session) {
+    return { success: false, error: "Session not found." };
+  }
+
+  if (!session.spot_registration_enabled) {
+    return { success: false, error: "Spot registration is not open for this session." };
+  }
+
+  // 2. Check capacity
+  if (session.max_capacity) {
+    const { count } = await supabase
+      .from("dynamic_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("session_slug", data.sessionSlug)
+      .in("status", ["confirmed", "selected", "pending"]);
+
+    if ((count || 0) >= session.max_capacity) {
+      return { success: false, error: "This session has reached full capacity. No more spots available." };
+    }
+  }
+
+  // 3. Check for duplicate phone in same session
+  const { data: existing } = await supabase
+    .from("dynamic_registrations")
+    .select("id, name")
+    .eq("phone", data.phone)
+    .eq("session_slug", data.sessionSlug)
+    .maybeSingle();
+
+  if (existing) {
+    return {
+      success: false,
+      error: `Phone number already registered for this session (${existing.name}).`,
+    };
+  }
+
+  // 4. Generate registration ID
+  const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const registrationId = `SPOT-2026-${timestamp}${random}`;
+
+  // 5. Generate QR token
+  const qrToken = generateQRToken();
+
+  // 6. Create the registration
+  const { error: insertError } = await supabase
+    .from("dynamic_registrations")
+    .insert({
+      registration_id: registrationId,
+      session_slug: data.sessionSlug,
+      name: data.name.trim(),
+      phone: data.phone.trim(),
+      place: data.place?.trim() || null,
+      status: "confirmed",
+      form_data: {
+        payment_method: data.paymentMethod || "none",
+        registered_by: data.registeredBy,
+        spot_registration: true,
+      },
+      qr_token: qrToken,
+      badge_generated_at: new Date().toISOString(),
+      checked_in: true,
+      checked_in_at: new Date().toISOString(),
+      is_spot_registration: true,
+      spot_registered_by: data.registeredBy,
+      spot_registered_at: new Date().toISOString(),
+      registration_source: "spot",
+    });
+
+  if (insertError) {
+    return { success: false, error: "Failed to create registration: " + insertError.message };
+  }
+
+  // 7. Also create attendance log for the check-in
+  // Get the new registration's UUID
+  const { data: newReg } = await supabase
+    .from("dynamic_registrations")
+    .select("id")
+    .eq("registration_id", registrationId)
+    .single();
+
+  if (newReg) {
+    await supabase
+      .from("attendance_logs")
+      .insert({
+        registration_id: newReg.id,
+        gate: data.gate || "main",
+        checked_in_by: data.registeredBy,
+        method: "manual",
+        notes: "Spot registration — auto checked in",
+      });
+  }
+
+  revalidatePath("/admin/attendance");
+  revalidatePath("/admin/registrations");
+
+  return {
+    success: true,
+    registration: {
+      registration_id: registrationId,
+      qr_token: qrToken,
+      name: data.name.trim(),
+      session_slug: data.sessionSlug,
+      typeName: session.title,
+    },
+  };
+}
+
+/**
+ * Toggle spot registration for a session
+ */
+export async function toggleSpotRegistration(
+  sessionSlug: string,
+  enabled: boolean
+) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("registration_sessions")
+    .update({ spot_registration_enabled: enabled })
+    .eq("slug", sessionSlug);
+
+  if (error) throw new Error("Failed to update spot registration: " + error.message);
+  revalidatePath("/admin/attendance");
+  return { success: true };
+}
+
+/**
+ * Update session capacity
+ */
+export async function updateSessionCapacity(
+  sessionSlug: string,
+  maxCapacity: number | null,
+  spotFee?: number
+) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const update: any = { max_capacity: maxCapacity };
+  if (spotFee !== undefined) {
+    update.spot_registration_fee = spotFee;
+    update.spot_fee_label = spotFee > 0 ? `₹${spotFee}` : "Free";
+  }
+
+  const { error } = await supabase
+    .from("registration_sessions")
+    .update(update)
+    .eq("slug", sessionSlug);
+
+  if (error) throw new Error("Failed to update capacity: " + error.message);
+  revalidatePath("/admin/attendance");
+  return { success: true };
+}
+
+/**
+ * Get spot registration stats per session
+ */
+export async function fetchSpotRegistrationStats() {
+  const supabase = await createClient();
+
+  const { data: sessions } = await supabase
+    .from("registration_sessions")
+    .select("slug, title, max_capacity, spot_registration_enabled, spot_registration_fee, spot_fee_label")
+    .eq("is_archived", false)
+    .order("order_index", { ascending: true });
+
+  if (!sessions) return [];
+
+  const stats = [];
+  for (const s of sessions) {
+    const { count: totalRegistered } = await supabase
+      .from("dynamic_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("session_slug", s.slug)
+      .in("status", ["confirmed", "selected", "pending"]);
+
+    const { count: spotCount } = await supabase
+      .from("dynamic_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("session_slug", s.slug)
+      .eq("is_spot_registration", true);
+
+    stats.push({
+      slug: s.slug,
+      title: s.title,
+      maxCapacity: s.max_capacity,
+      spotEnabled: s.spot_registration_enabled || false,
+      spotFee: s.spot_registration_fee || 0,
+      spotFeeLabel: s.spot_fee_label || "Free",
+      totalRegistered: totalRegistered || 0,
+      spotRegistered: spotCount || 0,
+      remainingSpots: s.max_capacity ? s.max_capacity - (totalRegistered || 0) : null,
+    });
+  }
+
+  return stats;
+}

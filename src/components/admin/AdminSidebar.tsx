@@ -25,6 +25,8 @@ import {
   Trophy,
   Users,
   Megaphone,
+  UserPlus,
+  LifeBuoy,
   type LucideIcon,
 } from "lucide-react";
 
@@ -59,6 +61,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       items: [
         { label: "Live Attendance", href: "/admin/attendance", Icon: UserCheck, exact: true },
         { label: "QR Scanner", href: "/admin/scanner", Icon: ScanLine, exact: true },
+        { label: "Spot Registration", href: "/admin/spot-registration", Icon: UserPlus, exact: true },
+        { label: "Help Desk", href: "/admin/helpdesk", Icon: LifeBuoy, exact: true },
         { label: "Competition", href: "/admin/competition", Icon: Trophy, exact: true },
         { label: "Staff & Volunteers", href: "/admin/staff", Icon: Users, exact: true },
         { label: "Announcements", href: "/admin/announcements", Icon: Megaphone, exact: true },

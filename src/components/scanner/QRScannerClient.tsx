@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { checkInByQRToken, manualCheckIn, verifyStaffPin, batchCheckIn, type CheckInResult } from "@/app/[locale]/admin/event-day-actions";
 import { decodeQRPayload } from "@/lib/qr-client";
+import AttendeeSearchPanel from "@/components/scanner/AttendeeSearchPanel";
 import {
   ScanLine,
   Search,
@@ -16,6 +17,7 @@ import {
   LogOut,
   Wifi,
   WifiOff,
+  Users,
 } from "lucide-react";
 
 interface StaffInfo {
@@ -43,6 +45,9 @@ export default function QRScannerClient() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [torch, setTorch] = useState(false);
   
+  // Mode: 'scan' or 'search' (Find by Name)
+  const [mode, setMode] = useState<"scan" | "search">("scan");
+
   // Offline sync state
   const [offlineQueue, setOfflineQueue] = useState<{ token: string; gate: string; checkedInBy: string; timestamp: number }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -448,6 +453,16 @@ export default function QRScannerClient() {
     );
   }
 
+  // Attendee Search Mode (Find by Name)
+  if (mode === "search") {
+    return (
+      <AttendeeSearchPanel
+        staff={staff!}
+        onBack={() => setMode("scan")}
+      />
+    );
+  }
+
   // Scanner Screen
   return (
     <div className="min-h-[100dvh] flex flex-col bg-black relative">
@@ -535,9 +550,20 @@ export default function QRScannerClient() {
                 {torch ? <FlashlightOff className="w-5 h-5 text-amber-300" /> : <Flashlight className="w-5 h-5" />}
               </button>
               <button
+                onClick={() => {
+                  stopCamera();
+                  setMode("search");
+                }}
+                className="px-4 py-3 rounded-full bg-amber-500/90 backdrop-blur-sm text-white hover:bg-amber-500 transition-all flex items-center gap-2 font-semibold text-xs shadow-lg"
+                title="Find by Name"
+              >
+                <Users className="w-4 h-4" />
+                Find by Name
+              </button>
+              <button
                 onClick={() => setShowManual(true)}
                 className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all"
-                title="Manual Search"
+                title="Manual Lookup"
               >
                 <Search className="w-5 h-5" />
               </button>
