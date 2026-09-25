@@ -23,7 +23,8 @@ export function Navbar() {
   const locale = useLocale();
   const { isOpen: searchOpen, open: openSearch, close: closeSearch } = useGlobalSearch();
 
-  const wordmarkSrc = locale === "ar" ? "/wordmark-ar.svg" : locale === "ml" ? "/wordmark-ml.svg" : "/wordmark-en.svg";
+  const wordmarkSrc = locale === "ar" ? "/wordmark-ar.svg?v=3" : locale === "ml" ? "/wordmark-ml.svg?v=3" : "/wordmark-en.svg?v=3";
+  const wordmarkWhiteSrc = locale === "ar" ? "/wordmark-ar-white.svg?v=3" : locale === "ml" ? "/wordmark-ml-white.svg?v=3" : "/wordmark-en-white.svg?v=3";
 
   const navLinks = [
     { href: "/about", label: t("about") },
@@ -62,16 +63,36 @@ export function Navbar() {
             <div className="w-8 h-8 relative">
               <Image src="/favicon.svg" alt="" width={32} height={32} priority />
             </div>
-            <Image 
-              src={wordmarkSrc} 
-              alt={t("brandName")} 
-              width={160} 
-              height={45} 
-              priority
-              className={`hidden sm:block w-auto h-5 md:h-6 transition-all ${
-                solid ? "dark:invert dark:brightness-200" : "invert brightness-200"
-              }`} 
-            />
+            {!solid && (
+              <Image 
+                src={wordmarkWhiteSrc} 
+                alt={t("brandName")} 
+                width={160} 
+                height={45} 
+                priority
+                className="hidden sm:block w-auto h-5 md:h-6 transition-all" 
+              />
+            )}
+            {solid && (
+              <>
+                <Image 
+                  src={wordmarkSrc} 
+                  alt={t("brandName")} 
+                  width={160} 
+                  height={45} 
+                  priority
+                  className="hidden sm:block dark:hidden w-auto h-5 md:h-6 transition-all" 
+                />
+                <Image 
+                  src={wordmarkWhiteSrc} 
+                  alt={t("brandName")} 
+                  width={160} 
+                  height={45} 
+                  priority
+                  className="hidden sm:hidden dark:sm:block w-auto h-5 md:h-6 transition-all" 
+                />
+              </>
+            )}
           </Link>
 
           {/* Desktop nav links */}

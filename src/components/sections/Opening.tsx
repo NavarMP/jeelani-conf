@@ -51,7 +51,7 @@ export function Opening({ targetDate, conferenceDocuments = [] }: { targetDate: 
   const tCountdown = useTranslations("Countdown");
   const locale = useLocale();
 
-  const wordmarkSrc = locale === "ar" ? "/wordmark-ar.svg" : locale === "ml" ? "/wordmark-ml.svg" : "/wordmark-en.svg";
+  const wordmarkSrc = locale === "ar" ? "/wordmark-ar-white.svg?v=3" : locale === "ml" ? "/wordmark-ml-white.svg?v=3" : "/wordmark-en-white.svg?v=3";
   const paragraphs = [tAbout("p1"), tAbout("p2"), tAbout("p3"), tAbout("p4"), tAbout("p5")];
 
   const calendarTitle = encodeURIComponent("Grand Jeelani Conference");
@@ -59,62 +59,19 @@ export function Opening({ targetDate, conferenceDocuments = [] }: { targetDate: 
   const calendarLocation = encodeURIComponent("Alathurpadi, Melmuri, Kerala");
   const googleCalUrl = `https://calendar.google.com/calendar/r/eventedit?text=${calendarTitle}&dates=20260927T043000Z/20260927T163000Z&details=${calendarDetails}&location=${calendarLocation}`;
 
-  // Computed once via useState's lazy initializer (the sanctioned place for
-  // one-time non-deterministic setup) rather than on every render, so the
-  // glints don't jump to new positions on unrelated re-renders.
-  const [glints] = useState(() =>
-    Array.from({ length: 6 }, (_, i) => ({
-      top: 15 + Math.random() * 60,
-      left: 10 + Math.random() * 80,
-      size: 8 + Math.random() * 14,
-      duration: 3 + Math.random() * 2,
-      delay: i * 0.8,
-    }))
-  );
-
   return (
     <div ref={containerRef} id="opening" className="relative">
-      {/* ── One continuous background for the whole opening act ── */}
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background: `linear-gradient(180deg,
-            var(--color-navy) 0%,
-            color-mix(in srgb, var(--color-navy) 84%, var(--color-turquoise)) 22%,
-            color-mix(in srgb, var(--color-navy) 45%, var(--surface)) 40%,
-            var(--surface) 50%,
-            var(--surface) 100%)`,
-        }}
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 -z-10 opacity-[0.045]"
-        style={{
-          backgroundImage: "url('/motifs/arabesque-tile-pattern.svg')",
-          backgroundRepeat: "repeat",
-          backgroundSize: "140px 140px",
-        }}
-        aria-hidden="true"
-      />
-
       {/* ══════════════════ HERO ══════════════════ */}
-      <section id="hero" className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
-        {glints.map((g, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-[var(--color-brass)]"
-            style={{
-              top: `${g.top}%`,
-              left: `${g.left}%`,
-              fontSize: `${g.size}px`,
-            }}
-            animate={{ opacity: [0, 0.6, 0], scale: [0.5, 1, 0.5], rotate: [0, 180] }}
-            transition={{ duration: g.duration, repeat: Infinity, delay: g.delay, ease: "easeInOut" }}
-            aria-hidden="true"
-          >
-            ✦
-          </motion.div>
-        ))}
+      <section id="hero" className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-[#000000]">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover z-0 opacity-30"
+        >
+          <source src="/bg-video.mp4" type="video/mp4" />
+        </video>
 
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.6 }} className="mb-6">
@@ -123,7 +80,7 @@ export function Opening({ targetDate, conferenceDocuments = [] }: { targetDate: 
 
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }} className="mb-6">
             <div className="inline-block rounded-lg px-8 py-5 md:px-12 md:py-7" style={{ clipPath: "url(#scallopClip)" }}>
-              <Image src={wordmarkSrc} alt="Grand Jeelani Conference" width={1200} height={400} priority className="w-[560px] md:w-[840px] lg:w-[1000px] h-auto invert brightness-200" />
+              <Image src={wordmarkSrc} alt="Grand Jeelani Conference" width={1200} height={400} priority className="w-[560px] md:w-[840px] lg:w-[1000px] h-auto" />
             </div>
           </motion.div>
 

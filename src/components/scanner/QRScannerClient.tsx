@@ -258,9 +258,9 @@ export default function QRScannerClient() {
       canvas.height = video.videoHeight;
       ctx?.drawImage(video, 0, 0);
 
-      // Prevent duplicate scans within 3 seconds
+      // Prevent duplicate scans within a short window (1 second instead of 3)
       const now = Date.now();
-      if (now - lastScanTime < 3000) return;
+      if (now - lastScanTime < 1000) return;
 
       if (detector) {
         try {
@@ -311,7 +311,7 @@ export default function QRScannerClient() {
       setScanCount((c) => c + 1);
       playSound("success");
       vibrate([100, 50, 100]);
-      setTimeout(() => setIsProcessing(false), 1000);
+      setTimeout(() => setIsProcessing(false), 300); // reduced from 1000ms
       return;
     }
 
@@ -347,7 +347,7 @@ export default function QRScannerClient() {
       playSound("success");
       vibrate([100, 50, 100]);
     } finally {
-      setTimeout(() => setIsProcessing(false), 1500);
+      setTimeout(() => setIsProcessing(false), 500); // reduced from 1500ms
     }
   };
 

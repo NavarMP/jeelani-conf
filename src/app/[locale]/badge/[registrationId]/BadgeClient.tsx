@@ -171,11 +171,11 @@ export default function BadgeClient({ badge, qrSvg }: BadgeClientProps) {
 
             <div className="relative z-10 mt-4">
               <Image
-                src="/wordmark-en.svg"
+                src="/wordmark-en-white.svg?v=3"
                 alt="Grand Jeelani Conference"
                 width={200}
                 height={70}
-                className="w-48 h-auto invert brightness-200"
+                className="w-48 h-auto"
               />
               <p className="text-[var(--color-brass)] text-[10px] uppercase tracking-[0.2em] mt-2 font-medium">
                 Alathurpadi • Sept 27

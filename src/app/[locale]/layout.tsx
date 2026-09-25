@@ -142,6 +142,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n';
 import { getSessions, getSpeakers, getRegistrationSessions, getPublishedGalleryMedia, getSiteSettings } from '@/lib/data';
+import { LenisProvider } from "@/components/providers/LenisProvider";
 
 export default async function RootLayout(props: {
   children: React.ReactNode;
@@ -235,7 +236,9 @@ export default async function RootLayout(props: {
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
-            <PublicChrome footer={<Footer />} searchData={searchData}>{children}</PublicChrome>
+            <LenisProvider>
+              <PublicChrome footer={<Footer />} searchData={searchData}>{children}</PublicChrome>
+            </LenisProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
