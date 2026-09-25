@@ -19,6 +19,13 @@ ALTER TABLE public.registration_sessions ADD COLUMN IF NOT EXISTS form_type VARC
 ALTER TABLE public.registration_sessions ADD COLUMN IF NOT EXISTS href_override VARCHAR(500);
 ALTER TABLE public.registration_sessions ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
 ALTER TABLE public.dynamic_registrations ADD COLUMN IF NOT EXISTS place VARCHAR(255);
+ALTER TABLE public.dynamic_registrations ADD COLUMN IF NOT EXISTS admin_notes TEXT;
+ALTER TABLE public.dynamic_registrations ADD COLUMN IF NOT EXISTS whatsapp_number VARCHAR(50);
+ALTER TABLE public.dynamic_registrations ALTER COLUMN whatsapp_number TYPE VARCHAR(50);
+ALTER TABLE public.dynamic_registrations ADD COLUMN IF NOT EXISTS is_whatsapp_sent BOOLEAN DEFAULT false;
+
+-- Backfill whatsapp_number with phone for existing entries
+UPDATE public.dynamic_registrations SET whatsapp_number = phone WHERE whatsapp_number IS NULL;
 
 -- Storage bucket for speaker photos
 INSERT INTO storage.buckets (id, name, public) VALUES ('speaker-photos', 'speaker-photos', true) ON CONFLICT (id) DO NOTHING;

@@ -46,7 +46,7 @@ export async function updateRegistrationStatus(table: string, id: string, status
   revalidatePath("/admin/papers");
 }
 
-export async function updateRegistrationDetails(table: string, id: string, data: { name?: string; phone?: string; place?: string; session_slug?: string }) {
+export async function updateRegistrationDetails(table: string, id: string, data: Record<string, any>) {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Unauthorized");
@@ -58,6 +58,34 @@ export async function updateRegistrationDetails(table: string, id: string, data:
 
   const { error } = await supabase.from(table).update(updatePayload).eq("id", id);
   if (error) throw new Error("Failed to update registration details");
+  revalidatePath("/admin/registrations");
+}
+
+export async function updateRegistrationAdminNotes(table: string, id: string, notes: string) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from(table)
+    .update({ admin_notes: notes, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) throw new Error("Failed to update registration notes");
+  revalidatePath("/admin/registrations");
+}
+
+export async function updateRegistrationWhatsAppSent(table: string, id: string, is_sent: boolean) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from(table)
+    .update({ is_whatsapp_sent: is_sent, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) throw new Error("Failed to update whatsapp sent status");
   revalidatePath("/admin/registrations");
 }
 

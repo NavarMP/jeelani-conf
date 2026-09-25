@@ -16,6 +16,7 @@ function BurdaQawwaliForm() {
     teamName: "", 
     members: ["", "", "", "", ""], 
     phone: "", 
+    whatsappNumber: "",
     telegramLink: "",
     screenshot: null as File | null
   });
@@ -76,6 +77,7 @@ function BurdaQawwaliForm() {
           session_slug: 'burda-qawwali',
           name: formData.teamName, // Store team name in main name field
           phone: formData.phone,
+          whatsapp_number: formData.whatsappNumber,
           status: 'pending',
           receipt_url,
           form_data: {
@@ -384,6 +386,15 @@ function BurdaQawwaliForm() {
               <div>
                 <label htmlFor="bq-phone" className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide mb-2">{t("teamPhone")}</label>
                 <input id="bq-phone" type="tel" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder={t("phonePlaceholder")} className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]/30 focus:border-[var(--color-turquoise)] focus:bg-[var(--surface)] transition-all placeholder:text-[var(--text-muted)] font-medium" />
+              </div>
+
+              {/* WhatsApp Number */}
+              <div>
+                <label htmlFor="bq-whatsapp" className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide mb-2">WhatsApp Number <span className="text-red-500">*</span></label>
+                <div className="flex gap-2">
+                  <input id="bq-whatsapp" type="tel" required value={formData.whatsappNumber} onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })} placeholder="WhatsApp Number" className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]/30 focus:border-[var(--color-turquoise)] focus:bg-[var(--surface)] transition-all placeholder:text-[var(--text-muted)] font-medium" />
+                  <button type="button" onClick={() => setFormData({ ...formData, whatsappNumber: formData.phone })} className="px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface)] transition-colors whitespace-nowrap cursor-pointer active:scale-95">Same as Phone</button>
+                </div>
               </div>
 
               {/* Telegram Link Info */}

@@ -11,6 +11,7 @@ import RegistrationGuard, { useRegistrationContext, RegistrationDeadline } from 
 interface Member {
   name: string;
   phone: string;
+  whatsappNumber: string;
 }
 
 function DarsManagementForm() {
@@ -20,7 +21,7 @@ function DarsManagementForm() {
     darsInstitution: "",
     memberCount: 1,
   });
-  const [members, setMembers] = useState<Member[]>([{ name: "", phone: "" }]);
+  const [members, setMembers] = useState<Member[]>([{ name: "", phone: "", whatsappNumber: "" }]);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -30,7 +31,7 @@ function DarsManagementForm() {
     setFormData({ ...formData, memberCount: count });
     const newMembers = [...members];
     while (newMembers.length < count) {
-      newMembers.push({ name: "", phone: "" });
+      newMembers.push({ name: "", phone: "", whatsappNumber: "" });
     }
     setMembers(newMembers.slice(0, count));
   };
@@ -63,6 +64,7 @@ function DarsManagementForm() {
         session_slug: "dars-management-meet",
         name: formData.mahall, // Use mahall as primary name
         phone: members[0].phone, // Primary contact
+        whatsapp_number: members[0].whatsappNumber,
         place: formData.mahall,
         form_data: {
           mahall: formData.mahall,
@@ -180,6 +182,17 @@ function DarsManagementForm() {
                     placeholder={t("memberPhonePlaceholder")}
                     className={inputClass}
                   />
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      type="tel"
+                      required
+                      value={member.whatsappNumber}
+                      onChange={(e) => updateMember(index, "whatsappNumber", e.target.value)}
+                      placeholder="WhatsApp Number"
+                      className={inputClass}
+                    />
+                    <button type="button" onClick={() => updateMember(index, "whatsappNumber", member.phone)} className="px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface)] transition-colors whitespace-nowrap cursor-pointer active:scale-95">Same as Phone</button>
+                  </div>
                 </div>
               ))}
             </div>

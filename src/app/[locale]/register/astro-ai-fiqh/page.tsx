@@ -14,6 +14,7 @@ function AstroAIFiqhForm() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    whatsappNumber: "",
     place: "",
     occupation: "study" as "study" | "work",
     occupationPlace: "",
@@ -114,6 +115,7 @@ function AstroAIFiqhForm() {
         session_slug: "astro-ai-fiqh",
         name: formData.name,
         phone: formData.phone,
+        whatsapp_number: formData.whatsappNumber,
         place: formData.place,
         status: "pending",
         receipt_url,
@@ -209,6 +211,14 @@ function AstroAIFiqhForm() {
           <div>
             <label htmlFor="da-phone" className="block text-xs font-semibold text-[var(--text-primary)] mb-1.5">{t("phone")}</label>
             <input id="da-phone" type="tel" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder={t("phonePlaceholder")} className={inputClass} />
+          </div>
+
+          <div>
+            <label htmlFor="da-whatsapp" className="block text-xs font-semibold text-[var(--text-primary)] mb-1.5">WhatsApp Number <span className="text-red-500">*</span></label>
+            <div className="flex gap-2">
+              <input id="da-whatsapp" type="tel" required value={formData.whatsappNumber} onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })} placeholder="WhatsApp Number" className={inputClass} />
+              <button type="button" onClick={() => setFormData({ ...formData, whatsappNumber: formData.phone })} className="px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface)] transition-colors whitespace-nowrap cursor-pointer active:scale-95">Same as Phone</button>
+            </div>
           </div>
 
           <div>
