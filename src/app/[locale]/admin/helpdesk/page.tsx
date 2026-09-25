@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { searchAttendeesForCheckIn, checkInByRegistrationId, undoCheckIn, type AttendeeSearchResult } from "@/app/[locale]/admin/event-day-actions";
+import { formatForWhatsApp } from "@/lib/phoneUtils";
 import {
   LifeBuoy,
   Search,
@@ -83,10 +84,9 @@ export default function HelpDeskPage() {
     const message = `As-salamu alaykum ${attendee.name},\n\nHere is your digital badge for the Grand Jeelani Conference. Please show this QR code at the entry gate:\n\n${badgeUrl}\n\nSee you there!`;
     
     // Clean phone number (add country code if missing)
-    let phone = attendee.phone.replace(/\D/g, "");
-    if (phone.length === 10) phone = "91" + phone;
+    const formattedPhone = formatForWhatsApp(attendee.phone);
     
-    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, "_blank");
   };
 

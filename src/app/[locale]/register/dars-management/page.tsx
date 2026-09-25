@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { formatForDatabase } from "@/lib/phoneUtils";
 import { CircleCheckBig, Clock } from "lucide-react";
 import RegistrationGuard, { useRegistrationContext, RegistrationDeadline } from "@/components/RegistrationGuard";
 
@@ -63,8 +64,8 @@ function DarsManagementForm() {
         registration_id: registrationId,
         session_slug: "dars-management-meet",
         name: formData.mahall, // Use mahall as primary name
-        phone: members[0].phone, // Primary contact
-        whatsapp_number: members[0].whatsappNumber,
+        phone: formatForDatabase(members[0].phone), // Primary contact
+        whatsapp_number: members[0].whatsappNumber ? formatForDatabase(members[0].whatsappNumber) : null,
         place: formData.mahall,
         form_data: {
           mahall: formData.mahall,

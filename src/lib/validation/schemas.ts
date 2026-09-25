@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-const phoneRegex = /^[0-9]{10}$/;
+const phoneRegex = /^\+?[0-9]{10,15}$/;
 
 export const grandAssemblySchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().regex(phoneRegex, "Must be a valid 10-digit phone number"),
+  phone: z.string().regex(phoneRegex, "Must be a valid phone number (10-15 digits)"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
   dars: z.string().min(2, "Please select or enter your Dars"),
   place: z.string().min(2, "Place is required"),
@@ -12,14 +12,14 @@ export const grandAssemblySchema = z.object({
 
 export const darimiSessionSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().regex(phoneRegex, "Must be a valid 10-digit phone number"),
+  phone: z.string().regex(phoneRegex, "Must be a valid phone number (10-15 digits)"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
   place: z.string().min(2, "Place is required"),
 });
 
 export const paperPresentationSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().regex(phoneRegex, "Must be a valid 10-digit phone number"),
+  phone: z.string().regex(phoneRegex, "Must be a valid phone number (10-15 digits)"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
   place: z.string().min(2, "Place is required"),
   paperTitle: z.string().min(5, "Paper title is required"),
@@ -34,7 +34,7 @@ export type PaperPresentationFormData = z.infer<typeof paperPresentationSchema>;
 // Feedback form validation
 export const feedbackSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional().or(z.literal("")),
-  phone: z.string().regex(/^[0-9]{10}$/, "Must be a valid 10-digit phone number").optional().or(z.literal("")),
+  phone: z.string().regex(/^\+?[0-9]{10,15}$/, "Must be a valid phone number (10-15 digits)").optional().or(z.literal("")),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
   overall_rating: z.number().int().min(1, "Please select a rating").max(5),
   category_ratings: z.record(z.string(), z.number().int().min(1).max(5)).optional(),

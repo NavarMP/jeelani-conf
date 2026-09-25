@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { formatForDatabase } from "@/lib/phoneUtils";
 import { useTranslations } from "next-intl";
 import { BURDA_RULES_DATA, RULES_LANGUAGES, type RulesLanguage } from "./rulesData";
 import { CircleCheckBig, Clock } from "lucide-react";
@@ -76,8 +77,8 @@ function BurdaQawwaliForm() {
           registration_id,
           session_slug: 'burda-qawwali',
           name: formData.teamName, // Store team name in main name field
-          phone: formData.phone,
-          whatsapp_number: formData.whatsappNumber,
+          phone: formatForDatabase(formData.phone),
+          whatsapp_number: formData.whatsappNumber ? formatForDatabase(formData.whatsappNumber) : null,
           status: 'pending',
           receipt_url,
           form_data: {

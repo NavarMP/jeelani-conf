@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { fetchRegistrationsAction, updateRegistrationStatus } from "@/app/[locale]/admin/actions";
+import { formatForWhatsApp } from "@/lib/phoneUtils";
+import { generateWhatsAppMessage } from "@/lib/whatsappUtils";
 import RegistrationDetailModal from "@/components/admin/RegistrationDetailModal";
 import ExportModal from "@/components/admin/ExportModal";
 import { type ExportColumn, type ActiveFilter } from "@/lib/exportUtils";
@@ -443,16 +445,8 @@ function RegistrationsContent({ initialRegistrations }: Props) {
                   </td>
                   <td className="px-4 py-4 text-right flex items-center justify-end gap-2">
                       <a
-                      href={`https://wa.me/${(reg.phone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
-                        `Hello ${reg.name},\n\nThank you for registering for the *${reg.typeName}*.\n\nYour Registration ID is: *${reg.registration_id}*\nCurrent Status: *${reg.status?.toUpperCase() || "PENDING"}*\n\n${
-                          reg.status === "confirmed" 
-                          ? `Your registration is confirmed. We look forward to seeing you!\n\nDownload your Entry Badge here:\n${process.env.NEXT_PUBLIC_SITE_URL}/en/badge/${reg.registration_id}` 
-                          : reg.status === "selected"
-                          ? "Congratulations! Your team has been selected. We look forward to seeing you!"
-                          : reg.status === "cancelled"
-                          ? "Unfortunately, your registration has been cancelled. Please contact us if you have any questions."
-                          : "Your registration is currently under review. We will notify you once it is confirmed."
-                        }\n\nBest regards,\nJeelani Conference Team`
+                      href={`https://wa.me/${formatForWhatsApp(reg.phone)}?text=${encodeURIComponent(
+                        generateWhatsAppMessage(reg)
                       )}`}
                       target="_blank"
                       rel="noreferrer"

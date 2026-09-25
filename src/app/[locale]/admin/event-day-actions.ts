@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { generateQRToken } from "@/lib/qr";
+import { formatForDatabase } from "@/lib/phoneUtils";
 
 // ==============================================================================
 // QR TOKEN MANAGEMENT
@@ -1176,7 +1177,7 @@ export async function createSpotRegistration(data: {
       registration_id: registrationId,
       session_slug: data.sessionSlug,
       name: data.name.trim(),
-      phone: data.phone.trim(),
+      phone: formatForDatabase(data.phone),
       place: data.place?.trim() || null,
       status: "confirmed",
       form_data: {

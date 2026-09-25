@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { formatForDatabase } from "@/lib/phoneUtils";
 import { CircleCheckBig, ArrowRight, Clock } from "lucide-react";
 
 import RegistrationGuard, { useRegistrationContext, RegistrationDeadline } from "@/components/RegistrationGuard";
@@ -114,8 +115,8 @@ function AstroAIFiqhForm() {
         registration_id: registrationId,
         session_slug: "astro-ai-fiqh",
         name: formData.name,
-        phone: formData.phone,
-        whatsapp_number: formData.whatsappNumber,
+        phone: formatForDatabase(formData.phone),
+        whatsapp_number: formData.whatsappNumber ? formatForDatabase(formData.whatsappNumber) : null,
         place: formData.place,
         status: "pending",
         receipt_url,
