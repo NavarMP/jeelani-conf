@@ -118,34 +118,38 @@ export async function checkInByQRToken(
     };
   }
 
-  // 3. Check if already checked in (for this session or venue)
-  const checkQuery = supabase
-    .from("attendance_logs")
-    .select("id, check_in_time")
-    .eq("registration_id", reg.id);
+  // 3. Check if already checked in (for this checkpoint/gate)
+  // Skip duplicate checking for Exit checkpoints
+  if (!gate.toLowerCase().includes("exit")) {
+    const checkQuery = supabase
+      .from("attendance_logs")
+      .select("id, check_in_time")
+      .eq("registration_id", reg.id)
+      .eq("gate", gate);
 
-  if (sessionSlug) {
-    checkQuery.eq("session_slug", sessionSlug);
-  } else {
-    checkQuery.is("session_slug", null);
-  }
+    if (sessionSlug) {
+      checkQuery.eq("session_slug", sessionSlug);
+    } else {
+      checkQuery.is("session_slug", null);
+    }
 
-  const { data: existing } = await checkQuery.maybeSingle();
+    const { data: existing } = await checkQuery.maybeSingle();
 
-  if (existing) {
-    return {
-      success: false,
-      status: "already_checked_in",
-      message: `Already checked in at ${new Date(existing.check_in_time).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`,
-      registration: {
-        name: reg.name,
-        registration_id: reg.registration_id,
-        session_slug: reg.session_slug,
-        typeName: (reg.registration_sessions as any)?.title || reg.session_slug,
-        status: reg.status,
-        checked_in_at: existing.check_in_time,
-      },
-    };
+    if (existing) {
+      return {
+        success: false,
+        status: "already_checked_in",
+        message: `Already checked in at ${new Date(existing.check_in_time).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`,
+        registration: {
+          name: reg.name,
+          registration_id: reg.registration_id,
+          session_slug: reg.session_slug,
+          typeName: (reg.registration_sessions as any)?.title || reg.session_slug,
+          status: reg.status,
+          checked_in_at: existing.check_in_time,
+        },
+      };
+    }
   }
 
   // 4. Record the check-in
@@ -168,8 +172,8 @@ export async function checkInByQRToken(
     };
   }
 
-  // 5. Update the registration's checked_in flag (for venue entry)
-  if (!sessionSlug) {
+  // 5. Update the registration's checked_in flag (for venue entry) only if not already checked in
+  if (!sessionSlug && !reg.checked_in) {
     await supabase
       .from("dynamic_registrations")
       .update({ checked_in: true, checked_in_at: new Date().toISOString() })
@@ -1008,34 +1012,38 @@ export async function checkInByRegistrationId(
     };
   }
 
-  // 3. Check for existing check-in
-  const checkQuery = supabase
-    .from("attendance_logs")
-    .select("id, check_in_time")
-    .eq("registration_id", reg.id);
+  // 3. Check for existing check-in at this specific checkpoint
+  // Skip duplicate checking for Exit checkpoints
+  if (!gate.toLowerCase().includes("exit")) {
+    const checkQuery = supabase
+      .from("attendance_logs")
+      .select("id, check_in_time")
+      .eq("registration_id", reg.id)
+      .eq("gate", gate);
 
-  if (sessionSlug) {
-    checkQuery.eq("session_slug", sessionSlug);
-  } else {
-    checkQuery.is("session_slug", null);
-  }
+    if (sessionSlug) {
+      checkQuery.eq("session_slug", sessionSlug);
+    } else {
+      checkQuery.is("session_slug", null);
+    }
 
-  const { data: existing } = await checkQuery.maybeSingle();
+    const { data: existing } = await checkQuery.maybeSingle();
 
-  if (existing) {
-    return {
-      success: false,
-      status: "already_checked_in",
-      message: `Already checked in at ${new Date(existing.check_in_time).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`,
-      registration: {
-        name: reg.name,
-        registration_id: reg.registration_id,
-        session_slug: reg.session_slug,
-        typeName: (reg.registration_sessions as any)?.title || reg.session_slug,
-        status: reg.status,
-        checked_in_at: existing.check_in_time,
-      },
-    };
+    if (existing) {
+      return {
+        success: false,
+        status: "already_checked_in",
+        message: `Already checked in at ${new Date(existing.check_in_time).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`,
+        registration: {
+          name: reg.name,
+          registration_id: reg.registration_id,
+          session_slug: reg.session_slug,
+          typeName: (reg.registration_sessions as any)?.title || reg.session_slug,
+          status: reg.status,
+          checked_in_at: existing.check_in_time,
+        },
+      };
+    }
   }
 
   // 4. Record the check-in
@@ -1057,8 +1065,8 @@ export async function checkInByRegistrationId(
     };
   }
 
-  // 5. Update the registration's checked_in flag
-  if (!sessionSlug) {
+  // 5. Update the registration's checked_in flag only if not already checked in
+  if (!sessionSlug && !reg.checked_in) {
     await supabase
       .from("dynamic_registrations")
       .update({ checked_in: true, checked_in_at: new Date().toISOString() })
@@ -1316,4 +1324,36 @@ export async function fetchSpotRegistrationStats() {
   }
 
   return stats;
+}
+
+// ==============================================================================
+// OFFLINE SYNC API
+// ==============================================================================
+
+/**
+ * Fetches all necessary data to populate the offline IndexedDB cache
+ * for a seamless offline experience (search, checking in, spot reg).
+ */
+export async function fetchDataForOfflineSync() {
+  const supabase = await createClient();
+  
+  const [attendeesResult, sessionsResult] = await Promise.all([
+    supabase
+      .from("dynamic_registrations")
+      .select("id, name, phone, registration_id, session_slug, status, checked_in, checked_in_at, place, is_spot_registration")
+      .in("status", ["confirmed", "selected"]),
+    supabase
+      .from("registration_sessions")
+      .select("slug, title, max_capacity, spot_registration_enabled, spot_registration_fee, spot_fee_label")
+      .eq("is_archived", false)
+  ]);
+
+  if (attendeesResult.error) throw new Error("Failed to fetch attendees for offline sync: " + attendeesResult.error.message);
+  if (sessionsResult.error) throw new Error("Failed to fetch sessions for offline sync: " + sessionsResult.error.message);
+
+  return {
+    attendees: attendeesResult.data || [],
+    sessions: sessionsResult.data || [],
+    timestamp: Date.now()
+  };
 }

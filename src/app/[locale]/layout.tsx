@@ -189,6 +189,7 @@ export default async function RootLayout(props: {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#103E79" />
         <script
           type="application/ld+json"

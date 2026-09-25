@@ -25,8 +25,8 @@ export default async function HomePage(props: { params: Promise<{ locale: string
         conferenceDocuments={siteSettings.conference_documents || (siteSettings.brochure_url ? [{id: "old", title: "Brochure", url: siteSettings.brochure_url.url}] : [])} 
       />
       <Schedule sessions={sessions} />
-      <Speakers speakers={speakers.filter(s => s.featured)} />
       <Registration registrationSessions={registrationSessions} />
+      <Speakers speakers={speakers.filter(s => s.featured)} />
       <Gallery galleryItems={galleryMedia} />
       {/* <LiveStreamPreview /> */}
       <Location locationMapUrl={siteSettings.locationMapUrl} />

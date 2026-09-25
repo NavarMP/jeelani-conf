@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { checkInByQRToken, manualCheckIn, verifyStaffPin, batchCheckIn, type CheckInResult } from "@/app/[locale]/admin/event-day-actions";
+import { checkInByQRToken, verifyStaffPin, batchCheckIn, fetchDataForOfflineSync, type CheckInResult } from "@/app/[locale]/admin/event-day-actions";
 import { decodeQRPayload } from "@/lib/qr-client";
+import { addToSyncQueue, getSyncQueue, clearEntireSyncQueue, cacheStaffInfo, getCachedStaffInfo, cacheAttendees, cacheSessions } from "@/lib/offline-db";
 import AttendeeSearchPanel from "@/components/scanner/AttendeeSearchPanel";
 import {
   ScanLine,
@@ -18,6 +19,7 @@ import {
   Wifi,
   WifiOff,
   Users,
+  Download,
 } from "lucide-react";
 
 interface StaffInfo {
@@ -40,8 +42,6 @@ export default function QRScannerClient() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [scanCount, setScanCount] = useState(0);
   const [isOnline, setIsOnline] = useState(true);
-  const [showManual, setShowManual] = useState(false);
-  const [manualSearch, setManualSearch] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [torch, setTorch] = useState(false);
   
@@ -51,21 +51,47 @@ export default function QRScannerClient() {
   // Offline sync state
   const [offlineQueue, setOfflineQueue] = useState<{ token: string; gate: string; checkedInBy: string; timestamp: number }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isDownloadingData, setIsDownloadingData] = useState(false);
+
+  const handleDownloadData = async () => {
+    if (!isOnline) {
+      alert("You must be online to download data.");
+      return;
+    }
+    setIsDownloadingData(true);
+    try {
+      const data = await fetchDataForOfflineSync();
+      await cacheAttendees(data.attendees);
+      await cacheSessions(data.sessions);
+      alert(`Successfully cached ${data.attendees.length} attendees and ${data.sessions.length} sessions for offline use.`);
+    } catch (err: any) {
+      alert("Failed to download data: " + err.message);
+    } finally {
+      setIsDownloadingData(false);
+    }
+  };
 
   // Load offline queue on mount
   useEffect(() => {
-    try {
-      const storedQueue = localStorage.getItem("jeelani_offline_queue");
-      if (storedQueue) setOfflineQueue(JSON.parse(storedQueue));
-      
-      const storedStaff = localStorage.getItem("jeelani_staff_info");
-      if (storedStaff) {
-        setStaff(JSON.parse(storedStaff));
-        setIsAuthenticated(true);
+    async function loadData() {
+      try {
+        const queue = await getSyncQueue();
+        if (queue && queue.length > 0) setOfflineQueue(queue as any);
+        
+        const storedStaffStr = localStorage.getItem("jeelani_staff_info");
+        if (storedStaffStr) {
+          const staff = JSON.parse(storedStaffStr);
+          setStaff(staff);
+          setIsAuthenticated(true);
+          // Also check IDB just in case
+          const cachedStaff = await getCachedStaffInfo(staff.id);
+          if (cachedStaff) setStaff(cachedStaff);
+        }
+      } catch (err) {
+        console.error("Error loading offline data", err);
       }
-    } catch {
-      // Ignore parse errors
     }
+    loadData();
   }, []);
 
   // Sync offline queue when online
@@ -76,7 +102,7 @@ export default function QRScannerClient() {
       const results = await batchCheckIn(offlineQueue);
       setScanCount(c => c + results.length);
       setOfflineQueue([]);
-      localStorage.removeItem("jeelani_offline_queue");
+      await clearEntireSyncQueue();
     } catch {
       // Failed to sync, keep queue
     } finally {
@@ -119,6 +145,7 @@ export default function QRScannerClient() {
         setStaff(result.staff);
         setIsAuthenticated(true);
         localStorage.setItem("jeelani_staff_info", JSON.stringify(result.staff));
+        cacheStaffInfo(result.staff).catch(console.error);
       } else {
         setPinError("Invalid PIN. Please check with an admin.");
         setPin("");
@@ -189,7 +216,7 @@ export default function QRScannerClient() {
       }
     } catch (err) {
       console.error("Camera access denied:", err);
-      setShowManual(true);
+      setMode("search");
     }
   }, []);
 
@@ -274,7 +301,7 @@ export default function QRScannerClient() {
       const newScan = { token, gate, checkedInBy, timestamp: Date.now() };
       const newQueue = [...offlineQueue, newScan];
       setOfflineQueue(newQueue);
-      localStorage.setItem("jeelani_offline_queue", JSON.stringify(newQueue));
+      addToSyncQueue(newScan).catch(console.error);
       
       setScanResult({
         success: true,
@@ -309,7 +336,7 @@ export default function QRScannerClient() {
       const newScan = { token, gate, checkedInBy, timestamp: Date.now() };
       const newQueue = [...offlineQueue, newScan];
       setOfflineQueue(newQueue);
-      localStorage.setItem("jeelani_offline_queue", JSON.stringify(newQueue));
+      addToSyncQueue(newScan).catch(console.error);
       
       setScanResult({
         success: true,
@@ -324,46 +351,13 @@ export default function QRScannerClient() {
     }
   };
 
-  // Manual check-in
-  const handleManualCheckIn = async () => {
-    if (!manualSearch.trim()) return;
-    setIsProcessing(true);
-    setScanResult(null);
-
-    try {
-      const gate = staff?.assigned_gate || "main";
-      const result = await manualCheckIn(manualSearch.trim(), gate, staff?.name || "Scanner");
-
-      setScanResult(result);
-      setScanCount((c) => c + 1);
-
-      if (result.success) {
-        playSound("success");
-        vibrate([100, 50, 100]);
-        setManualSearch("");
-      } else {
-        playSound("error");
-        vibrate([300]);
-      }
-    } catch {
-      setScanResult({
-        success: false,
-        status: "error",
-        message: "Network error. Please try again.",
-      });
-      playSound("error");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   // Start camera when authenticated
   useEffect(() => {
-    if (isAuthenticated && !showManual) {
+    if (isAuthenticated && mode === "scan") {
       startCamera();
     }
     return () => stopCamera();
-  }, [isAuthenticated, showManual, startCamera, stopCamera]);
+  }, [isAuthenticated, mode, startCamera, stopCamera]);
 
   // Toggle torch
   const toggleTorch = async () => {
@@ -494,6 +488,14 @@ export default function QRScannerClient() {
             </span>
           )}
           <button
+            onClick={handleDownloadData}
+            disabled={isDownloadingData || !isOnline}
+            className="p-2 rounded-lg hover:bg-white/10 text-white/80 hover:text-white disabled:opacity-50"
+            title="Download Data for Offline Use"
+          >
+            {isDownloadingData ? <span className="animate-spin inline-block">⟳</span> : <Download className="w-4 h-4" />}
+          </button>
+          <button
             onClick={() => {
               stopCamera();
               setIsAuthenticated(false);
@@ -509,103 +511,55 @@ export default function QRScannerClient() {
         </div>
       </div>
 
-      {/* Camera View / Manual Entry */}
+      {/* Camera View */}
       <div className="flex-1 relative">
-        {!showManual ? (
-          <>
-            <video
-              ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover"
-              playsInline
-              muted
-            />
-            <canvas ref={canvasRef} className="hidden" />
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          playsInline
+          muted
+        />
+        <canvas ref={canvasRef} className="hidden" />
 
-            {/* Scan overlay */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative w-64 h-64">
-                {/* Corner markers */}
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg" />
+        {/* Scan overlay */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="relative w-64 h-64">
+            {/* Corner markers */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg" />
 
-                {/* Scanning line animation */}
-                {!isProcessing && (
-                  <div className="absolute left-4 right-4 h-0.5 bg-[var(--color-turquoise)] animate-bounce shadow-[0_0_12px_var(--color-turquoise)]" />
-                )}
-              </div>
-            </div>
-
-            {/* Dark overlay outside scan area */}
-            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-
-            {/* Camera controls */}
-            <div className="absolute bottom-28 left-0 right-0 flex justify-center gap-4 z-10">
-              <button
-                onClick={toggleTorch}
-                className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all"
-                title="Toggle Torch"
-              >
-                {torch ? <FlashlightOff className="w-5 h-5 text-amber-300" /> : <Flashlight className="w-5 h-5" />}
-              </button>
-              <button
-                onClick={() => {
-                  stopCamera();
-                  setMode("search");
-                }}
-                className="px-4 py-3 rounded-full bg-amber-500/90 backdrop-blur-sm text-white hover:bg-amber-500 transition-all flex items-center gap-2 font-semibold text-xs shadow-lg"
-                title="Find by Name"
-              >
-                <Users className="w-4 h-4" />
-                Find by Name
-              </button>
-              <button
-                onClick={() => setShowManual(true)}
-                className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all"
-                title="Manual Lookup"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-white text-lg font-bold">Manual Registration Lookup</h2>
-              <button
-                onClick={() => {
-                  setShowManual(false);
-                  startCamera();
-                }}
-                className="text-white/70 hover:text-white text-xs flex items-center gap-1 bg-white/10 px-2.5 py-1.5 rounded-lg"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> Back to Camera
-              </button>
-            </div>
-
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter Registration ID or Phone Number"
-                value={manualSearch}
-                onChange={(e) => setManualSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleManualCheckIn();
-                }}
-                className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 outline-none focus:border-[var(--color-turquoise)] text-sm"
-                autoFocus
-              />
-              <button
-                onClick={handleManualCheckIn}
-                disabled={isProcessing || !manualSearch.trim()}
-                className="px-5 py-3 rounded-xl bg-[var(--color-turquoise)] text-white font-semibold text-sm disabled:opacity-50"
-              >
-                {isProcessing ? "..." : "Check In"}
-              </button>
-            </div>
+            {/* Scanning line animation */}
+            {!isProcessing && (
+              <div className="absolute left-4 right-4 h-0.5 bg-[var(--color-turquoise)] animate-bounce shadow-[0_0_12px_var(--color-turquoise)]" />
+            )}
           </div>
-        )}
+        </div>
+
+        {/* Dark overlay outside scan area */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
+        {/* Camera controls */}
+        <div className="absolute bottom-28 left-0 right-0 flex justify-center gap-6 z-10">
+          <button
+            onClick={toggleTorch}
+            className="p-4 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all shadow-lg"
+            title="Toggle Torch"
+          >
+            {torch ? <FlashlightOff className="w-6 h-6 text-amber-300" /> : <Flashlight className="w-6 h-6" />}
+          </button>
+          <button
+            onClick={() => {
+              stopCamera();
+              setMode("search");
+            }}
+            className="p-4 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all shadow-lg"
+            title="Search Attendees"
+          >
+            <Search className="w-6 h-6" />
+          </button>
+        </div>
       </div>
 
       {/* Result Display */}

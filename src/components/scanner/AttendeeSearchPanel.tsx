@@ -11,6 +11,7 @@ import {
   type CheckInResult,
   type SpotRegistrationResult,
 } from "@/app/[locale]/admin/event-day-actions";
+import { searchOfflineAttendees, getOfflineSessions, addToSyncQueue } from "@/lib/offline-db";
 import {
   Search,
   CheckCircle,
@@ -56,6 +57,7 @@ export default function AttendeeSearchPanel({ staff, onBack }: Props) {
   // Check-in result
   const [checkInResult, setCheckInResult] = useState<CheckInResult | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
 
   // Spot registration
   const [showSpotReg, setShowSpotReg] = useState(false);
@@ -64,11 +66,27 @@ export default function AttendeeSearchPanel({ staff, onBack }: Props) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    const onOnline = () => setIsOnline(true);
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    setIsOnline(navigator.onLine);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, []);
+
   // Load places for filter dropdown
   useEffect(() => {
-    getUniquePlaces().then(setPlaces).catch(() => {});
-    fetchSpotRegistrationStats().then(setSpotSessions).catch(() => {});
-  }, []);
+    if (isOnline) {
+      getUniquePlaces().then(setPlaces).catch(() => {});
+      fetchSpotRegistrationStats().then(setSpotSessions).catch(() => {});
+    } else {
+      getOfflineSessions().then(s => setSpotSessions(s)).catch(() => {});
+    }
+  }, [isOnline]);
 
   // Debounced search
   useEffect(() => {
@@ -86,12 +104,21 @@ export default function AttendeeSearchPanel({ staff, onBack }: Props) {
       setIsSearching(true);
       setHasSearched(true);
       try {
-        const data = await searchAttendeesForCheckIn(searchTerm, {
-          sessionSlug: sessionFilter || undefined,
-          place: placeFilter || undefined,
-          onlyUnchecked,
-        });
-        setResults(data);
+        if (!isOnline) {
+          const offlineData = await searchOfflineAttendees(searchTerm, {
+            sessionSlug: sessionFilter || undefined,
+            place: placeFilter || undefined,
+            onlyUnchecked,
+          });
+          setResults(offlineData as any);
+        } else {
+          const data = await searchAttendeesForCheckIn(searchTerm, {
+            sessionSlug: sessionFilter || undefined,
+            place: placeFilter || undefined,
+            onlyUnchecked,
+          });
+          setResults(data);
+        }
       } catch {
         setResults([]);
       } finally {
@@ -102,7 +129,7 @@ export default function AttendeeSearchPanel({ staff, onBack }: Props) {
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
-  }, [searchTerm, sessionFilter, placeFilter, onlyUnchecked]);
+  }, [searchTerm, sessionFilter, placeFilter, onlyUnchecked, isOnline]);
 
   // Sound feedback
   const playSound = useCallback((type: "success" | "error" | "duplicate") => {
@@ -142,9 +169,30 @@ export default function AttendeeSearchPanel({ staff, onBack }: Props) {
   const handleCheckIn = async (attendee: AttendeeSearchResult) => {
     setProcessingId(attendee.id);
     setCheckInResult(null);
+    const gate = staff.assigned_gate || "main";
+
+    if (!isOnline) {
+      // Offline mode
+      const token = (attendee as any).qr_token || attendee.id; // fallback
+      const newScan = { token, gate, checkedInBy: staff.name, timestamp: Date.now() };
+      await addToSyncQueue(newScan);
+      
+      setCheckInResult({
+        success: true,
+        status: "checked_in",
+        message: "Offline Scan Logged 💾",
+      });
+      playSound("success");
+      vibrate([100, 50, 100]);
+      setResults(prev =>
+        prev.map(r => r.id === attendee.id ? { ...r, checked_in: true, checked_in_at: new Date().toISOString() } : r)
+      );
+      setTimeout(() => setCheckInResult(null), 4000);
+      setProcessingId(null);
+      return;
+    }
 
     try {
-      const gate = staff.assigned_gate || "main";
       const result = await checkInByRegistrationId(attendee.id, gate, staff.name);
 
       setCheckInResult(result);
