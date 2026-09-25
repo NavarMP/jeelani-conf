@@ -92,6 +92,14 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
             <a 
               href={`https://wa.me/${(registration.phone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
                 `Hello ${registration.name},\n\nThank you for registering for the *${registration.typeName}*.\n\nYour Registration ID is: *${registration.registration_id}*\nCurrent Status: *${registration.status?.toUpperCase() || "PENDING"}*\n\n${
+                  (() => {
+                    const slug = registration.typeSlug || registration.session_slug;
+                    if (slug === "astro-ai-fiqh") return "*Date:* September 27, 2026\n *Schedule:*\n• Astronomy Session: 3:00 PM - 5:00 PM\n• AI Fiqh Session: 5:00 PM - 6:30 PM\n\n";
+                    if (slug === "burda-qawwali") return "*Date:* September 27, 2026\n *Time:* 3:00 PM - 6:30 PM\n\n";
+                    if (slug === "dars-management-meet") return "*Date:* September 27, 2026\n *Time:* 11:00 AM - 3:00 PM\n\n";
+                    return "*Date:* September 27, 2026\n\n";
+                  })()
+                }${
                   registration.status === "confirmed" 
                   ? `Your registration is confirmed. We look forward to seeing you!\n\nDownload your Entry Badge here:\n${process.env.NEXT_PUBLIC_SITE_URL}/en/badge/${registration.registration_id}` 
                   : registration.status === "cancelled"
