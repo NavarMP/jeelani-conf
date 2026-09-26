@@ -224,19 +224,205 @@ export async function toggleArchiveDynamicSession(slug: string, isArchived: bool
 
 
 // Live Stream Update Action
-export async function updateLiveStream(stage: string, youtubeId: string, isLive: boolean) {
+function extractYouTubeID(urlOrId: string) {
+  if (!urlOrId) return "";
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = urlOrId.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : urlOrId;
+}
+
+export async function updateLiveStream(stage: string, youtubeId: string, isLive: boolean, currentSessionId: string | null = null) {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Unauthorized");
 
+  const parsedYoutubeId = extractYouTubeID(youtubeId);
+
   const { error } = await supabase.from("live_streams").upsert({
     stage,
-    youtube_id: youtubeId,
+    youtube_id: parsedYoutubeId,
     is_live: isLive,
+    current_session_id: currentSessionId,
     updated_at: new Date().toISOString()
   });
 
   if (error) throw new Error("Failed to update live stream: " + error.message);
+  revalidatePath("/admin/live");
+  revalidatePath("/", "layout");
+}
+
+export async function createStage(stageData: {
+  name: string;
+  name_ml?: string;
+  slug?: string;
+  description?: string;
+  location_address?: string;
+  map_url?: string;
+  embed_url?: string;
+}) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const slug = stageData.slug || stageData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+  const { data: currentData } = await supabase.from('global_settings').select('value').eq('key', 'stages').single();
+  const currentStages = currentData?.value || [];
+  
+  if (currentStages.some((s: any) => s.slug === slug)) {
+    throw new Error("Stage slug already exists");
+  }
+  
+  const newStage = {
+    ...stageData,
+    slug,
+    name_ml: stageData.name_ml || stageData.name,
+  };
+  
+  const { error } = await supabase.from('global_settings').upsert({ key: 'stages', value: [...currentStages, newStage], updated_at: new Date().toISOString() });
+  
+  if (error) throw new Error("Failed to add stage");
+  
+  revalidatePath("/admin/live");
+  revalidatePath("/", "layout");
+}
+
+export async function updateAllStagesFull(updates: Array<{
+  oldSlug: string;
+  stageData: {
+    name: string;
+    name_ml?: string;
+    slug: string;
+    description?: string;
+    location_address?: string;
+    map_url?: string;
+    embed_url?: string;
+  };
+  youtubeId: string;
+  isLive: boolean;
+  currentSessionId?: string | null;
+}>) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  // We are overwriting the stages array entirely based on the new data
+  // but we must preserve stages that might not be in the `updates` array if any?
+  // Actually, the UI sends updates for all existing streams.
+  
+  const newStagesArray = updates.map(u => ({
+    ...u.stageData,
+    name_ml: u.stageData.name_ml || u.stageData.name
+  }));
+
+  // 1. Update global_settings with the new stages array
+  await supabase.from('global_settings').upsert({ key: 'stages', value: newStagesArray, updated_at: new Date().toISOString() });
+
+  // 2. Loop through and update foreign references and live_streams
+  for (const update of updates) {
+    if (update.oldSlug !== update.stageData.slug) {
+      await supabase.from('live_streams').update({ stage: update.stageData.slug }).eq('stage', update.oldSlug);
+      await supabase.from('sessions').update({ stage: update.stageData.slug }).eq('stage', update.oldSlug);
+    }
+    
+    const parsedYoutubeId = extractYouTubeID(update.youtubeId);
+    await supabase.from("live_streams").upsert({
+      stage: update.stageData.slug,
+      youtube_id: parsedYoutubeId,
+      is_live: update.isLive,
+      current_session_id: update.currentSessionId || null,
+      updated_at: new Date().toISOString()
+    });
+  }
+
+  revalidatePath("/admin/live");
+  revalidatePath("/admin/schedule");
+  revalidatePath("/", "layout");
+}
+
+export async function updateStageFull(oldSlug: string, stageData: {
+  name: string;
+  name_ml?: string;
+  slug: string;
+  description?: string;
+  location_address?: string;
+  map_url?: string;
+  embed_url?: string;
+}, youtubeId: string, isLive: boolean) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  // 1. Update global_settings
+  const { data: currentData } = await supabase.from('global_settings').select('value').eq('key', 'stages').single();
+  const currentStages = currentData?.value || [];
+  
+  if (oldSlug !== stageData.slug && currentStages.some((s: any) => s.slug === stageData.slug)) {
+    throw new Error("New stage slug already exists");
+  }
+  
+  const updatedStages = currentStages.map((s: any) => 
+    s.slug === oldSlug ? { ...s, ...stageData } : s
+  );
+  
+  await supabase.from('global_settings').upsert({ key: 'stages', value: updatedStages, updated_at: new Date().toISOString() });
+  
+  // 2. If slug changed, update foreign references
+  if (oldSlug !== stageData.slug) {
+    // Update live_streams table
+    await supabase.from('live_streams').update({ stage: stageData.slug }).eq('stage', oldSlug);
+    // Update sessions table
+    await supabase.from('sessions').update({ stage: stageData.slug }).eq('stage', oldSlug);
+  }
+
+  // 3. Update youtube ID and live status
+  const parsedYoutubeId = extractYouTubeID(youtubeId);
+  await supabase.from("live_streams").upsert({
+    stage: stageData.slug,
+    youtube_id: parsedYoutubeId,
+    is_live: isLive,
+    updated_at: new Date().toISOString()
+  });
+  
+  revalidatePath("/admin/live");
+  revalidatePath("/admin/schedule");
+  revalidatePath("/", "layout");
+}
+
+export async function updateStageProperties(slug: string, name: string, name_ml: string, location_address: string, description: string, map_url: string, embed_url: string) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { data: currentData } = await supabase.from('global_settings').select('value').eq('key', 'stages').single();
+  const currentStages = currentData?.value || [];
+  
+  const updatedStages = currentStages.map((s: any) => 
+    s.slug === slug ? { ...s, name, name_ml, location_address, description, map_url, embed_url } : s
+  );
+  
+  const { error } = await supabase.from('global_settings').upsert({ key: 'stages', value: updatedStages, updated_at: new Date().toISOString() });
+  
+  if (error) throw new Error("Failed to update stage properties");
+  
+  revalidatePath("/admin/live");
+  revalidatePath("/", "layout");
+}
+
+export async function removeStage(slug: string) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { data: currentData } = await supabase.from('global_settings').select('value').eq('key', 'stages').single();
+  const currentStages = currentData?.value || [];
+  
+  const updatedStages = currentStages.filter((s: any) => s.slug !== slug);
+  
+  const { error } = await supabase.from('global_settings').upsert({ key: 'stages', value: updatedStages, updated_at: new Date().toISOString() });
+  
+  if (error) throw new Error("Failed to remove stage");
+  
   revalidatePath("/admin/live");
   revalidatePath("/", "layout");
 }

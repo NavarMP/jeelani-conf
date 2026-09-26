@@ -18,7 +18,7 @@ export default async function BadgePage({
   const { registrationId } = await params;
   const badge = await fetchBadgeData(registrationId);
 
-  if (!badge) {
+  if (!badge || badge.error) {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center justify-center px-6 bg-[var(--surface)]">
         <div className="text-center max-w-sm">
@@ -26,11 +26,12 @@ export default async function BadgePage({
             <span className="text-2xl">❌</span>
           </div>
           <h1 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-            Badge Not Found
+            {badge?.error ? "Entry Restricted" : "Badge Not Found"}
           </h1>
           <p className="text-sm text-[var(--text-secondary)] mb-6">
-            Registration ID <span className="font-mono font-bold">{registrationId}</span> was not found.
-            Please check the ID and try again.
+            {badge?.error ? badge.message : (
+              <>Registration ID <span className="font-mono font-bold">{registrationId}</span> was not found. Please check the ID and try again.</>
+            )}
           </p>
           <a
             href="/"
@@ -44,7 +45,7 @@ export default async function BadgePage({
   }
 
   // Generate QR code SVG on the server
-  const qrSvg = await generateQRCodeSVG(badge.qrToken);
+  const qrSvg = await generateQRCodeSVG((badge as any).qrToken);
 
-  return <BadgeClient badge={badge} qrSvg={qrSvg} />;
+  return <BadgeClient badge={badge as any} qrSvg={qrSvg} />;
 }

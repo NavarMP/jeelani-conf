@@ -8,7 +8,7 @@ import { Location } from "@/components/sections/Location";
 import { motion } from 'framer-motion';
 
 export function PreEventPhase({ props }: { props: any }) {
-  const { siteSettings, sessions, speakers, registrationSessions, galleryMedia } = props;
+  const { siteSettings, sessions, speakers, registrationSessions, galleryMedia, stages } = props;
 
   return (
     <motion.div
@@ -19,14 +19,14 @@ export function PreEventPhase({ props }: { props: any }) {
       className="flex flex-col"
     >
       <Opening 
-        targetDate={siteSettings.eventDate} 
+        targetDate={siteSettings.scheduled_start_time || siteSettings.eventDate} 
         conferenceDocuments={siteSettings.conference_documents || (siteSettings.brochure_url ? [{id: "old", title: "Brochure", url: siteSettings.brochure_url.url}] : [])} 
       />
       <Schedule sessions={sessions} />
       <Registration registrationSessions={registrationSessions} />
       <Speakers speakers={speakers.filter((s: any) => s.featured)} />
       <Gallery galleryItems={galleryMedia} />
-      <Location locationMapUrl={siteSettings.locationMapUrl} />
+      <Location locationMapUrl={siteSettings.locationMapUrl} stages={stages} />
     </motion.div>
   );
 }

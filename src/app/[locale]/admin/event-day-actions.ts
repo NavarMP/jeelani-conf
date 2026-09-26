@@ -70,9 +70,11 @@ export interface CheckInResult {
     name: string;
     registration_id: string;
     session_slug: string;
-    typeName: string;
+    typeName?: string;
     status: string;
     checked_in_at?: string;
+    session?: string;
+    place?: string;
   };
 }
 
@@ -109,6 +111,22 @@ export async function checkInByQRToken(
       success: false,
       status: "not_confirmed",
       message: `Registration status is "${reg.status}". Only confirmed/selected attendees can check in.`,
+      registration: {
+        name: reg.name,
+        registration_id: reg.registration_id,
+        session_slug: reg.session_slug,
+        typeName: (reg.registration_sessions as any)?.title || reg.session_slug,
+        status: reg.status,
+      },
+    };
+  }
+
+  // 2.5 Check Selection Status for Competition
+  if (reg.session_slug === 'burda-qawwali' && reg.status !== 'selected') {
+    return {
+      success: false,
+      status: "not_confirmed",
+      message: `Team is not selected for the final competition. Entry restricted.`,
       registration: {
         name: reg.name,
         registration_id: reg.registration_id,
@@ -790,6 +808,10 @@ export async function fetchBadgeData(registrationId: string) {
 
   if (error || !data) return null;
 
+  if (data.session_slug === 'burda-qawwali' && data.status !== 'selected') {
+    return { error: true, message: "Team not selected for final competition. Entry restricted." };
+  }
+
   // Generate QR token if missing
   if (!data.qr_token) {
     const token = generateQRToken();
@@ -828,7 +850,7 @@ export async function fetchRegistrationsForPrinting(
   
   let query = supabase
     .from("dynamic_registrations")
-    .select("registration_id, name, place, qr_token, session_slug, registration_sessions(title, title_ml, color, icon)")
+    .select("registration_id, name, place, qr_token, session_slug, status, registration_sessions(title, title_ml, color, icon)")
     .order("name", { ascending: true });
 
   if (sessionFilter && sessionFilter !== "all") {
@@ -844,8 +866,16 @@ export async function fetchRegistrationsForPrinting(
   const { data, error } = await query;
   if (error) throw new Error("Failed to fetch registrations for printing: " + error.message);
   
+  // Filter out burda-qawwali registrations that are not selected
+  const filteredData = (data || []).filter((d: any) => {
+    if (d.session_slug === 'burda-qawwali' && d.status !== 'selected') {
+      return false;
+    }
+    return true;
+  });
+
   // Return formatted data
-  return (data || []).map((d: any) => ({
+  return filteredData.map((d: any) => ({
     registration_id: d.registration_id,
     name: d.name,
     place: d.place,
@@ -1003,6 +1033,23 @@ export async function checkInByRegistrationId(
       success: false,
       status: "not_confirmed",
       message: `Registration status is "${reg.status}".`,
+      registration: {
+        name: reg.name,
+        registration_id: reg.registration_id,
+        session_slug: reg.session_slug,
+        status: reg.status,
+        session: reg.registration_sessions?.title || reg.session_slug,
+        place: reg.place,
+      },
+    };
+  }
+
+  // 2.5 Check Selection Status for Competition
+  if (reg.session_slug === 'burda-qawwali' && reg.status !== 'selected') {
+    return {
+      success: false,
+      status: "not_confirmed", // or map to a custom status if preferred
+      message: `Team is not selected for the final competition. Entry restricted.`,
       registration: {
         name: reg.name,
         registration_id: reg.registration_id,

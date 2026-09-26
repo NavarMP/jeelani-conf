@@ -1,17 +1,18 @@
 import { PhaseRouter } from "@/components/PhaseRouter";
-import { getSiteSettings, getSessions, getSpeakers, getRegistrationSessions, getPublishedGalleryMedia, getLiveStreams } from "@/lib/data";
+import { getSiteSettings, getSessions, getSpeakers, getRegistrationSessions, getPublishedGalleryMedia, getLiveStreams, getStages } from "@/lib/data";
 import { setRequestLocale } from 'next-intl/server';
 
 export default async function HomePage(props: { params: Promise<{ locale: string }> }) {
   const params = await props.params;
   setRequestLocale(params.locale);
-  const [siteSettings, sessions, speakers, registrationSessions, galleryMedia, liveStreams] = await Promise.all([
+  const [siteSettings, sessions, speakers, registrationSessions, galleryMedia, liveStreams, stages] = await Promise.all([
     getSiteSettings(),
     getSessions(),
     getSpeakers(),
     getRegistrationSessions(),
     getPublishedGalleryMedia(),
     getLiveStreams(),
+    getStages()
   ]);
 
   return (
@@ -22,7 +23,8 @@ export default async function HomePage(props: { params: Promise<{ locale: string
         speakers,
         registrationSessions,
         galleryMedia,
-        liveStreams
+        liveStreams,
+        stages
       }}
     />
   );

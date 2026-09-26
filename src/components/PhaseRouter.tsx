@@ -5,6 +5,7 @@ import { usePhase } from '@/components/providers/PhaseProvider';
 import { PreEventPhase } from './phases/PreEventPhase';
 import { OnEventPhase } from './phases/OnEventPhase';
 import { PostEventPhase } from './phases/PostEventPhase';
+import { MaintenanceMode } from './maintenance/MaintenanceMode';
 import { AnimatePresence } from 'framer-motion';
 
 export function PhaseRouter({ props }: { props: any }) {
@@ -16,6 +17,10 @@ export function PhaseRouter({ props }: { props: any }) {
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
+  }
+
+  if (currentPhase === 'maintenance') {
+    return <MaintenanceMode />;
   }
 
   return (

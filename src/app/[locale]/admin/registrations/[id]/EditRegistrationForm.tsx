@@ -18,6 +18,9 @@ export default function EditRegistrationForm({ registration, sessions }: Props) 
     phone: registration.phone || "",
     place: registration.place || "",
     session_slug: registration.session_slug || "",
+    refund_status: registration.refund_status || "none",
+    refund_transaction_id: registration.refund_transaction_id || "",
+    refund_notes: registration.refund_notes || "",
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,6 +131,56 @@ export default function EditRegistrationForm({ registration, sessions }: Props) 
           </select>
         </div>
       </div>
+
+      {formData.session_slug === "burda-qawwali" && registration.status === "confirmed" && (
+        <div className="pt-6 border-t border-[var(--admin-border)]">
+          <h3 className="text-lg font-bold text-[var(--admin-text)] mb-4">Refund Management (Not Selected)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[var(--admin-text)]">Refund Status</label>
+              <select
+                name="refund_status"
+                value={formData.refund_status}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-[var(--admin-input-border)] rounded-lg outline-none focus:border-[var(--color-turquoise)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] appearance-none"
+              >
+                <option value="none">None</option>
+                <option value="eligible">Eligible for Refund</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+          </div>
+
+          {formData.refund_status !== "none" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--admin-text)]">Refund Transaction ID</label>
+                <input
+                  type="text"
+                  name="refund_transaction_id"
+                  value={formData.refund_transaction_id}
+                  onChange={handleChange}
+                  placeholder="e.g. UTR number"
+                  className="w-full px-4 py-2 border border-[var(--admin-input-border)] rounded-lg outline-none focus:border-[var(--color-turquoise)] bg-[var(--admin-input-bg)] text-[var(--admin-text)]"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--admin-text)]">Refund Notes</label>
+                <input
+                  type="text"
+                  name="refund_notes"
+                  value={formData.refund_notes}
+                  onChange={handleChange}
+                  placeholder="User UPI ID, bank details, or issue notes..."
+                  className="w-full px-4 py-2 border border-[var(--admin-input-border)] rounded-lg outline-none focus:border-[var(--color-turquoise)] bg-[var(--admin-input-bg)] text-[var(--admin-text)]"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="pt-6 border-t border-[var(--admin-border)] flex items-center justify-between">
         <button

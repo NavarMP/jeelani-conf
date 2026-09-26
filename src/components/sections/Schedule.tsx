@@ -151,9 +151,12 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
   );
 }
 
-export function Schedule({ sessions }: { sessions: Session[] }) {
-  // Dynamically extract unique stages
-  const uniqueStages = Array.from(new Set(sessions.map((s) => s.stage))).sort();
+export function Schedule({ sessions, stages = [] }: { sessions: Session[], stages?: any[] }) {
+  // Use admin stages if available, otherwise fallback to session stages. Include orphans.
+  const uniqueStages = stages.length > 0 
+    ? Array.from(new Set([...stages.map((s) => s.slug), ...sessions.map((s) => s.stage).filter(Boolean)]))
+    : Array.from(new Set(sessions.map((s) => s.stage).filter(Boolean))).sort();
+
   const [activeStage, setActiveStage] = useState<string>(uniqueStages[0] || "stage1");
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
@@ -206,7 +209,7 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
                   : "bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--color-turquoise)]/30"
               }`}
             >
-              {t.has(stage) ? t(stage) : stage.replace("stage", "Stage ")}
+              {stages.find(s => s.slug === stage)?.name || (t.has(stage) ? t(stage) : stage.replace("stage", "Stage "))}
               {activeStage === stage && (
                 <motion.div
                   layoutId="stage-tab"

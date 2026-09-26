@@ -8,6 +8,8 @@ import { CustomCursor } from "@/components/ui/CustomCursor";
 import { AIAgent } from "@/components/ui/AIAgent";
 import { SearchProvider, type SearchDataPayload } from "@/components/providers/SearchProvider";
 
+import { usePhase } from "@/components/providers/PhaseProvider";
+
 /**
  * PublicChrome wraps all public-website-only UI (Navbar, Footer, MobileDock,
  * CustomCursor, AmbientAudioPlayer, AIAgent). It is hidden on admin routes so the
@@ -23,10 +25,12 @@ export function PublicChrome({
   searchData: SearchDataPayload;
 }) {
   const pathname = usePathname();
+  const { currentPhase } = usePhase();
   const isStandalone = pathname.includes("/admin") || pathname.includes("/scanner") || pathname.includes("/badge");
+  const isMaintenance = currentPhase === "maintenance";
 
-  if (isStandalone) {
-    // Admin, standalone scanner, and badge routes: render children only — no public chrome
+  if (isStandalone || isMaintenance) {
+    // Admin, standalone scanner, badge routes, and maintenance mode: render children only — no public chrome
     return <>{children}</>;
   }
 

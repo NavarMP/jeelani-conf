@@ -11,7 +11,7 @@ import { haptic } from "@/lib/haptics";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { Mic, ArrowRight, ArrowUpRight } from "lucide-react";
 
-function FullSessionCard({ session, t }: { session: Session; t: (key: string) => string }) {
+function FullSessionCard({ session, t, isActiveEvent }: { session: Session; t: (key: string) => string; isActiveEvent?: boolean }) {
   const speakerList = session.speakers || [];
   const typeColors: Record<string, string> = {
     talk: "bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)] border-[var(--color-turquoise)]/20",
@@ -33,8 +33,18 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
       initial={{ y: 15, opacity: 0 }}
       whileInView={{ y: 0, opacity: 1 }}
       viewport={{ once: true }}
-      className="group relative p-4 sm:p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--color-turquoise)]/40 hover:bg-[var(--surface-elevated)]/60 hover:shadow-md transition-all cursor-pointer"
+      className={`group relative p-4 sm:p-5 rounded-xl border transition-all cursor-pointer ${
+        isActiveEvent 
+          ? "bg-[var(--surface-elevated)] border-[var(--color-turquoise)] shadow-[0_0_20px_var(--shadow-glow-turquoise)]"
+          : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--color-turquoise)]/40 hover:bg-[var(--surface-elevated)]/60 hover:shadow-md"
+      }`}
     >
+      {isActiveEvent && (
+        <div className="absolute -top-3 right-4 z-20 px-3 py-1 bg-[var(--color-turquoise)] text-white text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-white/90"></span>
+          Now Playing
+        </div>
+      )}
       {/* Whole card clickable link */}
       <Link
         href={`/sessions/${session.slug}`}
@@ -146,9 +156,11 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
   );
 }
 
-export function ScheduleContent({ sessions }: { sessions: Session[] }) {
-  // Dynamically extract unique stages
-  const uniqueStages = Array.from(new Set(sessions.map((s) => s.stage))).sort();
+export function ScheduleContent({ sessions, stages = [], activeEventIds = [] }: { sessions: Session[], stages?: any[], activeEventIds?: string[] }) {
+  // Use admin stages if available, otherwise fallback to session stages. Include orphans.
+  const uniqueStages = stages.length > 0 
+    ? Array.from(new Set([...stages.map((s) => s.slug), ...sessions.map((s) => s.stage).filter(Boolean)]))
+    : Array.from(new Set(sessions.map((s) => s.stage).filter(Boolean))).sort();
   const [activeStage, setActiveStage] = useState<string>(uniqueStages[0] || "stage1");
   const [searchQuery, setSearchQuery] = useState("");
   const t = useTranslations("SchedulePage");
@@ -192,7 +204,7 @@ export function ScheduleContent({ sessions }: { sessions: Session[] }) {
                 }`}
               >
                 {/* Fallback to translation if exists, else format the stage name */}
-                {t.has(stage) ? t(stage) : stage.replace("stage", "Stage ")}
+                {stages.find(s => s.slug === stage)?.name || (t.has(stage) ? t(stage) : stage.replace("stage", "Stage "))}
               </button>
             ))}
           </div>
@@ -208,7 +220,7 @@ export function ScheduleContent({ sessions }: { sessions: Session[] }) {
         {/* Sessions */}
         <div className="max-w-3xl mx-auto space-y-3">
           {filteredSessions.map((session) => (
-            <FullSessionCard key={session.id} session={session} t={t} />
+            <FullSessionCard key={session.id} session={session} t={t} isActiveEvent={activeEventIds.includes(session.id)} />
           ))}
           {filteredSessions.length === 0 && (
             <p className="text-center text-[var(--text-muted)] py-12 text-sm">{t("noResults")}</p>

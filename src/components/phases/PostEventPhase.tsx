@@ -4,9 +4,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquare, ArrowRight, CheckCircle2, Play, Download, Award, HeartHandshake } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { Schedule } from "@/components/sections/Schedule";
+import { Speakers } from "@/components/sections/Speakers";
+import { Gallery } from "@/components/sections/Gallery";
 
 export function PostEventPhase({ props }: { props: any }) {
-  const { galleryMedia, sessions } = props;
+  const { galleryMedia, sessions, speakers } = props;
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackStep, setFeedbackStep] = useState(0);
   const [rating, setRating] = useState<number>(5);
@@ -287,6 +290,13 @@ export function PostEventPhase({ props }: { props: any }) {
             </div>
           </div>
         </section>
+
+        {/* General Sections */}
+        <div className="mt-20">
+          <Schedule sessions={sessions} />
+          <Speakers speakers={speakers?.filter((s: any) => s.featured)} />
+          <Gallery galleryItems={galleryMedia} />
+        </div>
       </div>
     </motion.div>
   );

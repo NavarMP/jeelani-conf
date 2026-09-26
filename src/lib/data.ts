@@ -206,7 +206,7 @@ export async function getSiteSettings(): Promise<any> {
   return settings;
 }
 
-export async function getStages(): Promise<{ slug: string; name: string; name_ml?: string; description?: string }[]> {
+export async function getStages(): Promise<{ slug: string; name: string; name_ml?: string; description?: string; location_address?: string }[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from('global_settings').select('value').eq('key', 'stages').single();
   if (error || !data) {
@@ -222,19 +222,20 @@ export async function getStages(): Promise<{ slug: string; name: string; name_ml
 export async function getLiveStreams(): Promise<any> {
   const supabase = await createClient();
   const [{ data, error }, stages] = await Promise.all([
-    supabase.from('live_streams').select('*'),
+    supabase.from('live_streams').select('*, current_session:sessions(*, speakers(*))'),
     getStages()
   ]);
   
   if (error || !data) return {};
   
   const streams: any = {};
-  data.forEach((row) => {
-    const stageInfo = stages.find(s => s.slug === row.stage);
-    streams[row.stage] = {
-      name: stageInfo?.name || row.stage.replace('stage', 'Stage '),
-      youtubeVideoId: row.youtube_id,
-      isLive: row.is_live
+  stages.forEach((stageInfo) => {
+    const streamRow = data.find(r => r.stage === stageInfo.slug);
+    streams[stageInfo.slug] = {
+      name: stageInfo.name,
+      youtubeVideoId: streamRow?.youtube_id || "",
+      isLive: streamRow?.is_live || false,
+      currentSession: streamRow?.current_session || null
     };
   });
   return streams;
@@ -498,7 +499,7 @@ export async function getAllRegistrations() {
 export async function getLiveStreamsData() {
   const supabase = await createClient();
   const [{ data }, stages] = await Promise.all([
-    supabase.from('live_streams').select('*'),
+    supabase.from('live_streams').select('*, current_session:sessions(*)'),
     getStages()
   ]);
   
@@ -509,10 +510,11 @@ export async function getLiveStreamsData() {
   return stages.map(stage => {
     const stream = data?.find(s => s.stage === stage.slug);
     return {
+      ...stage,
       stage: stage.slug,
-      name: stage.name,
       youtube_id: stream?.youtube_id || '',
       is_live: stream?.is_live || false,
+      current_session_id: stream?.current_session_id || null,
     };
   });
 }

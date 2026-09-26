@@ -28,6 +28,8 @@ import {
   UserPlus,
   LifeBuoy,
   MapPin,
+  IdCard,
+  Receipt,
   type LucideIcon,
 } from "lucide-react";
 
@@ -64,6 +66,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         { label: "Live Attendance", href: "/admin/attendance", Icon: UserCheck, exact: true },
         { label: "QR Scanner", href: "/admin/scanner", Icon: ScanLine, exact: true },
         { label: "Spot Registration", href: "/admin/spot-registration", Icon: UserPlus, exact: true },
+        { label: "Badge Printing", href: "/admin/badges/print", Icon: IdCard, exact: true },
         { label: "Help Desk", href: "/admin/helpdesk", Icon: LifeBuoy, exact: true },
         { label: "Competition", href: "/admin/competition", Icon: Trophy, exact: true },
         { label: "Staff & Volunteers", href: "/admin/staff", Icon: Users, exact: true },
@@ -76,6 +79,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         { label: "All Registrations", href: "/admin/registrations", Icon: ClipboardList, isAllRegs: true },
         { label: "Astronomy & AI Fiqh", href: "/admin/registrations?type=astro-ai-fiqh", Icon: GraduationCap, type: "astro-ai-fiqh" },
         { label: "Burda & Qawwali", href: "/admin/registrations?type=burda-qawwali", Icon: Zap, type: "burda-qawwali" },
+        { label: "Refunds", href: "/admin/refunds", Icon: Receipt, exact: true },
         { label: "Dynamic Sessions", href: "/admin/sessions", Icon: Zap, exact: true },
       ],
     },
@@ -83,7 +87,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       title: "Program & Venue",
       items: [
         { label: "Schedule Builder", href: "/admin/schedule", Icon: CalendarRange, exact: true },
-        { label: "Stage Management", href: "/admin/stages", Icon: MapPin, exact: true },
         { label: "Guests", href: "/admin/guests", Icon: Mic, exact: true },
       ],
     },
@@ -99,7 +102,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     {
       title: "Media & Broadcast",
       items: [
-        { label: "Live Stream Control", href: "/admin/live", Icon: Radio, exact: true },
+        { label: "Stages & Broadcasts", href: "/admin/stages", Icon: Radio, exact: true },
         { label: "Gallery Manager", href: "/admin/gallery", Icon: Images, exact: true },
       ],
     },

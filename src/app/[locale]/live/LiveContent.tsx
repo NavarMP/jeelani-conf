@@ -74,18 +74,34 @@ export function LiveContent({ liveStreams }: { liveStreams: any }) {
 
         {/* Stage descriptions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
-          {stageKeys.map(key => (
-            <div key={key} className={`p-5 rounded-xl border transition-all ${
-              activeStage === key
-                ? "border-[var(--color-turquoise)]/30 bg-[var(--color-turquoise)]/5"
-                : "border-white/5 bg-white/[0.02]"
-            }`}>
-              <h3 className="font-semibold text-[var(--color-ivory)] text-sm mb-1 capitalize">{liveStreams[key]?.name || key.replace("stage", "Stage ")}</h3>
-              <p className="text-xs text-[var(--color-ivory)]/50 leading-relaxed">
-                Live stream for {liveStreams[key]?.name || key.replace("stage", "Stage ")}. Join to watch the sessions happening right now.
-              </p>
-            </div>
-          ))}
+          {stageKeys.map(key => {
+            const currentSession = liveStreams[key]?.currentSession;
+            return (
+              <div key={key} className={`p-5 rounded-xl border transition-all ${
+                activeStage === key
+                  ? "border-[var(--color-turquoise)]/30 bg-[var(--color-turquoise)]/5"
+                  : "border-white/5 bg-white/[0.02]"
+              }`}>
+                <h3 className="font-semibold text-[var(--color-ivory)] text-sm mb-1 capitalize">
+                  {liveStreams[key]?.name || key.replace("stage", "Stage ")}
+                </h3>
+                {currentSession ? (
+                  <>
+                    <p className="text-sm text-white/90 font-medium mt-2">{currentSession.title}</p>
+                    <p className="text-xs text-[var(--color-turquoise)] mt-1">
+                      {new Date(currentSession.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {" - "}
+                      {new Date(currentSession.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-[var(--color-ivory)]/50 leading-relaxed mt-2">
+                    Live stream for {liveStreams[key]?.name || key.replace("stage", "Stage ")}. Join to watch the sessions happening right now.
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

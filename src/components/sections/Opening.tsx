@@ -19,10 +19,22 @@ import { useSectionEnterHaptic } from "@/hooks/useHaptics";
  * behind all three, so scrolling from the title card into the story and
  * into the countdown reads as one motion rather than three page loads.
  */
-export function Opening({ targetDate, conferenceDocuments = [] }: { targetDate: string; conferenceDocuments?: { id: string, title: string, url: string }[] }) {
+export function Opening({ 
+  targetDate, 
+  conferenceDocuments = [],
+  extraHeroButtons,
+  hideRegistrationButton = false,
+  hideAbout = false,
+  hideCountdown = false
+}: { 
+  targetDate: string; 
+  conferenceDocuments?: { id: string, title: string, url: string }[];
+  extraHeroButtons?: React.ReactNode;
+  hideRegistrationButton?: boolean;
+  hideAbout?: boolean;
+  hideCountdown?: boolean;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const aboutRef = useRef(null);
-  const countdownRef = useRef(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
 
@@ -36,28 +48,15 @@ export function Opening({ targetDate, conferenceDocuments = [] }: { targetDate: 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const aboutInView = useInView(aboutRef, { once: true, margin: "-100px" });
-  const countdownInView = useInView(countdownRef, { once: true, margin: "-50px" });
-  useSectionEnterHaptic(aboutInView);
-  useSectionEnterHaptic(countdownInView);
-
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
   
   const tHero = useTranslations("Hero");
-  const tAbout = useTranslations("About");
-  const tCountdown = useTranslations("Countdown");
   const locale = useLocale();
 
   const wordmarkSrc = locale === "ar" ? "/wordmark-ar-white.svg?v=3" : locale === "ml" ? "/wordmark-ml-white.svg?v=3" : "/wordmark-en-white.svg?v=3";
-  const paragraphs = [tAbout("p1"), tAbout("p2"), tAbout("p3"), tAbout("p4"), tAbout("p5")];
-
-  const calendarTitle = encodeURIComponent("Grand Jeelani Conference");
-  const calendarDetails = encodeURIComponent("From Baghdad to Malabar — Persian Artistry. Malabar Soul. At Alathurpadi, Melmuri.");
-  const calendarLocation = encodeURIComponent("Alathurpadi, Melmuri, Kerala");
-  const googleCalUrl = `https://calendar.google.com/calendar/r/eventedit?text=${calendarTitle}&dates=20260927T043000Z/20260927T163000Z&details=${calendarDetails}&location=${calendarLocation}`;
 
   return (
     <div ref={containerRef} id="opening" className="relative">
@@ -96,11 +95,14 @@ export function Opening({ targetDate, conferenceDocuments = [] }: { targetDate: 
           </motion.div>
 
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.9, duration: 0.6 }} className="flex flex-wrap items-center justify-center gap-3">
-            <Magnetic pattern="select">
-              <Link href="/#register" className="inline-flex items-center px-7 py-3 rounded-full text-sm font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-colors hover:shadow-lg hover:shadow-[var(--color-brass)]/25">
-                {tHero("registerNow")}
-              </Link>
-            </Magnetic>
+            {extraHeroButtons}
+            {!hideRegistrationButton && (
+              <Magnetic pattern="select">
+                <Link href="/#register" className="inline-flex items-center px-7 py-3 rounded-full text-sm font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-colors hover:shadow-lg hover:shadow-[var(--color-brass)]/25">
+                  {tHero("registerNow")}
+                </Link>
+              </Magnetic>
+            )}
             <Magnetic pattern="tap">
               <Link href="/#schedule" className="inline-flex items-center px-7 py-3 rounded-full text-sm font-semibold bg-white/10 text-white border border-white/20 hover:bg-white/15 backdrop-blur-sm transition-colors">
                 {tHero("viewSchedule")}
@@ -160,96 +162,124 @@ export function Opening({ targetDate, conferenceDocuments = [] }: { targetDate: 
       </section>
 
       {/* ══════════════════ ABOUT ══════════════════ (flows straight out of Hero — no seam) */}
-      <section id="about" className="relative py-16 md:py-24">
-        <div className="container-site relative z-10" ref={aboutRef}>
-          <motion.div initial={{ y: 30, opacity: 0 }} animate={aboutInView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.6 }} className="text-center mb-12">
-            <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">{tAbout("eyebrow")}</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-3 text-[var(--text-primary)]" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
-              {tAbout("heading")}
-            </h2>
-          </motion.div>
-
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-            <motion.div initial={{ x: -50, opacity: 0 }} animate={aboutInView ? { x: 0, opacity: 1 } : {}} transition={{ duration: 0.8, delay: 0.2 }} className="relative">
-              <div className="relative aspect-square max-w-md mx-auto">
-                <div className="absolute inset-0 rounded-2xl opacity-10" style={{ backgroundImage: "url('/motifs/arabesque-tile-pattern.svg')", backgroundRepeat: "repeat", backgroundSize: "100px 100px" }} aria-hidden="true" />
-                <div className="absolute inset-8 flex items-center justify-center">
-                  <div
-                    className="w-full h-full bg-[var(--color-navy)] dark:bg-[var(--color-turquoise)]"
-                    style={{
-                      WebkitMaskImage: "url('/motifs/jeelani-dome-stroke.svg')",
-                      WebkitMaskSize: "contain",
-                      WebkitMaskPosition: "center",
-                      WebkitMaskRepeat: "no-repeat",
-                      maskImage: "url('/motifs/jeelani-dome-stroke.svg')",
-                      maskSize: "contain",
-                      maskPosition: "center",
-                      maskRepeat: "no-repeat",
-                    }}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="absolute -bottom-4 -right-4 w-16 h-16">
-                  <div
-                    className="w-full h-full bg-[var(--color-brass)]"
-                    style={{
-                      WebkitMaskImage: "url('/motifs/four-point-glint.svg')",
-                      WebkitMaskSize: "contain",
-                      WebkitMaskPosition: "center",
-                      WebkitMaskRepeat: "no-repeat",
-                      maskImage: "url('/motifs/four-point-glint.svg')",
-                      maskSize: "contain",
-                      maskPosition: "center",
-                      maskRepeat: "no-repeat",
-                    }}
-                    aria-hidden="true"
-                  />
-                </div>
-              </div>
-            </motion.div>
-
-            <div className="space-y-5">
-              {paragraphs.map((text, i) => (
-                <motion.p key={i} initial={{ y: 20, opacity: 0 }} animate={aboutInView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.5, delay: 0.3 + i * 0.15 }} className="text-[var(--text-secondary)] leading-relaxed text-base md:text-lg">
-                  {text}
-                </motion.p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {!hideAbout && <AboutSection />}
 
       {/* ══════════════════ COUNTDOWN ══════════════════ (same canvas, no bg reset) */}
-      <section id="countdown" className="relative py-16 md:py-24" ref={countdownRef}>
-        <div className="container-site text-center">
-          <motion.div initial={{ y: 30, opacity: 0 }} animate={countdownInView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.6 }}>
-            <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">{tCountdown("eyebrow")}</span>
-            <h2 className="text-2xl md:text-3xl font-bold mt-2 mb-8 text-[var(--text-primary)]" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
-              {tCountdown("heading")}
-            </h2>
-          </motion.div>
-
-          <CountdownDigits
-            targetDate={targetDate}
-            inView={countdownInView}
-            labels={{ days: tCountdown("days"), hours: tCountdown("hours"), min: tCountdown("min"), sec: tCountdown("sec") }}
-          />
-
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={countdownInView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-wrap items-center justify-center gap-3">
-            <Magnetic pattern="tap">
-              <a href={googleCalUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-colors">
-                <CalendarPlus className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> {tCountdown("addGoogle")}
-              </a>
-            </Magnetic>
-            <Magnetic pattern="tap">
-              <a href="/api/calendar" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-colors">
-                <CalendarPlus className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> {tCountdown("downloadIcs")}
-              </a>
-            </Magnetic>
-          </motion.div>
-        </div>
-      </section>
+      {!hideCountdown && <CountdownSection targetDate={targetDate} />}
     </div>
+  );
+}
+
+export function AboutSection() {
+  const aboutRef = useRef(null);
+  const aboutInView = useInView(aboutRef, { once: true, margin: "-100px" });
+  useSectionEnterHaptic(aboutInView);
+  const tAbout = useTranslations("About");
+  const paragraphs = [tAbout("p1"), tAbout("p2"), tAbout("p3"), tAbout("p4"), tAbout("p5")];
+
+  return (
+    <section id="about" className="relative py-16 md:py-24">
+      <div className="container-site relative z-10" ref={aboutRef}>
+        <motion.div initial={{ y: 30, opacity: 0 }} animate={aboutInView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.6 }} className="text-center mb-12">
+          <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">{tAbout("eyebrow")}</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-3 text-[var(--text-primary)]" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
+            {tAbout("heading")}
+          </h2>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+          <motion.div initial={{ x: -50, opacity: 0 }} animate={aboutInView ? { x: 0, opacity: 1 } : {}} transition={{ duration: 0.8, delay: 0.2 }} className="relative">
+            <div className="relative aspect-square max-w-md mx-auto">
+              <div className="absolute inset-0 rounded-2xl opacity-10" style={{ backgroundImage: "url('/motifs/arabesque-tile-pattern.svg')", backgroundRepeat: "repeat", backgroundSize: "100px 100px" }} aria-hidden="true" />
+              <div className="absolute inset-8 flex items-center justify-center">
+                <div
+                  className="w-full h-full bg-[var(--color-navy)] dark:bg-[var(--color-turquoise)]"
+                  style={{
+                    WebkitMaskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+                    WebkitMaskSize: "contain",
+                    WebkitMaskPosition: "center",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskImage: "url('/motifs/jeelani-dome-stroke.svg')",
+                    maskSize: "contain",
+                    maskPosition: "center",
+                    maskRepeat: "no-repeat",
+                  }}
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="absolute -bottom-4 -right-4 w-16 h-16">
+                <div
+                  className="w-full h-full bg-[var(--color-brass)]"
+                  style={{
+                    WebkitMaskImage: "url('/motifs/four-point-glint.svg')",
+                    WebkitMaskSize: "contain",
+                    WebkitMaskPosition: "center",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskImage: "url('/motifs/four-point-glint.svg')",
+                    maskSize: "contain",
+                    maskPosition: "center",
+                    maskRepeat: "no-repeat",
+                  }}
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+          </motion.div>
+
+          <div className="space-y-5">
+            {paragraphs.map((text, i) => (
+              <motion.p key={i} initial={{ y: 20, opacity: 0 }} animate={aboutInView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.5, delay: 0.3 + i * 0.15 }} className="text-[var(--text-secondary)] leading-relaxed text-base md:text-lg">
+                {text}
+              </motion.p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CountdownSection({ targetDate }: { targetDate: string }) {
+  const countdownRef = useRef(null);
+  const countdownInView = useInView(countdownRef, { once: true, margin: "-50px" });
+  useSectionEnterHaptic(countdownInView);
+  const tCountdown = useTranslations("Countdown");
+
+  const calendarTitle = encodeURIComponent("Grand Jeelani Conference");
+  const calendarDetails = encodeURIComponent("From Baghdad to Malabar — Persian Artistry. Malabar Soul. At Alathurpadi, Melmuri.");
+  const calendarLocation = encodeURIComponent("Alathurpadi, Melmuri, Kerala");
+  const googleCalUrl = `https://calendar.google.com/calendar/r/eventedit?text=${calendarTitle}&dates=20260927T043000Z/20260927T163000Z&details=${calendarDetails}&location=${calendarLocation}`;
+
+  return (
+    <section id="countdown" className="relative py-16 md:py-24" ref={countdownRef}>
+      <div className="container-site text-center">
+        <motion.div initial={{ y: 30, opacity: 0 }} animate={countdownInView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.6 }}>
+          <span className="text-[var(--color-turquoise)] text-xs font-semibold tracking-[0.2em] uppercase">{tCountdown("eyebrow")}</span>
+          <h2 className="text-2xl md:text-3xl font-bold mt-2 mb-8 text-[var(--text-primary)]" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
+            {tCountdown("heading")}
+          </h2>
+        </motion.div>
+
+        <CountdownDigits
+          targetDate={targetDate}
+          inView={countdownInView}
+          labels={{ days: tCountdown("days"), hours: tCountdown("hours"), min: tCountdown("min"), sec: tCountdown("sec") }}
+        />
+
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={countdownInView ? { y: 0, opacity: 1 } : {}} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-wrap items-center justify-center gap-3">
+          <Magnetic pattern="tap">
+            <a href={googleCalUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy)]/90 transition-colors">
+              <CalendarPlus className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> {tCountdown("addGoogle")}
+            </a>
+          </Magnetic>
+          <Magnetic pattern="tap">
+            <a href="/api/calendar" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-colors">
+              <CalendarPlus className="w-4 h-4" strokeWidth={2} aria-hidden="true" /> {tCountdown("downloadIcs")}
+            </a>
+          </Magnetic>
+        </motion.div>
+      </div>
+    </section>
   );
 }
 

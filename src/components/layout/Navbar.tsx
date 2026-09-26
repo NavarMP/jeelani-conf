@@ -138,15 +138,6 @@ export function Navbar() {
             {/* Theme toggle */}
             <ThemeSwitcher scrolled={solid} />
 
-            {/* Register CTA */}
-            <Link
-              href="/#register"
-              onClick={() => haptic("select")}
-              className="hidden md:inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all hover:shadow-lg hover:shadow-[var(--color-brass)]/20 active:scale-95"
-            >
-              {t("register")}
-            </Link>
-
             {/* Mobile hamburger — hidden on lg+, visible on smaller screens but nav handled by MobileDock */}
             <button
               onClick={() => {
@@ -214,23 +205,6 @@ export function Navbar() {
                   </Link>
                 </motion.div>
               ))}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: navLinks.length * 0.05 }}
-                className="mt-4"
-              >
-                <Link
-                  href="/#register"
-                  onClick={() => {
-                    haptic("success");
-                    setMenuOpen(false);
-                  }}
-                  className="inline-flex items-center px-8 py-3 rounded-full text-base font-semibold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-all active:scale-95"
-                >
-                  {t("registerNow")}
-                </Link>
-              </motion.div>
             </div>
           </motion.div>
         )}

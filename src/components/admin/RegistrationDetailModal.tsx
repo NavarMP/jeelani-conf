@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { updateRegistrationStatus, deleteRegistration, updateRegistrationAdminNotes, updateRegistrationWhatsAppSent, updateRegistrationDetails } from "@/app/[locale]/admin/actions";
 import { X, Copy, Check, Download, Calendar } from "lucide-react";
 import { formatForWhatsApp } from "@/lib/phoneUtils";
-import { generateWhatsAppMessage } from "@/lib/whatsappUtils";
+import { generateWhatsAppMessage, generateWhatsAppMemberMessage } from "@/lib/whatsappUtils";
 
 interface RegistrationDetailModalProps {
   registration: any;
@@ -52,6 +52,27 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
       registration.is_whatsapp_sent = newStatus;
     } catch (err) {
       alert("Failed to update whatsapp sent status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleToggleMemberWhatsappSent = async (index: number, currentStatus: boolean) => {
+    setIsUpdating(true);
+    try {
+      const newStatus = !currentStatus;
+      const updatedMembers = [...(registration.form_data?.members || [])];
+      updatedMembers[index] = { ...updatedMembers[index], messageSent: newStatus };
+      
+      const updatedFormData = { ...registration.form_data, members: updatedMembers };
+      
+      await updateRegistrationDetails(registration.tableName, registration.id, { form_data: updatedFormData });
+      registration.form_data = updatedFormData;
+      // also update editFormDataObj to match if it exists
+      setEditFormDataObj(updatedFormData);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update member whatsapp status");
     } finally {
       setIsUpdating(false);
     }
@@ -348,7 +369,43 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
                         <div className="flex justify-between items-start group">
                           <div className="w-full">
                             <span className="text-xs text-[var(--admin-text-muted)] block mb-2">{displayKey}</span>
-                            {Array.isArray(value) ? (
+                            {key === 'members' && (registration.typeSlug === 'dars-management-meet' || registration.session_slug === 'dars-management-meet') ? (
+                              <div className="flex flex-col gap-3 mt-2">
+                                {Array.isArray(value) && value.map((member: any, i: number) => {
+                                  const isSent = !!member.messageSent;
+                                  return (
+                                    <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)]">
+                                      <div>
+                                        <div className="font-semibold text-[var(--admin-text)] text-sm">{member.name || `Member ${i+1}`}</div>
+                                        <div className="text-xs text-[var(--admin-text-muted)] mt-0.5 font-mono">
+                                          📞 {member.phone} {member.whatsappNumber && `| 📱 ${member.whatsappNumber}`}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <a 
+                                          href={`https://wa.me/${formatForWhatsApp(member.whatsappNumber || member.phone)}?text=${encodeURIComponent(
+                                            generateWhatsAppMemberMessage(registration, member)
+                                          )}`}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="whitespace-nowrap px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-1.5"
+                                        >
+                                          WhatsApp
+                                        </a>
+                                        <button 
+                                          onClick={() => handleToggleMemberWhatsappSent(i, isSent)} 
+                                          disabled={isUpdating} 
+                                          className={`p-1.5 rounded-lg border transition-colors ${isSent ? 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:border-emerald-700/50 dark:text-emerald-400' : 'bg-[var(--admin-surface-alt)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-hover)]'}`}
+                                          title={isSent ? "Mark as unsent" : "Mark as sent"}
+                                        >
+                                           <Check className="w-4 h-4" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : Array.isArray(value) ? (
                               <div className="flex flex-wrap gap-2 mt-1">
                                 {value.map((item: any, i: number) => (
                                   <span key={i} className="px-2.5 py-1.5 bg-[var(--admin-surface)] border border-[var(--admin-border)] text-[var(--admin-text)] text-xs rounded-md shadow-sm">

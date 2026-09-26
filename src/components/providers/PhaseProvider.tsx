@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export type Phase = 'pre' | 'on' | 'post';
+export type Phase = 'pre' | 'on' | 'post' | 'maintenance';
 
 interface PhaseState {
   currentPhase: Phase;
@@ -107,6 +107,43 @@ export function PhaseProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Automatic phase switching logic
+  useEffect(() => {
+    if (!state.autoSwitchEnabled || !state.scheduledStartTime || !state.scheduledEndTime) return;
+
+    const checkAutoPhase = () => {
+      const now = Date.now();
+      const start = new Date(state.scheduledStartTime!).getTime();
+      const end = new Date(state.scheduledEndTime!).getTime();
+      
+      let computedPhase: Phase = 'pre';
+      if (now >= start && now <= end) {
+        computedPhase = 'on';
+      } else if (now > end) {
+        computedPhase = 'post';
+      }
+
+      if (computedPhase !== state.currentPhase) {
+        setState(prev => {
+          if (prev.currentPhase !== computedPhase) {
+            if (typeof window !== 'undefined' && navigator.vibrate) {
+              navigator.vibrate([100, 50, 100]);
+            }
+            setOverlayPhase(computedPhase);
+            setTransitioning(true);
+            setTimeout(() => setTransitioning(false), 2500);
+            return { ...prev, currentPhase: computedPhase };
+          }
+          return prev;
+        });
+      }
+    };
+
+    checkAutoPhase();
+    const interval = setInterval(checkAutoPhase, 10000);
+    return () => clearInterval(interval);
+  }, [state.autoSwitchEnabled, state.scheduledStartTime, state.scheduledEndTime, state.currentPhase]);
+
   return (
     <PhaseContext.Provider value={state}>
       {/* Global Phase Transition Overlay */}
@@ -129,6 +166,7 @@ export function PhaseProvider({ children }: { children: React.ReactNode }) {
                 {overlayPhase === 'pre' && 'Preparing for the Event...'}
                 {overlayPhase === 'on' && 'The Event is Now Live'}
                 {overlayPhase === 'post' && 'Thank You for Attending'}
+                {overlayPhase === 'maintenance' && 'System Maintenance'}
               </h1>
               <p className="text-xl text-gray-400">Please wait while we set the stage.</p>
               

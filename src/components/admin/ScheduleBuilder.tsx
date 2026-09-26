@@ -27,8 +27,10 @@ export default function ScheduleBuilder({ initialSessions = [], initialSpeakers 
   });
   
   const uniqueStages = useMemo(() => {
-    return stages.map(s => s.slug);
-  }, [stages]);
+    const stageSlugs = stages.map((s) => s.slug);
+    const sessionStages = Array.from(new Set(sessions.map((s) => s.stage).filter(Boolean)));
+    return Array.from(new Set([...stageSlugs, ...sessionStages]));
+  }, [stages, sessions]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Search and Filter State

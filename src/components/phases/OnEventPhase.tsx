@@ -4,15 +4,23 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ThumbsUp, Star, MessageCircle, Zap } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { Schedule } from "@/components/sections/Schedule";
+import { Gallery } from "@/components/sections/Gallery";
+import { Location } from "@/components/sections/Location";
+import { Opening, AboutSection } from "@/components/sections/Opening";
+import { Speakers } from "@/components/sections/Speakers";
+import Image from "next/image";
+import Link from "next/link";
+import { useLocale } from "next-intl";
 
 export function OnEventPhase({ props }: { props: any }) {
-  const { liveStreams } = props;
-  const stageKeys = liveStreams ? Object.keys(liveStreams).sort() : [];
-  const [activeStage, setActiveStage] = useState<string>(stageKeys[0] || "stage1");
+  const { liveStreams, siteSettings, sessions, speakers, galleryMedia, stages } = props;
+  const locale = useLocale();
+  const stageKeys = liveStreams ? Object.keys(liveStreams).filter(k => liveStreams[k].isLive).sort() : [];
+  const [activeStage, setActiveStage] = useState<string>(stageKeys[0] || "");
   const stream = liveStreams ? liveStreams[activeStage] || {} : {};
   
   const [reactions, setReactions] = useState<{id: number, type: string, x: number}[]>([]);
-  const [showQuiz, setShowQuiz] = useState(false);
   
   // Floating reactions logic
   const triggerReaction = (type: string) => {
@@ -35,10 +43,10 @@ export function OnEventPhase({ props }: { props: any }) {
 
   const getReactionIcon = (type: string) => {
     switch(type) {
-      case 'heart': return <Heart className="w-8 h-8 text-pink-500 fill-pink-500" />;
-      case 'thumb': return <ThumbsUp className="w-8 h-8 text-blue-400 fill-blue-400" />;
-      case 'star': return <Star className="w-8 h-8 text-amber-400 fill-amber-400" />;
-      default: return <Heart className="w-8 h-8 text-pink-500" />;
+      case 'heart': return <Heart className="w-8 h-8 text-[var(--color-rose)] fill-[var(--color-rose)]" />;
+      case 'thumb': return <ThumbsUp className="w-8 h-8 text-[var(--color-turquoise)] fill-[var(--color-turquoise)]" />;
+      case 'star': return <Star className="w-8 h-8 text-[var(--color-brass)] fill-[var(--color-brass)]" />;
+      default: return <Heart className="w-8 h-8 text-[var(--color-rose)]" />;
     }
   };
 
@@ -48,19 +56,40 @@ export function OnEventPhase({ props }: { props: any }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, filter: 'blur(10px)' }}
       transition={{ duration: 0.8 }}
-      className="min-h-[100dvh] bg-[#020617] text-white pt-20 pb-10 relative overflow-hidden flex flex-col"
+      className="flex flex-col"
     >
-      {/* Dynamic Aurora Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px] mix-blend-screen" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-amber-600/10 rounded-full blur-[150px] mix-blend-screen" />
-      </div>
+      {/* Hero Section */}
+      <Opening 
+        targetDate={siteSettings?.eventDate} 
+        conferenceDocuments={siteSettings?.conference_documents || (siteSettings?.brochure_url ? [{id: "old", title: "Brochure", url: siteSettings.brochure_url.url}] : [])} 
+        extraHeroButtons={
+          <>
+            <button onClick={() => document.getElementById('live-experience')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center px-8 py-3 rounded-full text-sm font-bold bg-[var(--color-brass)] text-[var(--color-black)] hover:bg-[var(--hover-brass)] transition-colors shadow-[0_0_20px_var(--shadow-glow-brass)]">
+              Watch Live
+            </button>
+            <Link href={`/${locale}/feedback`} className="inline-flex items-center px-8 py-3 rounded-full text-sm font-semibold border border-[var(--color-brass)] text-[var(--color-brass)] hover:bg-[var(--color-brass)]/10 transition-colors backdrop-blur-sm">
+              Give Feedback
+            </Link>
+          </>
+        }
+        hideRegistrationButton={true}
+        hideAbout={true}
+        hideCountdown={true}
+      />
 
-      <div className="container-site relative z-10 flex-1 flex flex-col">
+      {/* Live Experience Section */}
+      <section id="live-experience" className="bg-[#020617] text-white relative flex-1 flex flex-col py-24">
+        {/* Dynamic Aurora Background for Live Experience */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-navy)]/20 rounded-full blur-[120px] mix-blend-screen" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[var(--color-brass)]/10 rounded-full blur-[150px] mix-blend-screen" />
+        </div>
+        
+        <div className="container-site relative z-10 flex-1 flex flex-col">
         {/* Header & Stage Selection */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-amber-300">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-turquoise)] to-[var(--color-brass)]">
               Live Experience
             </h1>
             <p className="text-white/60 text-sm">You are watching the Grand Jeelani Conference live.</p>
@@ -73,7 +102,7 @@ export function OnEventPhase({ props }: { props: any }) {
                 onClick={() => setActiveStage(key)}
                 className={`relative px-6 py-2 rounded-full text-sm font-semibold transition-all capitalize ${
                   activeStage === key
-                    ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                    ? "bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-turquoise)] text-white shadow-lg"
                     : "text-white/60 hover:text-white"
                 }`}
               >
@@ -101,10 +130,27 @@ export function OnEventPhase({ props }: { props: any }) {
                 />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white/50 bg-white/5">
-                  <div className="w-16 h-16 border-4 border-white/20 border-t-blue-500 rounded-full animate-spin mb-4" />
+                  <div className="w-16 h-16 border-4 border-white/20 border-t-[var(--color-turquoise)] rounded-full animate-spin mb-4" />
                   Stream starting soon...
                 </div>
               )}
+              {/* Floating Reactions Container - Overlay on Video */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+                <AnimatePresence>
+                  {reactions.map(r => (
+                    <motion.div
+                      key={r.id}
+                      initial={{ opacity: 0, y: 50, x: `${r.x}%`, scale: 0.5 }}
+                      animate={{ opacity: 1, y: -400, x: `${r.x + (Math.random() * 20 - 10)}%`, scale: 1.5 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 2, ease: "easeOut" }}
+                      className="absolute bottom-0"
+                    >
+                      {getReactionIcon(r.type)}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             </div>
             
             {/* Action Bar */}
@@ -114,92 +160,109 @@ export function OnEventPhase({ props }: { props: any }) {
                   onClick={() => triggerReaction('heart')}
                   className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/5 transition-transform hover:scale-110 active:scale-95"
                 >
-                  <Heart className="w-5 h-5 text-pink-500" />
+                  <Heart className="w-5 h-5 text-[var(--color-rose)]" />
                 </button>
                 <button 
                   onClick={() => triggerReaction('thumb')}
                   className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/5 transition-transform hover:scale-110 active:scale-95"
                 >
-                  <ThumbsUp className="w-5 h-5 text-blue-400" />
+                  <ThumbsUp className="w-5 h-5 text-[var(--color-turquoise)]" />
                 </button>
                 <button 
                   onClick={() => triggerReaction('star')}
                   className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/5 transition-transform hover:scale-110 active:scale-95"
                 >
-                  <Star className="w-5 h-5 text-amber-400" />
+                  <Star className="w-5 h-5 text-[var(--color-brass)]" />
                 </button>
               </div>
-              
-              <button 
-                onClick={() => setShowQuiz(!showQuiz)}
-                className={`px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${
-                  showQuiz 
-                    ? 'bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.4)]' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                <Zap className="w-5 h-5" />
-                {showQuiz ? 'Close Quiz' : 'Join Live Quiz'}
-              </button>
             </div>
           </div>
 
-          {/* Right: Interactive Sidebar (Quiz / Chat) */}
-          <AnimatePresence mode="wait">
-            {showQuiz ? (
-              <motion.div 
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 50, filter: 'blur(5px)' }}
-                className="w-full lg:w-[400px] h-[600px] lg:h-auto bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative"
-              >
-                {/* Embed the existing quiz app using an iframe to the dedicated route, passing a special live slug */}
-                {/* We assume there is a special location slug 'live-stream' created in the DB */}
-                <iframe 
-                  src="/en/quiz?loc=live-stream" 
-                  className="w-full h-full border-none"
-                  title="Live Quiz"
-                />
-              </motion.div>
-            ) : (
+          {/* Right: Interactive Sidebar (Now Playing) */}
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full lg:w-[400px] h-[600px] lg:h-auto bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl flex flex-col relative overflow-hidden"
+                className="w-full lg:w-[400px] h-auto bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl flex flex-col relative overflow-hidden"
               >
-                <div className="flex items-center gap-2 mb-6 pb-4 border-b border-white/10">
-                  <MessageCircle className="w-5 h-5 text-blue-400" />
-                  <h3 className="font-bold">Live Reactions</h3>
-                </div>
-                
-                <div className="flex-1 relative flex flex-col justify-end">
-                  <p className="text-white/40 text-center text-sm absolute inset-0 flex items-center justify-center pointer-events-none">
-                    Send a reaction using the buttons below!
-                  </p>
-                  
-                  {/* Floating Reactions Container */}
-                  <div className="absolute bottom-0 left-0 right-0 h-full pointer-events-none overflow-hidden">
-                    <AnimatePresence>
-                      {reactions.map(r => (
-                        <motion.div
-                          key={r.id}
-                          initial={{ opacity: 0, y: 50, x: `${r.x}%`, scale: 0.5 }}
-                          animate={{ opacity: 1, y: -400, x: `${r.x + (Math.random() * 20 - 10)}%`, scale: 1.5 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 2, ease: "easeOut" }}
-                          className="absolute bottom-0"
-                        >
-                          {getReactionIcon(r.type)}
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-turquoise)]/20 rounded-full blur-[50px]" />
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-[var(--color-brass)]/20 rounded-full blur-[60px]" />
+
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10 relative z-10">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                    <h3 className="font-bold text-lg tracking-wide uppercase text-white/90">Now Playing</h3>
                   </div>
                 </div>
+                
+                <div className="flex-1 relative z-10 flex flex-col gap-4">
+                  {stream?.currentSession ? (
+                    <>
+                      <div>
+                        <h4 className="text-2xl font-bold text-white mb-2 leading-tight">
+                          {stream.currentSession.title}
+                        </h4>
+                        <p className="text-sm text-white/60 line-clamp-3">
+                          {stream.currentSession.description}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 mt-2 text-sm text-[var(--color-turquoise)] font-medium">
+                        <div className="px-3 py-1.5 rounded-lg bg-[var(--color-turquoise)]/10 border border-[var(--color-turquoise)]/20">
+                          {new Date(stream.currentSession.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} 
+                          {" - "}
+                          {new Date(stream.currentSession.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                        {stream.currentSession.type && (
+                          <span className="uppercase text-xs tracking-wider opacity-80">{stream.currentSession.type}</span>
+                        )}
+                      </div>
+
+                      {stream.currentSession.speakers && stream.currentSession.speakers.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                          <h5 className="text-xs uppercase tracking-wider text-white/40 mb-3">Speakers</h5>
+                          <div className="flex flex-col gap-3">
+                            {stream.currentSession.speakers.map((speaker: any) => (
+                              <div key={speaker.id} className="flex items-center gap-3 bg-white/5 p-2.5 rounded-xl border border-white/5">
+                                {speaker.image_url ? (
+                                  <Image src={speaker.image_url} alt={speaker.name} width={40} height={40} className="rounded-full object-cover w-10 h-10 border border-white/20" />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-turquoise)] flex items-center justify-center text-white font-bold border border-white/20">
+                                    {speaker.name.charAt(0)}
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="text-sm font-bold text-white">{speaker.name}</p>
+                                  <p className="text-xs text-white/50">{speaker.title}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-center opacity-60">
+                      <Zap className="w-12 h-12 mb-4 text-white/20" />
+                      <p className="text-lg font-medium text-white">No Event Selected</p>
+                      <p className="text-sm mt-1">Check back later or switch stages.</p>
+                    </div>
+                  )}
+                </div>
               </motion.div>
-            )}
-          </AnimatePresence>
         </div>
+        </div>
+      </section>
+
+      {/* About Section (moved after live experience) */}
+      <AboutSection />
+
+      {/* General Sections */}
+      <div className="mt-10">
+        <Location locationMapUrl={siteSettings?.locationMapUrl} stages={stages} />
+        <Schedule sessions={sessions} />
+        <Speakers speakers={speakers?.filter((s: any) => s.featured)} />
+        <Gallery galleryItems={galleryMedia} />
       </div>
     </motion.div>
   );
