@@ -147,7 +147,9 @@ function FullSessionCard({ session, t }: { session: Session; t: (key: string) =>
 }
 
 export function ScheduleContent({ sessions }: { sessions: Session[] }) {
-  const [activeStage, setActiveStage] = useState<string>("stage1");
+  // Dynamically extract unique stages
+  const uniqueStages = Array.from(new Set(sessions.map((s) => s.stage))).sort();
+  const [activeStage, setActiveStage] = useState<string>(uniqueStages[0] || "stage1");
   const [searchQuery, setSearchQuery] = useState("");
   const t = useTranslations("SchedulePage");
 
@@ -178,18 +180,19 @@ export function ScheduleContent({ sessions }: { sessions: Session[] }) {
 
         {/* Controls */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
-          <div className="flex items-center gap-2">
-            {["stage1", "stage2"].map((stage) => (
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            {uniqueStages.map((stage) => (
               <button
                 key={stage}
                 onClick={() => setActiveStage(stage)}
-                className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all capitalize ${
                   activeStage === stage
                     ? "bg-[var(--color-navy)] text-white shadow-md"
                     : "bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--color-turquoise)]/30"
                 }`}
               >
-                {stage === "stage1" ? t("stage1") : t("stage2")}
+                {/* Fallback to translation if exists, else format the stage name */}
+                {t.has(stage) ? t(stage) : stage.replace("stage", "Stage ")}
               </button>
             ))}
           </div>

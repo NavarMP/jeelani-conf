@@ -206,14 +206,33 @@ export async function getSiteSettings(): Promise<any> {
   return settings;
 }
 
+export async function getStages(): Promise<{ slug: string; name: string; name_ml?: string; description?: string }[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('global_settings').select('value').eq('key', 'stages').single();
+  if (error || !data) {
+    return [
+      { slug: 'stage1', name: 'Stage 1', name_ml: 'സ്റ്റേജ് 1', description: 'Main Conference Stage' },
+      { slug: 'stage2', name: 'Stage 2', name_ml: 'സ്റ്റേജ് 2', description: 'Secondary Conference Stage' },
+      { slug: 'stage3', name: 'Stage 3', name_ml: 'സ്റ്റേജ് 3', description: 'Tertiary Conference Stage' },
+    ];
+  }
+  return data.value || [];
+}
+
 export async function getLiveStreams(): Promise<any> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('live_streams').select('*');
+  const [{ data, error }, stages] = await Promise.all([
+    supabase.from('live_streams').select('*'),
+    getStages()
+  ]);
+  
   if (error || !data) return {};
   
   const streams: any = {};
   data.forEach((row) => {
+    const stageInfo = stages.find(s => s.slug === row.stage);
     streams[row.stage] = {
+      name: stageInfo?.name || row.stage.replace('stage', 'Stage '),
       youtubeVideoId: row.youtube_id,
       isLive: row.is_live
     };
@@ -478,21 +497,24 @@ export async function getAllRegistrations() {
 
 export async function getLiveStreamsData() {
   const supabase = await createClient();
-  const { data } = await supabase.from('live_streams').select('*');
+  const [{ data }, stages] = await Promise.all([
+    supabase.from('live_streams').select('*'),
+    getStages()
+  ]);
   
-  const defaultStreams = [
-    { stage: 'Stage 1', youtube_id: 'X7Xw7dRlGJo', is_live: false },
-    { stage: 'Stage 2', youtube_id: 'Ycwr1oqQpv0', is_live: false }
-  ];
-
-  if (!data || data.length === 0) {
-    return defaultStreams;
+  if (!stages || stages.length === 0) {
+    return [];
   }
 
-  const s1 = data.find(s => s.stage.toLowerCase().includes('1')) || defaultStreams[0];
-  const s2 = data.find(s => s.stage.toLowerCase().includes('2')) || defaultStreams[1];
-
-  return [s1, s2];
+  return stages.map(stage => {
+    const stream = data?.find(s => s.stage === stage.slug);
+    return {
+      stage: stage.slug,
+      name: stage.name,
+      youtube_id: stream?.youtube_id || '',
+      is_live: stream?.is_live || false,
+    };
+  });
 }
 
 export async function getAuditTrailData() {

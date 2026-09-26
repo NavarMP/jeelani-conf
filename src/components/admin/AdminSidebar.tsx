@@ -27,6 +27,7 @@ import {
   Megaphone,
   UserPlus,
   LifeBuoy,
+  MapPin,
   type LucideIcon,
 } from "lucide-react";
 
@@ -52,6 +53,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       title: "Overview",
       items: [
         { label: "Dashboard", href: "/admin", Icon: LayoutDashboard, exact: true },
+        { label: "Phase Control", href: "/admin/phases", Icon: Zap, exact: true },
         { label: "Event Intelligence", href: "/admin/analytics", Icon: BarChart3, exact: true },
         { label: "System Telemetry", href: "/admin/telemetry", Icon: Zap, exact: true },
       ],
@@ -81,7 +83,17 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       title: "Program & Venue",
       items: [
         { label: "Schedule Builder", href: "/admin/schedule", Icon: CalendarRange, exact: true },
+        { label: "Stage Management", href: "/admin/stages", Icon: MapPin, exact: true },
         { label: "Guests", href: "/admin/guests", Icon: Mic, exact: true },
+      ],
+    },
+    {
+      title: "Interactive Quiz",
+      items: [
+        { label: "Quiz Overview", href: "/admin/quiz", Icon: LayoutDashboard, exact: true },
+        { label: "Locations & QR", href: "/admin/quiz/locations", Icon: ScanLine, exact: true },
+        { label: "Questions Bank", href: "/admin/quiz/questions", Icon: ClipboardList, exact: true },
+        { label: "Live Entries", href: "/admin/quiz/entries", Icon: Users, exact: true },
       ],
     },
     {

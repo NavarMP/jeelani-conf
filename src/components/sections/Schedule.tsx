@@ -152,7 +152,9 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
 }
 
 export function Schedule({ sessions }: { sessions: Session[] }) {
-  const [activeStage, setActiveStage] = useState<string>("stage1");
+  // Dynamically extract unique stages
+  const uniqueStages = Array.from(new Set(sessions.map((s) => s.stage))).sort();
+  const [activeStage, setActiveStage] = useState<string>(uniqueStages[0] || "stage1");
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const t = useTranslations("Schedule");
@@ -189,22 +191,22 @@ export function Schedule({ sessions }: { sessions: Session[] }) {
           initial={{ y: 20, opacity: 0 }}
           animate={isInView ? { y: 0, opacity: 1 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex items-center justify-center gap-2 mb-8"
+          className="flex items-center justify-center gap-2 mb-8 flex-wrap"
         >
-          {["stage1", "stage2"].map((stage) => (
+          {uniqueStages.map((stage) => (
             <button
               key={stage}
               onClick={() => {
                 haptic("select");
                 setActiveStage(stage);
               }}
-              className={`relative px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95 ${
+              className={`relative px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95 capitalize ${
                 activeStage === stage
                   ? "bg-[var(--color-navy)] text-white shadow-md"
                   : "bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--color-turquoise)]/30"
               }`}
             >
-              {stage === "stage1" ? t("stage1") : t("stage2")}
+              {t.has(stage) ? t(stage) : stage.replace("stage", "Stage ")}
               {activeStage === stage && (
                 <motion.div
                   layoutId="stage-tab"

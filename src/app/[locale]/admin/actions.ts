@@ -9,8 +9,35 @@ export async function fetchRegistrationsAction() {
 }
 
 export async function fetchScheduleDataAction() {
-  const [sessions, speakers] = await Promise.all([getAllSessionsFlat(), getSpeakers()]);
-  return { sessions, speakers };
+  const [sessions, speakers, stages] = await Promise.all([
+    getAllSessionsFlat(),
+    getSpeakers(),
+    import("@/lib/data").then(m => m.getStages())
+  ]);
+  return { sessions, speakers, stages };
+}
+
+export async function saveStagesAction(stages: any[]) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("global_settings")
+    .upsert({
+      key: "stages",
+      value: stages,
+      updated_at: new Date().toISOString(),
+    });
+
+  if (error) {
+    console.error("Failed to save stages:", error);
+    throw new Error("Failed to save stages: " + error.message);
+  }
+
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+export async function fetchStagesAction() {
+  return await import("@/lib/data").then(m => m.getStages());
 }
 
 

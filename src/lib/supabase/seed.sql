@@ -73,7 +73,10 @@ INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time,
 
   -- Astronomy & AI Fiqh (Top level sessions, single registration)
   ('b1000000-0000-0000-0000-000000000010', 'astronomy', 'Astronomy', 'അസ്ട്രോണമി', 'An exploration of Astronomy.', '2026-09-27T15:00:00+05:30', '2026-09-27T17:00:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh', NULL),
-  ('b1000000-0000-0000-0000-000000000011', 'ai-fiqh', 'AI Fiqh', 'AI ഫിഖ്ഹ്', 'An exploration of Artificial Intelligence in Islamic Jurisprudence.', '2026-09-27T17:00:00+05:30', '2026-09-27T18:30:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh', NULL);
+  ('b1000000-0000-0000-0000-000000000011', 'ai-fiqh', 'AI Fiqh', 'AI ഫിഖ്ഹ്', 'An exploration of Artificial Intelligence in Islamic Jurisprudence.', '2026-09-27T17:00:00+05:30', '2026-09-27T18:30:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh', NULL),
+
+-- Step 4.5: Insert Sessions — Stage 3
+  ('b1000000-0000-0000-0000-000000000014', 'parents-executive-meet', 'Parents Executive Meet', 'പാരന്റ്സ് എക്സിക്യൂട്ടീവ് മീറ്റ്', 'A special executive gathering for parents.', '2026-09-27T11:00:00+05:30', '2026-09-27T13:00:00+05:30', 'stage3', 'meeting', false, NULL, NULL);
 
 -- Step 5: Link Speakers to Sessions
 INSERT INTO public.session_speakers (session_id, speaker_id) VALUES

@@ -1,35 +1,29 @@
-import { Opening } from "@/components/sections/Opening";
-import { Schedule } from "@/components/sections/Schedule";
-import { Speakers } from "@/components/sections/Speakers";
-import { Registration } from "@/components/sections/Registration";
-import { Gallery } from "@/components/sections/Gallery";
-import { Location } from "@/components/sections/Location";
-import { getSiteSettings, getSessions, getSpeakers, getRegistrationSessions, getPublishedGalleryMedia } from "@/lib/data";
+import { PhaseRouter } from "@/components/PhaseRouter";
+import { getSiteSettings, getSessions, getSpeakers, getRegistrationSessions, getPublishedGalleryMedia, getLiveStreams } from "@/lib/data";
 import { setRequestLocale } from 'next-intl/server';
 
 export default async function HomePage(props: { params: Promise<{ locale: string }> }) {
   const params = await props.params;
   setRequestLocale(params.locale);
-  const [siteSettings, sessions, speakers, registrationSessions, galleryMedia] = await Promise.all([
+  const [siteSettings, sessions, speakers, registrationSessions, galleryMedia, liveStreams] = await Promise.all([
     getSiteSettings(),
     getSessions(),
     getSpeakers(),
     getRegistrationSessions(),
     getPublishedGalleryMedia(),
+    getLiveStreams(),
   ]);
 
   return (
-    <>
-      <Opening 
-        targetDate={siteSettings.eventDate} 
-        conferenceDocuments={siteSettings.conference_documents || (siteSettings.brochure_url ? [{id: "old", title: "Brochure", url: siteSettings.brochure_url.url}] : [])} 
-      />
-      <Schedule sessions={sessions} />
-      <Registration registrationSessions={registrationSessions} />
-      <Speakers speakers={speakers.filter(s => s.featured)} />
-      <Gallery galleryItems={galleryMedia} />
-      {/* <LiveStreamPreview /> */}
-      <Location locationMapUrl={siteSettings.locationMapUrl} />
-    </>
+    <PhaseRouter 
+      props={{
+        siteSettings,
+        sessions,
+        speakers,
+        registrationSessions,
+        galleryMedia,
+        liveStreams
+      }}
+    />
   );
 }

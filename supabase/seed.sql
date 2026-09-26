@@ -66,7 +66,10 @@ INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time,
 
   -- Astronomy & AI Fiqh (Top level sessions, single registration)
   ('b1000000-0000-0000-0000-000000000010', 'astronomy', 'Astronomy', 'അസ്ട്രോണമി', 'An exploration of Astronomy.', '2026-09-27T15:00:00+05:30', '2026-09-27T17:00:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh', NULL),
-  ('b1000000-0000-0000-0000-000000000011', 'ai-fiqh', 'AI Fiqh', 'AI ഫിഖ്ഹ്', 'An exploration of Artificial Intelligence in Islamic Jurisprudence.', '2026-09-27T17:00:00+05:30', '2026-09-27T18:30:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh', NULL);
+  ('b1000000-0000-0000-0000-000000000011', 'ai-fiqh', 'AI Fiqh', 'AI ഫിഖ്ഹ്', 'An exploration of Artificial Intelligence in Islamic Jurisprudence.', '2026-09-27T17:00:00+05:30', '2026-09-27T18:30:00+05:30', 'stage2', 'paid_session', true, 'astro-ai-fiqh', NULL),
+
+-- Step 4.5: Insert Sessions — Stage 3
+  ('b1000000-0000-0000-0000-000000000014', 'parents-executive-meet', 'Parents Executive Meet', 'പാരന്റ്സ് എക്സിക്യൂട്ടീവ് മീറ്റ്', 'A special executive gathering for parents.', '2026-09-27T11:00:00+05:30', '2026-09-27T13:00:00+05:30', 'stage3', 'meeting', false, NULL, NULL);
 
 -- Step 5: Link Speakers to Sessions
 INSERT INTO public.session_speakers (session_id, speaker_id) VALUES
@@ -120,3 +123,33 @@ INSERT INTO public.gallery_categories (name, slug, order_index) VALUES
 ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
   order_index = EXCLUDED.order_index;
+
+-- ==============================================================================
+-- QUIZ SEED DATA
+-- ==============================================================================
+INSERT INTO public.quiz_locations (id, name, slug, description) VALUES
+  ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'Main Entrance', 'main-entrance', 'The main gateway to the conference.'),
+  ('b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', 'Exhibition Hall', 'exhibition-hall', 'The area with all the sponsor booths.')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.quiz_questions (id, location_id, question_text, question_type, order_index) VALUES
+  ('c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f', 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'What year was the first Grand Jeelani Conference held?', 'multiple_choice', 1),
+  ('d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a', 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'Who is the main organizer of this event?', 'multiple_choice', 2),
+  ('e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b', 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e', 'Which of these is a primary theme of the exhibition?', 'multiple_choice', 1)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.quiz_answers (id, question_id, answer_text, is_correct, order_index) VALUES
+  -- Q1 Answers
+  ('f1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6', 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f', '2010', false, 1),
+  ('f2a3b4c5-d6e7-f8a9-b0c1-d2e3f4a5b6c7', 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f', '2015', false, 2),
+  ('f3a4b5c6-d7e8-f9a0-b1c2-d3e4f5a6b7c8', 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f', '2020', true, 3),
+  ('f4a5b6c7-d8e9-f0a1-b2c3-d4e5f6a7b8c9', 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f', '2024', false, 4),
+  -- Q2 Answers
+  ('f5a6b7c8-d9e0-f1a2-b3c4-d5e6f7a8b9c0', 'd4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a', 'Sunni Students Federation', true, 1),
+  ('f6a7b8c9-d0e1-f2a3-b4c5-d6e7f8a9b0c1', 'd4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a', 'Kerala Muslim Jamaat', false, 2),
+  ('f7a8b9c0-d1e2-f3a4-b5c6-d7e8f9a0b1c2', 'd4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a', 'SYS', false, 3),
+  -- Q3 Answers
+  ('f8a9b0c1-d2e3-f4a5-b6c7-d8e9f0a1b2c3', 'e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b', 'Modern Architecture', false, 1),
+  ('f9a0b1c2-d3e4-f5a6-b7c8-d9e0f1a2b3c4', 'e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b', 'Islamic Heritage', true, 2),
+  ('f0a1b2c3-d4e5-f6a7-b8c9-d0e1f2a3b4c5', 'e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b', 'Future Technologies', false, 3)
+ON CONFLICT (id) DO NOTHING;

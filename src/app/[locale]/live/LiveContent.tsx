@@ -4,7 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 export function LiveContent({ liveStreams }: { liveStreams: any }) {
-  const [activeStage, setActiveStage] = useState<"stage1" | "stage2">("stage1");
+  const stageKeys = Object.keys(liveStreams).sort();
+  const [activeStage, setActiveStage] = useState<string>(stageKeys[0] || "stage1");
   const stream = liveStreams[activeStage] || {};
 
   return (
@@ -24,18 +25,18 @@ export function LiveContent({ liveStreams }: { liveStreams: any }) {
         </div>
 
         {/* Stage toggle */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          {(["stage1", "stage2"] as const).map((key) => (
+        <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
+          {stageKeys.map((key) => (
             <button
               key={key}
               onClick={() => setActiveStage(key)}
-              className={`relative px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
+              className={`relative px-6 py-2.5 rounded-full text-sm font-semibold transition-all capitalize ${
                 activeStage === key
                   ? "bg-[var(--color-turquoise)] text-white shadow-lg"
                   : "bg-white/5 text-[var(--color-ivory)]/60 border border-white/10 hover:bg-white/10"
               }`}
             >
-              {key === "stage1" ? "Stage 1" : "Stage 2"}
+              {liveStreams[key]?.name || key.replace("stage", "Stage ")}
               {liveStreams[key]?.isLive && (
                 <span className="ml-2 inline-flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
@@ -58,7 +59,7 @@ export function LiveContent({ liveStreams }: { liveStreams: any }) {
             {stream?.youtubeVideoId ? (
               <iframe
                 src={`https://www.youtube.com/embed/${stream.youtubeVideoId}?rel=0&modestbranding=1`}
-                title={`Live Stream - ${activeStage === "stage1" ? "Stage 1" : "Stage 2"}`}
+                title={`Live Stream - ${stream.name || activeStage.replace("stage", "Stage ")}`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 w-full h-full"
@@ -72,27 +73,19 @@ export function LiveContent({ liveStreams }: { liveStreams: any }) {
         </motion.div>
 
         {/* Stage descriptions */}
-        <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto mt-8">
-          <div className={`p-5 rounded-xl border transition-all ${
-            activeStage === "stage1"
-              ? "border-[var(--color-turquoise)]/30 bg-[var(--color-turquoise)]/5"
-              : "border-white/5 bg-white/[0.02]"
-          }`}>
-            <h3 className="font-semibold text-[var(--color-ivory)] text-sm mb-1">Stage 1 — Main Hall</h3>
-            <p className="text-xs text-[var(--color-ivory)]/50 leading-relaxed">
-              Grand Assembly, Inaugural Ceremony, keynote sessions, Jilani Jalsa, and the closing conference.
-            </p>
-          </div>
-          <div className={`p-5 rounded-xl border transition-all ${
-            activeStage === "stage2"
-              ? "border-[var(--color-turquoise)]/30 bg-[var(--color-turquoise)]/5"
-              : "border-white/5 bg-white/[0.02]"
-          }`}>
-            <h3 className="font-semibold text-[var(--color-ivory)] text-sm mb-1">Stage 2 — Parallel Sessions</h3>
-            <p className="text-xs text-[var(--color-ivory)]/50 leading-relaxed">
-              Dars Management Meet, Astronomy & Ai Fiqh sessions.
-            </p>
-          </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
+          {stageKeys.map(key => (
+            <div key={key} className={`p-5 rounded-xl border transition-all ${
+              activeStage === key
+                ? "border-[var(--color-turquoise)]/30 bg-[var(--color-turquoise)]/5"
+                : "border-white/5 bg-white/[0.02]"
+            }`}>
+              <h3 className="font-semibold text-[var(--color-ivory)] text-sm mb-1 capitalize">{liveStreams[key]?.name || key.replace("stage", "Stage ")}</h3>
+              <p className="text-xs text-[var(--color-ivory)]/50 leading-relaxed">
+                Live stream for {liveStreams[key]?.name || key.replace("stage", "Stage ")}. Join to watch the sessions happening right now.
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

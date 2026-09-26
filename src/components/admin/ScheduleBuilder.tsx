@@ -15,12 +15,20 @@ import { Search, Filter, Copy, ChevronDown, ChevronRight, Trash2, Plus, Check } 
 interface Props {
   initialSessions?: any[];
   initialSpeakers?: any[];
+  initialStages?: any[];
 }
 
-export default function ScheduleBuilder({ initialSessions = [], initialSpeakers = [] }: Props) {
+export default function ScheduleBuilder({ initialSessions = [], initialSpeakers = [], initialStages = [] }: Props) {
   const [sessions, setSessions] = useState<any[]>(initialSessions);
   const [speakers, setSpeakers] = useState<any[]>(initialSpeakers);
-  const [activeStage, setActiveStage] = useState("stage1");
+  const [stages, setStages] = useState<any[]>(initialStages);
+  const [activeStage, setActiveStage] = useState(() => {
+    return stages.length > 0 ? stages[0].slug : "stage1";
+  });
+  
+  const uniqueStages = useMemo(() => {
+    return stages.map(s => s.slug);
+  }, [stages]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Search and Filter State
@@ -38,6 +46,7 @@ export default function ScheduleBuilder({ initialSessions = [], initialSpeakers 
       const data = await fetchScheduleDataAction();
       setSessions(data.sessions);
       setSpeakers(data.speakers);
+      setStages(data.stages);
     } catch (err) {
       console.error(err);
     } finally {
@@ -187,27 +196,20 @@ export default function ScheduleBuilder({ initialSessions = [], initialSpeakers 
     <div className="bg-[var(--admin-surface)] rounded-xl border border-[var(--admin-border-subtle)] shadow-sm overflow-hidden">
       {/* Header Controls */}
       <div className="p-4 border-b border-[var(--admin-border)] flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div className="flex border border-[var(--admin-border)] rounded-lg overflow-hidden bg-[var(--admin-surface-alt)]">
-          <button
-            onClick={() => setActiveStage("stage1")}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeStage === "stage1"
-                ? "bg-[var(--color-navy)] text-white"
-                : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)]"
-            }`}
-          >
-            Stage 1 (Main)
-          </button>
-          <button
-            onClick={() => setActiveStage("stage2")}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeStage === "stage2"
-                ? "bg-[var(--color-navy)] text-white"
-                : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)]"
-            }`}
-          >
-            Stage 2
-          </button>
+        <div className="flex border border-[var(--admin-border)] rounded-lg overflow-hidden bg-[var(--admin-surface-alt)] flex-wrap">
+          {uniqueStages.map((stage) => (
+            <button
+              key={stage}
+              onClick={() => setActiveStage(stage)}
+              className={`px-4 py-2 text-sm font-medium transition-colors capitalize ${
+                activeStage === stage
+                  ? "bg-[var(--color-navy)] text-white"
+                  : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)]"
+              }`}
+            >
+              {stages.find(st => st.slug === stage)?.name || stage.replace("stage", "Stage ")}
+            </button>
+          ))}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -269,6 +271,7 @@ export default function ScheduleBuilder({ initialSessions = [], initialSpeakers 
                   onRemoveSpeaker={handleRemoveSpeaker}
                   allTopLevel={allTopLevel}
                   speakers={speakers}
+                  stages={stages}
                 />
 
                 {/* Child programs */}
@@ -289,6 +292,7 @@ export default function ScheduleBuilder({ initialSessions = [], initialSpeakers 
                         onRemoveSpeaker={handleRemoveSpeaker}
                         allTopLevel={allTopLevel}
                         speakers={speakers}
+                        stages={stages}
                       />
                     ))}
                   </div>
@@ -317,7 +321,7 @@ export default function ScheduleBuilder({ initialSessions = [], initialSpeakers 
             onClick={() => handleAddSession()}
             className="w-full py-4 border-2 border-dashed border-[var(--admin-input-border)] rounded-lg text-sm font-medium text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)] hover:border-gray-400 transition-all"
           >
-            + Add New Session to {activeStage === "stage1" ? "Stage 1" : "Stage 2"}
+            + Add New Session to {activeStage.replace("stage", "Stage ")}
           </button>
         </div>
       </div>
@@ -335,6 +339,7 @@ interface SessionCardProps {
   onRemoveSpeaker: (sessionId: string, speakerId: string) => Promise<void>;
   allTopLevel: any[];
   speakers: any[];
+  stages: any[];
 }
 
 const SessionCard = React.memo(function SessionCard({
@@ -347,6 +352,7 @@ const SessionCard = React.memo(function SessionCard({
   onRemoveSpeaker,
   allTopLevel,
   speakers,
+  stages,
 }: SessionCardProps) {
   // Local state for instant typing with zero latency or lag
   const [localValues, setLocalValues] = useState({
@@ -354,6 +360,7 @@ const SessionCard = React.memo(function SessionCard({
     title_ml: session.title_ml || "",
     slug: session.slug || "",
     description: session.description || "",
+    stage: session.stage || "",
   });
 
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -369,9 +376,10 @@ const SessionCard = React.memo(function SessionCard({
         title_ml: "title_ml" in pending ? prev.title_ml : session.title_ml || "",
         slug: "slug" in pending ? prev.slug : session.slug || "",
         description: "description" in pending ? prev.description : session.description || "",
+        stage: "stage" in pending ? prev.stage : session.stage || "",
       };
     });
-  }, [session.id, session.title, session.title_ml, session.slug, session.description]);
+  }, [session.id, session.title, session.title_ml, session.slug, session.description, session.stage]);
 
   // Flush any pending updates immediately to parent and database
   const flushUpdates = useCallback(async () => {
@@ -546,6 +554,23 @@ const SessionCard = React.memo(function SessionCard({
                 />
               </div>
             )}
+            <div className="w-full sm:w-32">
+              <label className="text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider">
+                Stage
+              </label>
+              <select
+                value={localValues.stage}
+                onChange={(e) => handleFieldChange("stage", e.target.value)}
+                onBlur={() => handleBlur("stage")}
+                className="w-full mt-1 p-1.5 border border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded text-sm outline-none focus:border-[var(--color-turquoise)] transition-colors"
+              >
+                {stages.map((stage) => (
+                  <option key={stage.slug} value={stage.slug}>
+                    {stage.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             {isChild && (
               <div className="flex-1">
                 <label className="text-xs font-semibold text-[var(--admin-text-secondary)] uppercase tracking-wider">

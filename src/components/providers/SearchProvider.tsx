@@ -79,7 +79,7 @@ function buildIndex(data: SearchDataPayload): SearchItem[] {
       icon: "CalendarDays",
       href: `/sessions/${s.slug}`,
       metadata: {
-        stage: s.stage === "stage1" ? "Stage 1" : s.stage === "stage2" ? "Stage 2" : s.stage,
+        stage: s.stage ? s.stage.replace("stage", "Stage ") : "Unknown Stage",
         type: s.type,
         ...(s.is_paid ? { paid: "Paid" } : {}),
       },

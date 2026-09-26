@@ -36,12 +36,9 @@ export function LiveStreamPreview({ liveStreams }: { liveStreams: any }) {
 
         {/* Live stream cards */}
         <div className="grid md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-          {([
-            { stage: t("stage1"), key: "stage1" as const, description: t("stage1Desc") },
-            { stage: t("stage2"), key: "stage2" as const, description: t("stage2Desc") },
-          ]).map((item, i) => (
+          {Object.keys(liveStreams).sort().map((key, i) => (
             <motion.div
-              key={item.key}
+              key={key}
               initial={{ y: 20, opacity: 0 }}
               animate={isInView ? { y: 0, opacity: 1 } : {}}
               transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
@@ -68,17 +65,18 @@ export function LiveStreamPreview({ liveStreams }: { liveStreams: any }) {
                     </svg>
                   </div>
                   {/* Live badge */}
-                  {liveStreams[item.key].isLive && (
+                  {liveStreams[key]?.isLive && (
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-semibold">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       {t("liveNow")}
                     </div>
                   )}
                 </div>
-                {/* Info */}
                 <div className="p-4">
-                  <h3 className="font-semibold text-[var(--text-primary)] text-sm">{item.stage}</h3>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">{item.description}</p>
+                  <h3 className="font-semibold text-[var(--text-primary)] text-sm capitalize">{liveStreams[key]?.name || key.replace("stage", "Stage ")}</h3>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                    Live broadcast from {liveStreams[key]?.name || key.replace("stage", "Stage ")}
+                  </p>
                 </div>
               </Link>
             </motion.div>
