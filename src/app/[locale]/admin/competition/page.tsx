@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   fetchCompetitionEntries,
   syncCompetitionEntries,
-  toggleCompetitionPresence,
   drawPerformanceOrder,
+  drawLotForTeam,
   updateStageStatus,
   updatePerformanceOrder,
   resetPerformanceOrder,
@@ -23,6 +23,7 @@ import {
   UserCheck,
   UserX,
   Monitor,
+  Tablet,
   Eye,
   EyeOff,
   Lock,
@@ -37,7 +38,7 @@ interface CompetitionEntry {
   registration_id: string;
   team_name: string;
   performance_order: number | null;
-  is_present: boolean;
+  // is_present: boolean; // deprecated, use checked_in
   marked_present_at: string | null;
   stage_status: string;
   total_score: number | null;
@@ -59,6 +60,8 @@ const stageStatusConfig: Record<string, { label: string; color: string; bg: stri
   disqualified: { label: "Disqualified", color: "text-red-600 dark:text-red-400", bg: "bg-red-100 dark:bg-red-500/10" },
 };
 
+const getOrderLabel = (order: number | null) => order ? String.fromCharCode(64 + order) : "—";
+
 export default function CompetitionPage() {
   const [entries, setEntries] = useState<CompetitionEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,10 +69,27 @@ export default function CompetitionPage() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [showScores, setShowScores] = useState(false);
   const [stageView, setStageView] = useState(false);
-  const [lockedIds, setLockedIds] = useState<string[]>([]);
+  const [lockedIds, setLockedIds] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("lockedIds");
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("lockedIds", JSON.stringify(lockedIds));
+  }, [lockedIds]);
   const [isDrawModalOpen, setIsDrawModalOpen] = useState(false);
   const [isConfirmDrawOpen, setIsConfirmDrawOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // Kiosk Mode States
+  const [isKioskOpen, setIsKioskOpen] = useState(false);
+  const [selectedTeamForDraw, setSelectedTeamForDraw] = useState<CompetitionEntry | null>(null);
+  const [drawStatus, setDrawStatus] = useState<"idle" | "spinning" | "revealed">("idle");
+  const [drawnNumber, setDrawnNumber] = useState<number | null>(null);
+  const [spinNumber, setSpinNumber] = useState<string>("A");
 
   const loadEntries = useCallback(async () => {
     try {
@@ -116,12 +136,47 @@ export default function CompetitionPage() {
     }
   };
 
+  const handleIndividualDraw = async () => {
+    if (!selectedTeamForDraw) return;
+    
+    setDrawStatus("spinning");
+    
+    // Start spinning animation
+    const spinInterval = setInterval(() => {
+      setSpinNumber(String.fromCharCode(64 + Math.floor(Math.random() * 8) + 1));
+    }, 100);
+
+    try {
+      const result = await drawLotForTeam(selectedTeamForDraw.id, 8);
+      
+      // Keep spinning for at least 2 seconds for suspense
+      setTimeout(() => {
+        clearInterval(spinInterval);
+        setDrawnNumber(result.drawnNumber);
+        setDrawStatus("revealed");
+        loadEntries();
+      }, 2000);
+      
+    } catch (err: any) {
+      clearInterval(spinInterval);
+      setDrawStatus("idle");
+      alert(err.message || "Failed to draw lot.");
+    }
+  };
+
+  const closeKiosk = () => {
+    setIsKioskOpen(false);
+    setSelectedTeamForDraw(null);
+    setDrawStatus("idle");
+    setDrawnNumber(null);
+  };
+
   const handleResetOrder = async () => {
-    if (!confirm("Reset performance order? This will assign sequential numbers based on when teams arrived/checked in.")) return;
+    if (!confirm("Clear performance orders? This will reset all assigned lots to empty so you can start over.")) return;
     setIsResetting(true);
     try {
       const result = await resetPerformanceOrder("burda-qawwali");
-      alert(`Order reset for ${result.totalTeams} teams based on arrival time!`);
+      alert(`Performance orders cleared for ${result.totalTeams} teams!`);
       loadEntries();
     } catch {
       alert("Failed to reset order.");
@@ -137,33 +192,31 @@ export default function CompetitionPage() {
   };
 
   const handleOrderChange = async (id: string, value: string) => {
-    const num = parseInt(value);
-    const order = isNaN(num) ? null : num;
+    let order = null;
+    if (value) {
+      const num = value.toUpperCase().charCodeAt(0) - 64;
+      if (num >= 1 && num <= 8) {
+        order = num;
+      } else {
+        return; // Invalid input
+      }
+    }
 
     setEntries((prev) =>
       prev.map((e) => (e.id === id ? { ...e, performance_order: order } : e))
     );
+
+    if (order !== null) {
+      setLockedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    } else {
+      setLockedIds((prev) => prev.filter((l) => l !== id));
+    }
 
     try {
       await updatePerformanceOrder(id, order);
     } catch {
       alert("Failed to update order");
       loadEntries();
-    }
-  };
-
-  const handleTogglePresence = async (entryId: string, isPresent: boolean) => {
-    try {
-      await toggleCompetitionPresence(entryId, !isPresent);
-      setEntries((prev) =>
-        prev.map((e) =>
-          e.id === entryId
-            ? { ...e, is_present: !isPresent, marked_present_at: !isPresent ? new Date().toISOString() : null }
-            : e
-        )
-      );
-    } catch {
-      alert("Failed to update.");
     }
   };
 
@@ -178,11 +231,15 @@ export default function CompetitionPage() {
     }
   };
 
-  const presentCount = entries.filter((e) => e.is_present).length;
+  const presentEntries = entries.filter((e) => e.dynamic_registrations?.checked_in);
+  const presentCount = presentEntries.length;
+  // A draw is only complete when ALL teams in the competition have their lot
+  const isAllDrawn = entries.length > 0 && entries.every(e => e.performance_order !== null);
+
   const performedCount = entries.filter((e) => e.stage_status === "performed").length;
   const currentPerformer = entries.find((e) => e.stage_status === "on_stage");
   const nextUp = entries
-    .filter((e) => e.is_present && e.stage_status === "waiting" && e.performance_order)
+    .filter((e) => e.dynamic_registrations?.checked_in && e.stage_status === "waiting" && e.performance_order)
     .sort((a, b) => (a.performance_order || 999) - (b.performance_order || 999))[0];
 
   if (isLoading) {
@@ -223,7 +280,7 @@ export default function CompetitionPage() {
               {currentPerformer.team_name || currentPerformer.dynamic_registrations?.name}
             </h2>
             <p className="text-xl text-white/60">
-              #{currentPerformer.performance_order} • {currentPerformer.dynamic_registrations?.place}
+              Lot {getOrderLabel(currentPerformer.performance_order)} • {currentPerformer.dynamic_registrations?.place}
             </p>
           </div>
         ) : (
@@ -236,7 +293,7 @@ export default function CompetitionPage() {
           <div className="mt-16 text-center">
             <p className="text-white/40 text-sm uppercase tracking-widest mb-2">Up Next</p>
             <p className="text-2xl font-semibold text-white/70">
-              #{nextUp.performance_order} — {nextUp.team_name || nextUp.dynamic_registrations?.name}
+              Lot {getOrderLabel(nextUp.performance_order)} — {nextUp.team_name || nextUp.dynamic_registrations?.name}
             </p>
           </div>
         )}
@@ -268,6 +325,12 @@ export default function CompetitionPage() {
             className="px-3 py-2 bg-[var(--color-navy)] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 shadow-sm"
           >
             <Monitor className="w-3.5 h-3.5" /> Stage View
+          </button>
+          <button
+            onClick={() => setIsKioskOpen(true)}
+            className="px-3 py-2 bg-purple-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 hover:bg-purple-700 shadow-sm"
+          >
+            <Tablet className="w-3.5 h-3.5" /> Kiosk Mode
           </button>
           <button
             onClick={handleSync}
@@ -340,7 +403,7 @@ export default function CompetitionPage() {
               </span>
             </div>
             <h3 className="text-xl font-bold text-[var(--admin-text)]">
-              #{currentPerformer.performance_order} — {currentPerformer.team_name || currentPerformer.dynamic_registrations?.name}
+              Lot {getOrderLabel(currentPerformer.performance_order)} — {currentPerformer.team_name || currentPerformer.dynamic_registrations?.name}
             </h3>
             <p className="text-sm text-[var(--admin-text-secondary)]">
               {currentPerformer.dynamic_registrations?.place}
@@ -384,6 +447,8 @@ export default function CompetitionPage() {
             <tbody className="divide-y divide-[var(--admin-border-subtle)]">
               {entries.map((entry) => {
                 const cfg = stageStatusConfig[entry.stage_status] || stageStatusConfig.waiting;
+                const isLocked = lockedIds.includes(entry.id);
+                const displayOrder = (isLocked && !isAllDrawn) ? null : entry.performance_order;
                 return (
                   <tr
                     key={entry.id}
@@ -395,7 +460,7 @@ export default function CompetitionPage() {
                   >
                     <td className="px-4 py-3 text-center">
                       <span className="text-sm font-bold text-[var(--admin-text)]">
-                        {entry.performance_order || "—"}
+                        {getOrderLabel(displayOrder)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -410,20 +475,19 @@ export default function CompetitionPage() {
                       {entry.dynamic_registrations?.place || "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        onClick={() => handleTogglePresence(entry.id, entry.is_present)}
-                        className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors ${
-                          entry.is_present
+                      <div
+                        className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg w-fit ${
+                          entry.dynamic_registrations?.checked_in
                             ? "text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10"
-                            : "text-[var(--admin-text-muted)] bg-[var(--admin-surface-alt)] hover:bg-red-50 dark:hover:bg-red-500/10"
+                            : "text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10"
                         }`}
                       >
-                        {entry.is_present ? (
-                          <><CheckCircle className="w-3.5 h-3.5" /> Present</>
+                        {entry.dynamic_registrations?.checked_in ? (
+                          <><CheckCircle className="w-3.5 h-3.5" /> Checked In</>
                         ) : (
-                          <><XCircle className="w-3.5 h-3.5" /> Absent</>
+                          <><XCircle className="w-3.5 h-3.5" /> Not Arrived</>
                         )}
-                      </button>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${cfg.bg} ${cfg.color}`}>
@@ -436,7 +500,7 @@ export default function CompetitionPage() {
                       </td>
                     )}
                     <td className="px-4 py-3 text-right">
-                      {entry.is_present && entry.stage_status === "waiting" && (
+                      {entry.dynamic_registrations?.checked_in && entry.stage_status === "waiting" && (
                         <button
                           onClick={() => handleStageStatus(entry.id, "on_stage")}
                           className="px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-500/20 transition-colors flex items-center gap-1 ml-auto"
@@ -493,7 +557,7 @@ export default function CompetitionPage() {
             
             <div className="flex-1 overflow-y-auto p-5">
                <div className="space-y-3">
-                 {entries.filter(e => e.is_present).map(entry => (
+                 {entries.map(entry => (
                    <div key={entry.id} className="flex items-center justify-between p-3 rounded-xl border border-[var(--admin-border-subtle)] bg-[var(--admin-surface-alt)]">
                      <div>
                        <div className="font-bold text-[var(--admin-text)]">{entry.team_name || entry.dynamic_registrations?.name}</div>
@@ -501,10 +565,11 @@ export default function CompetitionPage() {
                      </div>
                      <div className="flex items-center gap-2">
                         <input
-                          type="number"
-                          value={entry.performance_order || ""}
+                          type="text"
+                          maxLength={1}
+                          value={entry.performance_order ? String.fromCharCode(64 + entry.performance_order) : ""}
                           onChange={(e) => handleOrderChange(entry.id, e.target.value)}
-                          className="w-16 px-2 py-1.5 text-sm font-bold text-center border rounded-lg bg-[var(--admin-surface)] border-[var(--admin-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)]"
+                          className="w-16 px-2 py-1.5 text-sm font-bold text-center border rounded-lg bg-[var(--admin-surface)] border-[var(--admin-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-turquoise)] uppercase"
                           placeholder="Auto"
                         />
                         <button
@@ -526,9 +591,9 @@ export default function CompetitionPage() {
                      </div>
                    </div>
                  ))}
-                 {entries.filter(e => e.is_present).length === 0 && (
+                 {entries.length === 0 && (
                    <div className="text-center py-8 text-[var(--admin-text-muted)] text-sm">
-                     No teams are currently marked as present.
+                     No teams found in the competition entries.
                    </div>
                  )}
                </div>
@@ -577,6 +642,91 @@ export default function CompetitionPage() {
                </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Kiosk Mode Full-Screen */}
+      {isKioskOpen && (
+        <div className="fixed inset-0 z-[100] bg-gradient-to-br from-[#0B1D3A] to-[#102A52] flex flex-col items-center justify-center text-white overflow-y-auto">
+          <button
+            onClick={closeKiosk}
+            className="absolute top-6 right-6 px-4 py-2 bg-white/10 rounded-xl text-sm font-bold hover:bg-white/20 transition-colors"
+          >
+            Exit Kiosk
+          </button>
+          
+          <div className="text-center mt-12 mb-8">
+             <h1 className="text-4xl font-bold" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
+               Draw Your Lot
+             </h1>
+             <p className="text-white/60 mt-2">Burda &amp; Qawwali Competition</p>
+          </div>
+
+          {!selectedTeamForDraw ? (
+            <div className="w-full max-w-4xl px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pb-12">
+               {entries.filter(e => e.dynamic_registrations?.checked_in && e.performance_order === null).length === 0 ? (
+                 <div className="col-span-full text-center p-12 bg-white/5 rounded-2xl border border-white/10">
+                   <p className="text-xl text-white/50">All present teams have drawn their lots!</p>
+                 </div>
+               ) : (
+                 entries.filter(e => e.dynamic_registrations?.checked_in && e.performance_order === null).map(entry => (
+                   <button
+                     key={entry.id}
+                     onClick={() => setSelectedTeamForDraw(entry)}
+                     className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 p-6 rounded-2xl text-left transition-all group"
+                   >
+                     <h3 className="text-xl font-bold mb-1 group-hover:text-[var(--color-brass)] transition-colors">
+                       {entry.team_name || entry.dynamic_registrations?.name}
+                     </h3>
+                     <p className="text-sm text-white/50">{entry.dynamic_registrations?.place}</p>
+                   </button>
+                 ))
+               )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center flex-1 w-full max-w-2xl px-4 text-center">
+              <h2 className="text-3xl font-bold mb-2">
+                {selectedTeamForDraw.team_name || selectedTeamForDraw.dynamic_registrations?.name}
+              </h2>
+              <p className="text-xl text-white/50 mb-12">{selectedTeamForDraw.dynamic_registrations?.place}</p>
+              
+              {drawStatus === "idle" && (
+                <button
+                  onClick={handleIndividualDraw}
+                  className="w-64 h-64 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 hover:from-purple-500 hover:to-indigo-600 shadow-[0_0_60px_rgba(147,51,234,0.5)] hover:shadow-[0_0_80px_rgba(147,51,234,0.7)] flex items-center justify-center text-3xl font-black uppercase tracking-wider border-4 border-purple-400/30 transition-all hover:scale-105 active:scale-95"
+                >
+                  Tap to Draw
+                </button>
+              )}
+              
+              {drawStatus === "spinning" && (
+                <div className="w-64 h-64 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-[0_0_80px_rgba(245,158,11,0.6)] flex items-center justify-center border-4 border-amber-300/50">
+                  <span className="text-8xl font-black tracking-tighter tabular-nums drop-shadow-xl animate-pulse">
+                    {spinNumber}
+                  </span>
+                </div>
+              )}
+              
+              {drawStatus === "revealed" && (
+                <div className="flex flex-col items-center animate-in zoom-in duration-500">
+                  <p className="text-xl text-[var(--color-brass)] font-bold uppercase tracking-[0.3em] mb-4">
+                    Your Performance Order
+                  </p>
+                  <div className="w-64 h-64 rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 shadow-[0_0_100px_rgba(16,185,129,0.8)] flex items-center justify-center border-4 border-emerald-300/50 mb-12">
+                    <span className="text-9xl font-black tracking-tighter tabular-nums drop-shadow-2xl text-white">
+                      {drawnNumber ? String.fromCharCode(64 + drawnNumber) : ""}
+                    </span>
+                  </div>
+                  <button
+                    onClick={closeKiosk}
+                    className="px-8 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold text-lg transition-colors border border-white/20"
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -14,7 +14,8 @@ export type LiveEventState = {
 };
 
 export function useLiveEventState(stage: string) {
-  const [liveState, setLiveState] = useState<LiveEventState | null>(null);
+  const [stageState, setStageState] = useState<LiveEventState | null>(null);
+  const [globalState, setGlobalState] = useState<LiveEventState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,11 +27,13 @@ export function useLiveEventState(stage: string) {
       const { data, error } = await supabase
         .from("live_event_state")
         .select("*")
-        .eq("stage", stage)
-        .single();
+        .in("stage", [stage, "global"]);
         
       if (!error && data) {
-        setLiveState(data as LiveEventState);
+        const sState = data.find(d => d.stage === stage) || null;
+        const gState = data.find(d => d.stage === "global") || null;
+        setStageState(sState as LiveEventState);
+        setGlobalState(gState as LiveEventState);
       }
       setIsLoading(false);
     };
@@ -39,17 +42,22 @@ export function useLiveEventState(stage: string) {
 
     // Subscribe to real-time changes
     const channel = supabase
-      .channel(`live_event_state_${stage}_${Math.random().toString(36).substring(7)}`)
+      .channel(`live_event_state_${stage}_global_${Math.random().toString(36).substring(7)}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "live_event_state",
-          filter: `stage=eq.${stage}`,
+          filter: `stage=in.(${stage},global)`,
         },
         (payload) => {
-          setLiveState(payload.new as LiveEventState);
+          const newState = payload.new as LiveEventState;
+          if (newState.stage === "global") {
+            setGlobalState(newState);
+          } else if (newState.stage === stage) {
+            setStageState(newState);
+          }
         }
       )
       .subscribe();
@@ -59,5 +67,57 @@ export function useLiveEventState(stage: string) {
     };
   }, [stage]);
 
-  return { liveState, isLoading };
+  // Determine effective state: if global is active (manual and has a session), it overrides.
+  const isGlobalActive = globalState?.mode === "manual" && !!globalState?.current_session_id;
+  const effectiveState = isGlobalActive ? globalState : stageState;
+
+  return { liveState: effectiveState, stageState, globalState, isGlobalActive, isLoading };
+}
+
+export function useAllLiveEventStates() {
+  const [allStates, setAllStates] = useState<LiveEventState[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const fetchAll = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase.from("live_event_state").select("*");
+      if (!error && data) {
+        setAllStates(data as LiveEventState[]);
+      }
+      setIsLoading(false);
+    };
+
+    fetchAll();
+
+    const channel = supabase
+      .channel(`live_event_state_all_${Math.random().toString(36).substring(7)}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "live_event_state",
+        },
+        (payload) => {
+          const newState = payload.new as LiveEventState;
+          setAllStates(prev => {
+            const exists = prev.find(s => s.stage === newState.stage);
+            if (exists) {
+              return prev.map(s => s.stage === newState.stage ? newState : s);
+            }
+            return [...prev, newState];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return { allStates, isLoading };
 }

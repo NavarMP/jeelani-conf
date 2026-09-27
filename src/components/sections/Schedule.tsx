@@ -10,12 +10,21 @@ import { formatSessionTime, getSessionRegistration } from "@/lib/sessionHelpers"
 import { haptic } from "@/lib/haptics";
 import { useSectionEnterHaptic } from "@/hooks/useHaptics";
 import { Magnetic } from "@/components/ui/Magnetic";
-import { Mic, ChevronDown, ExternalLink, ArrowRight } from "lucide-react";
-import { LiveEventHero } from "@/components/sections/LiveEventHero";
+import { Mic, ChevronDown, ExternalLink, ArrowRight, PlayCircle, FileText } from "lucide-react";
+import { useLiveEventState, type LiveEventState } from "@/lib/useLiveEventState";
 import { cn } from "@/lib/utils";
 
-function SessionCard({ session, index, t }: { session: Session; index: number; t: (key: string) => string }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+interface SessionCardProps {
+  session: Session;
+  index: number;
+  t: (key: string) => string;
+  isLive?: boolean;
+  isUpNext?: boolean;
+  liveState?: LiveEventState | null;
+}
+
+function SessionCard({ session, index, t, isLive, isUpNext, liveState }: SessionCardProps) {
+  const [isExpanded, setIsExpanded] = useState(isLive || false);
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
@@ -72,7 +81,12 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
         {/* Animated Timeline Node */}
         <div className="relative flex justify-center items-center h-full">
           <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-[var(--border)] via-[var(--color-turquoise)]/30 to-[var(--border)] group-hover:via-[var(--color-turquoise)]/80 transition-colors duration-500" />
-          <div className="relative w-3.5 h-3.5 md:w-4 md:h-4 rounded-full bg-[var(--surface)] border-[2.5px] border-[var(--color-turquoise)] shadow-[0_0_10px_rgba(var(--color-turquoise-rgb),0.3)] z-10 group-hover:scale-125 transition-transform duration-300 ease-out" />
+          <div className={cn(
+            "relative w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[2.5px] z-10 transition-transform duration-300 ease-out",
+            isLive ? "bg-red-500 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse scale-125" : 
+            isUpNext ? "bg-[var(--color-brass)] border-[var(--color-brass)] shadow-[0_0_10px_rgba(var(--color-brass-rgb),0.3)]" :
+            "bg-[var(--surface)] border-[var(--color-turquoise)] shadow-[0_0_10px_rgba(var(--color-turquoise-rgb),0.3)] group-hover:scale-125"
+          )} />
         </div>
       </div>
 
@@ -82,9 +96,11 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
         onMouseMove={handleMouseMove}
         onClick={toggleExpand}
         className={cn(
-          "relative flex-1 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-md overflow-hidden transition-all duration-500 cursor-pointer mb-6",
-          "hover:border-[var(--color-turquoise)]/50 hover:shadow-lg hover:shadow-[var(--color-turquoise)]/5",
-          isExpanded ? "shadow-md border-[var(--color-turquoise)]/30 bg-[var(--surface)]" : ""
+          "relative flex-1 rounded-2xl border bg-[var(--surface)]/80 backdrop-blur-md overflow-hidden transition-all duration-500 cursor-pointer mb-6",
+          isLive ? "border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.15)] bg-gradient-to-br from-[var(--surface)] to-red-500/5" :
+          isUpNext ? "border-[var(--color-brass)]/40 shadow-md shadow-[var(--color-brass)]/5" :
+          "border-[var(--border)] hover:border-[var(--color-turquoise)]/50 hover:shadow-lg hover:shadow-[var(--color-turquoise)]/5",
+          isExpanded && !isLive ? "shadow-md border-[var(--color-turquoise)]/30 bg-[var(--surface)]" : ""
         )}
       >
         {/* Spotlight Effect on Hover */}
@@ -108,6 +124,16 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
               {session.is_paid && (
                 <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide uppercase bg-[var(--color-brass)]/10 text-[var(--color-brass)] border border-[var(--color-brass)]/20">
                   {t("paid")}
+                </span>
+              )}
+              {isLive && (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500 text-white text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full"></span> Live Now
+                </span>
+              )}
+              {isUpNext && (
+                <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide uppercase bg-[var(--color-brass)]/20 text-[var(--color-brass)] border border-[var(--color-brass)]/30">
+                  Up Next
                 </span>
               )}
             </div>
@@ -142,6 +168,69 @@ function SessionCard({ session, index, t }: { session: Session; index: number; t
           )}>
             {session.description}
           </p>
+
+          {/* Live Extra Details (Speaker Avatar & Subtitle) */}
+          <AnimatePresence>
+            {isLive && isExpanded && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden mt-4 pt-4 border-t border-[var(--border)]/50"
+              >
+                <div className="flex flex-col md:flex-row gap-4 items-center md:items-start bg-[var(--surface-elevated)] p-4 rounded-xl">
+                  {(() => {
+                    const activeSpeaker = liveState?.current_speaker_id 
+                      ? speakerList.find(s => s.id === liveState.current_speaker_id) 
+                      : speakerList[0];
+                      
+                    if (activeSpeaker) {
+                      return (
+                        <div className="flex items-center gap-4 shrink-0">
+                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]">
+                            {activeSpeaker.image_url ? (
+                              <img src={activeSpeaker.image_url} alt={activeSpeaker.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-turquoise)] flex items-center justify-center">
+                                <Mic className="w-6 h-6 text-white/50" />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider mb-0.5">On Stage</p>
+                            <p className="font-semibold text-sm">{activeSpeaker.name}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="flex items-center gap-3 shrink-0 text-text-muted">
+                        <PlayCircle className="w-8 h-8 opacity-50" />
+                        <span className="text-sm font-medium">Event in Progress</span>
+                      </div>
+                    );
+                  })()}
+                  
+                  {liveState?.subtitle_text && (
+                    <div className="flex-1 md:border-l md:border-[var(--border)] md:pl-4 mt-2 md:mt-0 italic text-sm text-[var(--text-secondary)]">
+                      "{liveState.subtitle_text}"
+                    </div>
+                  )}
+                  
+                  {liveState?.document_url && (
+                    <Link
+                      href={liveState.document_url}
+                      target="_blank"
+                      onClick={(e) => { e.stopPropagation(); haptic("success"); }}
+                      className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-[var(--color-turquoise)]/10 text-[var(--color-turquoise)] border border-[var(--color-turquoise)]/30 rounded-lg hover:bg-[var(--color-turquoise)]/20 transition-colors text-sm font-semibold"
+                    >
+                      <FileText className="w-4 h-4" /> Live Resource <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Action Row & Expand Indicator */}
           <div className="flex items-center justify-between mt-5 pt-4 border-t border-[var(--border)]/50">
@@ -249,7 +338,37 @@ export function Schedule({ sessions, stages = [] }: { sessions: Session[], stage
   const t = useTranslations("Schedule");
   useSectionEnterHaptic(isInView);
 
+  const { liveState } = useLiveEventState(activeStage);
+
   const stageSessions = sessions.filter((s) => s.stage === activeStage);
+  
+  // Calculate live and next sessions
+  let currentSessionId = liveState?.current_session_id;
+  let nextSessionId = null;
+  
+  if (liveState?.mode === "auto" || !currentSessionId) {
+    const now = new Date();
+    const active = stageSessions.find(s => {
+      const start = new Date(s.start_time);
+      const end = new Date(s.end_time);
+      return now >= start && now <= end;
+    });
+    if (active) currentSessionId = active.id;
+  }
+  
+  // Find the next session
+  if (currentSessionId) {
+    const currentIndex = stageSessions.findIndex(s => s.id === currentSessionId);
+    if (currentIndex >= 0 && currentIndex < stageSessions.length - 1) {
+      nextSessionId = stageSessions[currentIndex + 1].id;
+    }
+  } else {
+    // If nothing is live, find the first upcoming session
+    const now = new Date();
+    const upcoming = stageSessions.find(s => new Date(s.start_time) > now);
+    if (upcoming) nextSessionId = upcoming.id;
+  }
+
   const visibleSessions = stageSessions.slice(0, visibleCount);
   const hasMore = visibleCount < stageSessions.length;
 
@@ -325,11 +444,6 @@ export function Schedule({ sessions, stages = [] }: { sessions: Session[], stage
           })}
         </motion.div>
 
-        {/* Currently Live Hero */}
-        <div className="mb-12">
-          <LiveEventHero sessions={sessions} stage={activeStage} />
-        </div>
-
         {/* Sessions List */}
         <div className="max-w-3xl mx-auto">
           <AnimatePresence mode="wait">
@@ -342,7 +456,15 @@ export function Schedule({ sessions, stages = [] }: { sessions: Session[], stage
               className="space-y-0"
             >
               {visibleSessions.map((session, i) => (
-                <SessionCard key={session.id} session={session} index={i} t={t} />
+                <SessionCard 
+                  key={session.id} 
+                  session={session} 
+                  index={i} 
+                  t={t} 
+                  isLive={session.id === currentSessionId}
+                  isUpNext={session.id === nextSessionId}
+                  liveState={session.id === currentSessionId ? liveState : null}
+                />
               ))}
               
               {stageSessions.length === 0 && (

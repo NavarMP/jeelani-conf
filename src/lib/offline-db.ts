@@ -143,7 +143,7 @@ export async function searchOfflineAttendees(query: string, filters: { sessionSl
   const allAttendees = await db.getAll('attendees_store');
   const lowerQuery = query.toLowerCase();
   
-  return allAttendees.filter(a => {
+  const results = allAttendees.filter(a => {
     // Search match
     const matchesSearch = !query.trim() || 
       (a.name && a.name.toLowerCase().includes(lowerQuery)) ||
@@ -158,7 +158,12 @@ export async function searchOfflineAttendees(query: string, filters: { sessionSl
     if (filters.onlyUnchecked && a.checked_in) return false;
     
     return true;
-  }).slice(0, 50); // Limit results
+  });
+  
+  if (!query.trim() && filters.sessionSlug === "burda-qawwali") {
+    return results;
+  }
+  return results.slice(0, 50);
 }
 
 export async function getOfflineSessions(): Promise<any[]> {

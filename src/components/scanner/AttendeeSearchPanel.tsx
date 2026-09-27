@@ -48,7 +48,7 @@ export default function AttendeeSearchPanel({ staff, onBack }: Props) {
   const [hasSearched, setHasSearched] = useState(false);
 
   // Filters
-  const [sessionFilter, setSessionFilter] = useState("");
+  const [sessionFilter, setSessionFilter] = useState("burda-qawwali");
   const [placeFilter, setPlaceFilter] = useState("");
   const [onlyUnchecked, setOnlyUnchecked] = useState(true);
   const [showFilters, setShowFilters] = useState(false);

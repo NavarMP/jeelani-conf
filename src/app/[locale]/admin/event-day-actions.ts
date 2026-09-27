@@ -869,6 +869,65 @@ export async function drawPerformanceOrder(competitionSlug: string = "burda-qaww
 }
 
 /**
+ * Draw a single lot for a specific team.
+ * Respects already taken lots and maximum team limits.
+ */
+export async function drawLotForTeam(entryId: string, maxLots: number = 8) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  // Fetch all entries for this competition to see taken spots
+  const { data: allEntries, error } = await supabase
+    .from("competition_entries")
+    .select("id, performance_order")
+    .eq("competition_slug", "burda-qawwali");
+
+  if (error || !allEntries) throw new Error("Failed to fetch entries");
+
+  const targetEntry = allEntries.find(e => e.id === entryId);
+  if (!targetEntry) throw new Error("Entry not found");
+  
+  if (targetEntry.performance_order !== null) {
+    throw new Error("Team already has a lot drawn");
+  }
+
+  // Collect taken numbers
+  const takenNumbers = new Set(
+    allEntries
+      .filter(e => e.performance_order !== null)
+      .map(e => e.performance_order as number)
+  );
+
+  // Build available pool
+  const availableNumbers: number[] = [];
+  for (let i = 1; i <= maxLots; i++) {
+    if (!takenNumbers.has(i)) {
+      availableNumbers.push(i);
+    }
+  }
+
+  if (availableNumbers.length === 0) {
+    throw new Error("No lot numbers available to draw.");
+  }
+
+  // Pick randomly
+  const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+  const drawnNumber = availableNumbers[randomIndex];
+
+  // Update DB
+  const { error: updateError } = await supabase
+    .from("competition_entries")
+    .update({ performance_order: drawnNumber })
+    .eq("id", entryId);
+
+  if (updateError) throw new Error("Failed to save drawn lot");
+
+  revalidatePath("/admin/competition");
+  return { drawnNumber };
+}
+
+/**
  * Manually update a team's performance order
  */
 export async function updatePerformanceOrder(entryId: string, order: number | null) {
@@ -887,29 +946,26 @@ export async function updatePerformanceOrder(entryId: string, order: number | nu
 }
 
 /**
- * Reset performance order based on chronological marked_present_at time
+ * Reset performance order to null for all teams
  */
 export async function resetPerformanceOrder(competitionSlug: string = "burda-qawwali") {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Unauthorized");
 
-  // Get present teams ordered by marked_present_at
+  // Get present teams
   const { data: presentTeams, error } = await supabase
     .from("competition_entries")
     .select("id")
-    .eq("competition_slug", competitionSlug)
-    .eq("is_present", true)
-    .order("marked_present_at", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: true });
+    .eq("competition_slug", competitionSlug);
 
-  if (error || !presentTeams) throw new Error("Failed to fetch present teams");
+  if (error || !presentTeams) throw new Error("Failed to fetch teams");
 
-  // Update DB for each team with sequential order starting from 1
+  // Update DB for each team to clear performance order
   for (let i = 0; i < presentTeams.length; i++) {
     await supabase
       .from("competition_entries")
-      .update({ performance_order: i + 1 })
+      .update({ performance_order: null })
       .eq("id", presentTeams[i].id);
   }
 
@@ -1142,8 +1198,7 @@ export async function searchAttendeesForCheckIn(
     .from("dynamic_registrations")
     .select("*, registration_sessions(title)")
     .in("status", ["confirmed", "selected"])
-    .order("name", { ascending: true })
-    .limit(30);
+    .order("name", { ascending: true });
 
   // Apply filters
   if (filters?.sessionSlug) {
@@ -1171,6 +1226,12 @@ export async function searchAttendeesForCheckIn(
     else {
       query = query.ilike("name", `%${term}%`);
     }
+  }
+
+  if (!term && filters?.sessionSlug === "burda-qawwali") {
+    query = query.limit(1000);
+  } else {
+    query = query.limit(30);
   }
 
   const { data, error } = await query;

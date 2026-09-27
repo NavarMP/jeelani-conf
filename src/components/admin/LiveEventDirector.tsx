@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
-import { X, Mic, FileText, Play, Settings2 } from "lucide-react";
+import { X, Mic, FileText, Play, Settings2, Globe, Activity, Clock } from "lucide-react";
 import { type Session, type Speaker } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
+import { useAllLiveEventStates } from "@/lib/useLiveEventState";
 
 interface Props {
   stages: string[];
@@ -24,6 +25,10 @@ export default function LiveEventDirector({ stages, allSessions, allSpeakers }: 
   const [currentSpeakerId, setCurrentSpeakerId] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [documentUrl, setDocumentUrl] = useState("");
+
+  const { allStates } = useAllLiveEventStates();
+
+  const extendedStages = ["global", ...stages];
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setNotification({ message, type });
@@ -66,16 +71,20 @@ export default function LiveEventDirector({ stages, allSessions, allSpeakers }: 
         const { error } = await supabase.from("live_event_state").upsert(payload);
         if (error) throw error;
         
-        showToast("Live state broadcasted successfully!");
+        showToast(`Live state broadcasted successfully to ${activeStage.toUpperCase()}!`);
       } catch (err: any) {
         showToast("Database table 'live_event_state' might not exist. Run migration.", "error");
       }
     });
   };
 
-  const stageSessions = allSessions.filter(s => s.stage === activeStage);
+  const stageSessions = activeStage === "global" ? allSessions : allSessions.filter(s => s.stage === activeStage);
   const activeSessionObj = stageSessions.find(s => s.id === currentSessionId);
   const availableSpeakers = activeSessionObj?.speakers || allSpeakers;
+
+  // Calculate upcoming session for the admin info
+  const now = new Date();
+  const upcomingSession = stageSessions.find(s => new Date(s.start_time) > now);
 
   return (
     <div className="bg-[var(--admin-surface)] rounded-2xl border border-[var(--admin-border)] shadow-sm p-6 max-w-4xl mx-auto">
@@ -94,16 +103,52 @@ export default function LiveEventDirector({ stages, allSessions, allSpeakers }: 
           <p className="text-[var(--admin-text-secondary)] text-sm">Control what the audience sees on the schedule page in real-time.</p>
         </div>
         
-        <div className="flex gap-2 mt-4 md:mt-0">
-          {stages.map(stage => (
-            <button
-              key={stage}
-              onClick={() => setActiveStage(stage)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeStage === stage ? "bg-[var(--color-navy)] text-white" : "bg-[var(--admin-surface-alt)] text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"}`}
-            >
-              {stage.toUpperCase()}
-            </button>
-          ))}
+        <div className="flex gap-2 mt-4 md:mt-0 flex-wrap">
+          {extendedStages.map(stage => {
+            const isGlobal = stage === "global";
+            const isActive = activeStage === stage;
+            return (
+              <button
+                key={stage}
+                onClick={() => setActiveStage(stage)}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 ${
+                  isActive 
+                    ? (isGlobal ? "bg-red-600 text-white shadow-[0_0_10px_rgba(220,38,38,0.5)]" : "bg-[var(--color-navy)] text-white") 
+                    : "bg-[var(--admin-surface-alt)] text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
+                }`}
+              >
+                {isGlobal && <Globe className="w-4 h-4" />}
+                {isGlobal ? "GLOBAL OVERRIDE" : stage.toUpperCase()}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Global Dashboard Status */}
+      <div className="mb-8 p-5 bg-[var(--admin-surface-alt)] rounded-xl border border-[var(--admin-border-subtle)]">
+        <h3 className="text-sm font-bold text-[var(--admin-text)] uppercase tracking-widest mb-3 flex items-center gap-2">
+          <Activity className="w-4 h-4 text-[var(--color-turquoise)]" /> All Stages Status
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {extendedStages.map(stage => {
+            const stageState = allStates.find(s => s.stage === stage);
+            const activeSess = allSessions.find(s => s.id === stageState?.current_session_id);
+            const isAuto = !stageState || stageState.mode === "auto";
+            return (
+              <div key={stage} className={`p-3 rounded-lg border ${stage === 'global' && stageState?.mode === 'manual' ? 'border-red-500 bg-red-500/10' : 'border-[var(--admin-border)] bg-[var(--admin-surface)]'}`}>
+                <div className="flex justify-between items-center mb-1">
+                  <span className={`text-xs font-bold ${stage === 'global' ? 'text-red-500' : 'text-[var(--admin-text)]'}`}>{stage.toUpperCase()}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${isAuto ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                    {isAuto ? 'AUTO' : 'MANUAL'}
+                  </span>
+                </div>
+                <div className="text-xs text-[var(--admin-text-secondary)] truncate">
+                  {stageState?.mode === 'manual' && activeSess ? activeSess.title : (isAuto ? 'Following Schedule' : 'No Session')}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -140,6 +185,12 @@ export default function LiveEventDirector({ stages, allSessions, allSpeakers }: 
                 <option key={s.id} value={s.id}>{s.title}</option>
               ))}
             </select>
+            {upcomingSession && (
+              <div className="mt-2 text-xs text-[var(--admin-text-secondary)] flex items-center gap-1.5 p-2 bg-[var(--color-brass)]/10 rounded-md border border-[var(--color-brass)]/20">
+                <Clock className="w-3.5 h-3.5 text-[var(--color-brass)]" /> 
+                <span className="font-semibold text-[var(--color-brass)]">Up Next:</span> {upcomingSession.title}
+              </div>
+            )}
           </div>
 
           <div>
