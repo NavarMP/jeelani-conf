@@ -77,8 +77,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       title: "Registrations & Entries",
       items: [
         { label: "All Registrations", href: "/admin/registrations", Icon: ClipboardList, isAllRegs: true },
-        { label: "Astronomy & AI Fiqh", href: "/admin/registrations?type=astro-ai-fiqh", Icon: GraduationCap, type: "astro-ai-fiqh" },
-        { label: "Burda & Qawwali", href: "/admin/registrations?type=burda-qawwali", Icon: Zap, type: "burda-qawwali" },
         { label: "Refunds", href: "/admin/refunds", Icon: Receipt, exact: true },
         { label: "Dynamic Sessions", href: "/admin/sessions", Icon: Zap, exact: true },
       ],

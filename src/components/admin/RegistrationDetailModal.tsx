@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { updateRegistrationStatus, deleteRegistration, updateRegistrationAdminNotes, updateRegistrationWhatsAppSent, updateRegistrationDetails } from "@/app/[locale]/admin/actions";
-import { X, Copy, Check, Download, Calendar } from "lucide-react";
+import { revokeRegistrationQRToken } from "@/app/[locale]/admin/event-day-actions";
+import { X, Copy, Check, Download, Calendar, RefreshCcw } from "lucide-react";
 import { formatForWhatsApp } from "@/lib/phoneUtils";
 import { generateWhatsAppMessage, generateWhatsAppMemberMessage } from "@/lib/whatsappUtils";
 
@@ -144,6 +145,19 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
       onClose(); // Close modal and the parent will refresh
     } catch (err) {
       alert("Failed to delete registration");
+      setIsUpdating(false);
+    }
+  };
+
+  const handleRevokeQR = async () => {
+    if (!confirm("This will invalidate the current QR code. A new one will be generated automatically upon next access. Continue?")) return;
+    setIsUpdating(true);
+    try {
+      await revokeRegistrationQRToken(registration.id);
+      alert("QR token revoked successfully.");
+    } catch (err) {
+      alert("Failed to revoke QR token");
+    } finally {
       setIsUpdating(false);
     }
   };
@@ -435,6 +449,63 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
                 ) : (
                   Object.entries(editFormDataObj).map(([key, value], idx) => {
                     const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => (str as string).toUpperCase());
+
+                    if (key === 'members' && Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+                      return (
+                        <div key={idx} className="bg-[var(--admin-surface-alt)] border border-[var(--admin-border-subtle)] p-4 rounded-lg flex flex-col justify-center col-span-1 md:col-span-2">
+                          <span className="text-xs font-semibold text-[var(--admin-text)] block mb-3">{displayKey}</span>
+                          <div className="flex flex-col gap-4">
+                            {value.map((member: any, i: number) => (
+                              <div key={i} className="p-3 border border-[var(--admin-border)] rounded-md bg-[var(--admin-surface)] space-y-3">
+                                <div className="text-xs font-medium text-[var(--admin-text-secondary)]">Member {i + 1}</div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <div>
+                                    <span className="text-xs text-[var(--admin-text-muted)] block mb-1">Name</span>
+                                    <input 
+                                      type="text" 
+                                      value={member.name || ''} 
+                                      onChange={e => {
+                                        const newMembers = [...value];
+                                        newMembers[i] = { ...newMembers[i], name: e.target.value };
+                                        setEditFormDataObj({...editFormDataObj, [key]: newMembers});
+                                      }}
+                                      className="w-full text-sm border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-md p-2 outline-none focus:ring-1 focus:ring-[var(--color-turquoise)]"
+                                    />
+                                  </div>
+                                  <div>
+                                    <span className="text-xs text-[var(--admin-text-muted)] block mb-1">Phone</span>
+                                    <input 
+                                      type="tel" 
+                                      value={member.phone || ''} 
+                                      onChange={e => {
+                                        const newMembers = [...value];
+                                        newMembers[i] = { ...newMembers[i], phone: e.target.value };
+                                        setEditFormDataObj({...editFormDataObj, [key]: newMembers});
+                                      }}
+                                      className="w-full text-sm border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-md p-2 outline-none focus:ring-1 focus:ring-[var(--color-turquoise)]"
+                                    />
+                                  </div>
+                                  <div>
+                                    <span className="text-xs text-[var(--admin-text-muted)] block mb-1">WhatsApp</span>
+                                    <input 
+                                      type="tel" 
+                                      value={member.whatsappNumber || ''} 
+                                      onChange={e => {
+                                        const newMembers = [...value];
+                                        newMembers[i] = { ...newMembers[i], whatsappNumber: e.target.value };
+                                        setEditFormDataObj({...editFormDataObj, [key]: newMembers});
+                                      }}
+                                      className="w-full text-sm border-[var(--admin-input-border)] bg-[var(--admin-input-bg)] text-[var(--admin-text)] rounded-md p-2 outline-none focus:ring-1 focus:ring-[var(--color-turquoise)]"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                    
                     return (
                       <div key={idx} className="bg-[var(--admin-surface-alt)] border border-[var(--admin-border-subtle)] p-4 rounded-lg flex flex-col justify-center">
                         <span className="text-xs text-[var(--admin-text-muted)] block mb-2">{displayKey}</span>
@@ -527,13 +598,23 @@ export default function RegistrationDetailModal({ registration, onClose }: Regis
 
         {/* Footer */}
         <div className="p-4 border-t border-[var(--admin-border)] flex justify-between bg-[var(--admin-surface-alt)]">
-          <button 
-            onClick={handleDelete}
-            disabled={isUpdating}
-            className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-500/20"
-          >
-            Delete Registration
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={handleDelete}
+              disabled={isUpdating}
+              className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-500/20"
+            >
+              Delete Registration
+            </button>
+            <button 
+              onClick={handleRevokeQR}
+              disabled={isUpdating}
+              className="px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-md transition-colors border border-transparent hover:border-amber-200 dark:hover:border-amber-500/20 flex items-center gap-1.5"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              Revoke QR Token
+            </button>
+          </div>
           <button 
             onClick={onClose}
             className="px-4 py-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] text-[var(--admin-text)] text-sm font-medium rounded-md hover:bg-[var(--admin-hover)] transition-colors"

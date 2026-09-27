@@ -64,11 +64,27 @@ export async function updateRegistrationStatus(table: string, id: string, status
   if (!session) throw new Error("Unauthorized");
 
   const updatePayload: any = { updated_at: new Date().toISOString() };
-  if (status) updatePayload.status = status;
+  if (status) {
+    updatePayload.status = status;
+    
+    // Auto-revoke QR and check-in if status is downgraded
+    if (["pending", "cancelled", "rejected"].includes(status)) {
+      updatePayload.qr_token = null;
+      updatePayload.badge_generated_at = null;
+      updatePayload.checked_in = false;
+      updatePayload.checked_in_at = null;
+    }
+  }
   if (review_status) updatePayload.review_status = review_status;
 
   const { error } = await supabase.from(table).update(updatePayload).eq("id", id);
   if (error) throw new Error("Failed to update status");
+
+  // If status was downgraded, also delete any attendance logs for this registration
+  if (status && ["pending", "cancelled", "rejected"].includes(status)) {
+    await supabase.from("attendance_logs").delete().eq("registration_id", id);
+  }
+
   revalidatePath("/admin/registrations");
   revalidatePath("/admin/papers");
 }

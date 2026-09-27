@@ -5,6 +5,7 @@ import {
   fetchAttendanceStats,
   fetchAbsentList,
   generateQRTokensForAll,
+  revokeAllQRTokens,
   undoCheckIn,
 } from "@/app/[locale]/admin/event-day-actions";
 import {
@@ -53,6 +54,7 @@ export default function AttendancePage() {
   const [absentList, setAbsentList] = useState<any[]>([]);
   const [absentLoading, setAbsentLoading] = useState(false);
   const [generatingTokens, setGeneratingTokens] = useState(false);
+  const [resettingTokens, setResettingTokens] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>("recent");
 
   const loadData = useCallback(async () => {
@@ -88,6 +90,32 @@ export default function AttendancePage() {
       alert("Failed to generate tokens.");
     } finally {
       setGeneratingTokens(false);
+    }
+  };
+
+  const handleResetAllTokens = async () => {
+    if (!window.confirm("WARNING: This will invalidate ALL existing QR codes and wipe all check-in data. Are you absolutely sure?")) {
+      return;
+    }
+    
+    // Double confirmation for safety
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    const input = window.prompt(`Type ${code} to confirm you want to WIPE ALL QR TOKENS and CHECK-INS:`);
+    
+    if (input !== code) {
+      alert("Reset cancelled.");
+      return;
+    }
+
+    setResettingTokens(true);
+    try {
+      await revokeAllQRTokens();
+      alert("Successfully reset all QR tokens and check-ins.");
+      loadData();
+    } catch (err) {
+      alert("Failed to reset tokens.");
+    } finally {
+      setResettingTokens(false);
     }
   };
 
@@ -163,6 +191,14 @@ export default function AttendancePage() {
           >
             <QrCode className="w-3.5 h-3.5" />
             {generatingTokens ? "Generating..." : "Gen QR Tokens"}
+          </button>
+          <button
+            onClick={handleResetAllTokens}
+            disabled={resettingTokens}
+            className="px-3 py-2 border border-red-500/30 rounded-xl text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 shadow-sm flex items-center gap-1.5 dark:bg-red-500/10 dark:hover:bg-red-500/20"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${resettingTokens ? "animate-spin" : ""}`} />
+            {resettingTokens ? "Resetting..." : "Reset All QR"}
           </button>
           <button
             onClick={handleRefresh}

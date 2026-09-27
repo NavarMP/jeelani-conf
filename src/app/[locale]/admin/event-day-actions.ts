@@ -18,11 +18,12 @@ export async function generateQRTokensForAll() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Unauthorized");
 
-  // Fetch registrations without QR tokens
+  // Fetch registrations without QR tokens, but ONLY those that are confirmed or selected
   const { data: regs, error: fetchError } = await supabase
     .from("dynamic_registrations")
-    .select("id")
-    .is("qr_token", null);
+    .select("id, status, session_slug")
+    .is("qr_token", null)
+    .in("status", ["confirmed", "selected"]);
 
   if (fetchError) throw new Error("Failed to fetch registrations: " + fetchError.message);
   if (!regs || regs.length === 0) return { generated: 0 };
@@ -30,6 +31,11 @@ export async function generateQRTokensForAll() {
   // Generate tokens and update
   let generated = 0;
   for (const reg of regs) {
+    // Strict eligibility check for Burda Qawwali
+    if (reg.session_slug === 'burda-qawwali' && reg.status !== 'selected') {
+      continue;
+    }
+
     const token = generateQRToken();
     const { error } = await supabase
       .from("dynamic_registrations")
@@ -56,6 +62,74 @@ export async function generateQRTokenForRegistration(registrationId: string) {
 
   if (error) throw new Error("Failed to generate QR token: " + error.message);
   return { token };
+}
+
+/**
+ * Revoke a QR token and reset check-in data for a registration.
+ * This is used for security when a registration is cancelled or manually reset.
+ */
+export async function revokeRegistrationQRToken(registrationId: string) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  // Reset QR token, badge timestamp, and entry check-in status
+  const { error } = await supabase
+    .from("dynamic_registrations")
+    .update({ 
+      qr_token: null, 
+      badge_generated_at: null,
+      checked_in: false,
+      checked_in_at: null 
+    })
+    .eq("id", registrationId);
+
+  if (error) throw new Error("Failed to revoke QR token: " + error.message);
+  
+  // Delete any existing attendance logs for this registration
+  await supabase
+    .from("attendance_logs")
+    .delete()
+    .eq("registration_id", registrationId);
+
+  revalidatePath("/admin/registrations");
+  return { success: true };
+}
+
+/**
+ * Revoke ALL QR tokens and reset check-in data for all registrations.
+ * WARNING: This is a destructive operation. It will invalidate all existing badges.
+ */
+export async function revokeAllQRTokens() {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  // Reset QR token, badge timestamp, and entry check-in status for ALL registrations
+  const { error } = await supabase
+    .from("dynamic_registrations")
+    .update({ 
+      qr_token: null, 
+      badge_generated_at: null,
+      checked_in: false,
+      checked_in_at: null 
+    })
+    .not("id", "is", null);
+
+  if (error) throw new Error("Failed to revoke all QR tokens: " + error.message);
+  
+  // Delete ALL attendance logs
+  const { error: logsError } = await supabase
+    .from("attendance_logs")
+    .delete()
+    .not("id", "is", null);
+
+  if (logsError) throw new Error("Failed to delete attendance logs: " + logsError.message);
+
+  revalidatePath("/admin/registrations");
+  revalidatePath("/admin/attendance");
+  revalidatePath("/admin/badges");
+  return { success: true };
 }
 
 // ==============================================================================
@@ -604,18 +678,36 @@ export async function syncCompetitionEntries(competitionSlug: string = "burda-qa
     .eq("status", "selected");
 
   if (fetchError) throw new Error("Failed to fetch selected teams: " + fetchError.message);
-  if (!selectedRegs || selectedRegs.length === 0) return { synced: 0 };
+  
+  const validSelectedIds = new Set((selectedRegs || []).map((r) => r.id));
 
   // Check which ones already have competition entries
   const { data: existingEntries } = await supabase
     .from("competition_entries")
-    .select("registration_id")
+    .select("id, registration_id")
     .eq("competition_slug", competitionSlug);
 
   const existingIds = new Set((existingEntries || []).map((e: any) => e.registration_id));
 
+  // Determine entries to remove (those that are no longer 'selected')
+  const entriesToRemove = (existingEntries || []).filter(
+    (e: any) => !validSelectedIds.has(e.registration_id)
+  );
+
+  if (entriesToRemove.length > 0) {
+    const idsToRemove = entriesToRemove.map((e: any) => e.id);
+    const { error: deleteError } = await supabase
+      .from("competition_entries")
+      .delete()
+      .in("id", idsToRemove);
+
+    if (deleteError) {
+      console.error("Failed to remove unselected entries:", deleteError);
+    }
+  }
+
   // Insert new entries
-  const newEntries = selectedRegs
+  const newEntries = (selectedRegs || [])
     .filter((r) => !existingIds.has(r.id))
     .map((r) => ({
       registration_id: r.id,
@@ -631,7 +723,7 @@ export async function syncCompetitionEntries(competitionSlug: string = "burda-qa
   }
 
   revalidatePath("/admin/competition");
-  return { synced: newEntries.length };
+  return { synced: newEntries.length, removed: entriesToRemove.length };
 }
 
 /**
@@ -674,8 +766,9 @@ export async function toggleCompetitionPresence(entryId: string, isPresent: bool
 
 /**
  * Draw lots — randomize performance order for present teams
+ * Also respects locked teams, stage status (on_stage, performed), and applies geographic separation.
  */
-export async function drawPerformanceOrder(competitionSlug: string = "burda-qawwali") {
+export async function drawPerformanceOrder(competitionSlug: string = "burda-qawwali", lockedIds: string[] = []) {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Unauthorized");
@@ -683,29 +776,145 @@ export async function drawPerformanceOrder(competitionSlug: string = "burda-qaww
   // Get present teams
   const { data: presentTeams, error } = await supabase
     .from("competition_entries")
-    .select("id")
+    .select("*, dynamic_registrations(place)")
     .eq("competition_slug", competitionSlug)
     .eq("is_present", true);
 
   if (error || !presentTeams) throw new Error("Failed to fetch present teams");
 
-  // Shuffle using Fisher-Yates
-  const shuffled = [...presentTeams];
+  // Determine locked entries (manual lock or stage_status)
+  const lockedEntries = presentTeams.filter(
+    (e) => lockedIds.includes(e.id) || e.stage_status === "on_stage" || e.stage_status === "performed"
+  );
+  
+  const unlockedEntries = presentTeams.filter(
+    (e) => !lockedEntries.some((le) => le.id === e.id)
+  );
+
+  const takenNumbers = new Set(lockedEntries.map((e) => e.performance_order).filter((n) => n != null));
+
+  let maxNumber = presentTeams.length;
+  if (takenNumbers.size > 0) {
+    maxNumber = Math.max(maxNumber, ...Array.from(takenNumbers) as number[]);
+  }
+
+  const availableNumbers: number[] = [];
+  let num = 1;
+  while (availableNumbers.length < unlockedEntries.length) {
+    if (!takenNumbers.has(num)) availableNumbers.push(num);
+    num++;
+  }
+
+  // Shuffle unlocked entries
+  const shuffled = [...unlockedEntries];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  // Update performance orders
+  // Combine sequence mapping
+  const sequence = new Map<number, any>();
+  lockedEntries.forEach((e) => sequence.set(e.performance_order, e));
   for (let i = 0; i < shuffled.length; i++) {
-    await supabase
-      .from("competition_entries")
-      .update({ performance_order: i + 1 })
-      .eq("id", shuffled[i].id);
+    sequence.set(availableNumbers[i], shuffled[i]);
+  }
+
+  const assignedNumbers = Array.from(sequence.keys()).sort((a, b) => a - b);
+
+  // Attempt to resolve geographic conflicts
+  for (let pass = 0; pass < 10; pass++) {
+    let conflictFound = false;
+    for (let i = 0; i < assignedNumbers.length - 1; i++) {
+      const currentEntry = sequence.get(assignedNumbers[i]);
+      const nextEntry = sequence.get(assignedNumbers[i + 1]);
+
+      const currentPlace = currentEntry.dynamic_registrations?.place?.trim().toLowerCase();
+      const nextPlace = nextEntry.dynamic_registrations?.place?.trim().toLowerCase();
+
+      if (currentPlace && nextPlace && currentPlace === nextPlace) {
+        conflictFound = true;
+        // Swap nextEntry with another unlocked entry
+        if (!lockedEntries.some((e) => e.id === nextEntry.id)) {
+          const swapIndex = assignedNumbers.findIndex((num) => {
+             const entry = sequence.get(num);
+             return !lockedEntries.some((e) => e.id === entry.id) && entry.id !== nextEntry.id;
+          });
+          
+          if (swapIndex !== -1) {
+            const swapNum = assignedNumbers[swapIndex];
+            const temp = sequence.get(swapNum);
+            sequence.set(swapNum, nextEntry);
+            sequence.set(assignedNumbers[i + 1], temp);
+          }
+        }
+      }
+    }
+    if (!conflictFound) break;
+  }
+
+  // Update DB for unlocked entries
+  for (let i = 0; i < assignedNumbers.length; i++) {
+    const num = assignedNumbers[i];
+    const entry = sequence.get(num);
+    if (!lockedEntries.some((e) => e.id === entry.id)) {
+      await supabase
+        .from("competition_entries")
+        .update({ performance_order: num })
+        .eq("id", entry.id);
+    }
   }
 
   revalidatePath("/admin/competition");
-  return { totalTeams: shuffled.length, order: shuffled.map((t, i) => ({ id: t.id, order: i + 1 })) };
+  return { totalTeams: presentTeams.length };
+}
+
+/**
+ * Manually update a team's performance order
+ */
+export async function updatePerformanceOrder(entryId: string, order: number | null) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const { error } = await supabase
+    .from("competition_entries")
+    .update({ performance_order: order })
+    .eq("id", entryId);
+
+  if (error) throw new Error("Failed to update performance order: " + error.message);
+  revalidatePath("/admin/competition");
+  return { success: true };
+}
+
+/**
+ * Reset performance order based on chronological marked_present_at time
+ */
+export async function resetPerformanceOrder(competitionSlug: string = "burda-qawwali") {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Unauthorized");
+
+  // Get present teams ordered by marked_present_at
+  const { data: presentTeams, error } = await supabase
+    .from("competition_entries")
+    .select("id")
+    .eq("competition_slug", competitionSlug)
+    .eq("is_present", true)
+    .order("marked_present_at", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true });
+
+  if (error || !presentTeams) throw new Error("Failed to fetch present teams");
+
+  // Update DB for each team with sequential order starting from 1
+  for (let i = 0; i < presentTeams.length; i++) {
+    await supabase
+      .from("competition_entries")
+      .update({ performance_order: i + 1 })
+      .eq("id", presentTeams[i].id);
+  }
+
+  revalidatePath("/admin/competition");
+  return { totalTeams: presentTeams.length };
 }
 
 /**
@@ -807,6 +1016,10 @@ export async function fetchBadgeData(registrationId: string) {
     .single();
 
   if (error || !data) return null;
+
+  if (data.status !== "confirmed" && data.status !== "selected") {
+    return { error: true, message: `Registration is currently ${data.status.replace('_', ' ')}. Your entry pass is not ready.` };
+  }
 
   if (data.session_slug === 'burda-qawwali' && data.status !== 'selected') {
     return { error: true, message: "Team not selected for final competition. Entry restricted." };

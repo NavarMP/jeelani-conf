@@ -8,6 +8,7 @@ import {
   createSpotRegistration,
   type SpotRegistrationResult,
 } from "@/app/[locale]/admin/event-day-actions";
+import QRCode from "qrcode";
 import {
   UserPlus,
   RefreshCw,
@@ -48,6 +49,7 @@ export default function SpotRegistrationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [lastResult, setLastResult] = useState<SpotRegistrationResult | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   // Capacity editing
   const [editingCapacity, setEditingCapacity] = useState<string | null>(null);
@@ -121,6 +123,18 @@ export default function SpotRegistrationPage() {
         setPhone("");
         setPlace("");
         await loadStats();
+        
+        if (result.registration?.qr_token) {
+          const payload = `JC26:${result.registration.qr_token}`;
+          const url = await QRCode.toDataURL(payload, {
+            margin: 1,
+            width: 200,
+            color: { dark: "#103E79", light: "#FFFFFF" },
+          });
+          setQrDataUrl(url);
+        } else {
+          setQrDataUrl(null);
+        }
       }
     } catch {
       setFormError("Network error. Please try again.");
@@ -254,16 +268,47 @@ export default function SpotRegistrationPage() {
           )}
 
           {lastResult && (
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border ${
+            <div className={`flex flex-col gap-3 p-4 rounded-xl text-sm font-medium border ${
               lastResult.success
-                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                ? "bg-emerald-500/10 text-emerald-800 border-emerald-500/30"
                 : "bg-red-500/10 text-red-600 border-red-500/20"
             }`}>
-              {lastResult.success ? <CheckCircle className="w-4 h-4 shrink-0" /> : <XCircle className="w-4 h-4 shrink-0" />}
-              {lastResult.success
-                ? `✓ ${lastResult.registration?.name} registered & checked in (${lastResult.registration?.registration_id})`
-                : lastResult.error
-              }
+              <div className="flex items-start gap-2">
+                {lastResult.success ? <CheckCircle className="w-5 h-5 shrink-0 text-emerald-600" /> : <XCircle className="w-5 h-5 shrink-0" />}
+                <div>
+                  {lastResult.success ? (
+                    <>
+                      <p className="font-bold text-emerald-700">✓ Spot registration successful!</p>
+                      <p className="text-emerald-700/80 mt-0.5">Attendee checked in automatically.</p>
+                    </>
+                  ) : (
+                    lastResult.error
+                  )}
+                </div>
+              </div>
+
+              {lastResult.success && lastResult.registration && (
+                <div className="mt-2 p-3 bg-white rounded-lg border border-emerald-500/20 shadow-sm flex items-start gap-4">
+                  {qrDataUrl && (
+                    <div className="shrink-0">
+                      <img src={qrDataUrl} alt="QR Code" className="w-24 h-24 rounded shadow-sm border border-gray-100" />
+                      <p className="text-[10px] text-center text-gray-400 mt-1 uppercase font-mono">{lastResult.registration.registration_id.slice(-6)}</p>
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-1 py-1">
+                    <p className="text-sm font-bold text-gray-900">{lastResult.registration.name}</p>
+                    <p className="text-xs text-gray-500">ID: <span className="font-mono text-gray-700">{lastResult.registration.registration_id}</span></p>
+                    <p className="text-xs text-gray-500">Session: <span className="text-gray-700">{lastResult.registration.typeName}</span></p>
+                    <a 
+                      href={`/admin/registrations/${lastResult.registration.registration_id}`}
+                      target="_blank" 
+                      className="inline-block mt-2 text-xs font-semibold text-emerald-600 hover:text-emerald-700 underline"
+                    >
+                      View Details ↗
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
