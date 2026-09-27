@@ -195,6 +195,7 @@ export default async function RootLayout(props: {
         <meta name="theme-color" content="#103E79" />
         <script
           type="application/ld+json"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",

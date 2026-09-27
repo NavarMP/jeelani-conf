@@ -12,6 +12,8 @@ import { Speakers } from "@/components/sections/Speakers";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { useLiveEventState } from "@/lib/useLiveEventState";
+import { FileText, ExternalLink } from "lucide-react";
 
 export function OnEventPhase({ props }: { props: any }) {
   const { liveStreams, siteSettings, sessions, speakers, galleryMedia, stages } = props;
@@ -21,6 +23,20 @@ export function OnEventPhase({ props }: { props: any }) {
   const stream = liveStreams ? liveStreams[activeStage] || {} : {};
   
   const [reactions, setReactions] = useState<{id: number, type: string, x: number}[]>([]);
+  const { liveState } = useLiveEventState(activeStage);
+  
+  // Real-time current session logic
+  let activeSession = stream?.currentSession;
+  let activeSpeaker = null;
+
+  if (liveState) {
+    if (liveState.mode === "manual" && liveState.current_session_id) {
+      activeSession = sessions.find((s: any) => s.id === liveState.current_session_id) || activeSession;
+    }
+    if (liveState.current_speaker_id && activeSession?.speakers) {
+      activeSpeaker = activeSession.speakers.find((s: any) => s.id === liveState.current_speaker_id);
+    }
+  }
   
   // Floating reactions logic
   const triggerReaction = (type: string) => {
@@ -196,50 +212,91 @@ export function OnEventPhase({ props }: { props: any }) {
                 </div>
                 
                 <div className="flex-1 relative z-10 flex flex-col gap-4">
-                  {stream?.currentSession ? (
+                  {activeSession ? (
                     <>
                       <div>
                         <h4 className="text-2xl font-bold text-white mb-2 leading-tight">
-                          {stream.currentSession.title}
+                          {activeSession.title}
                         </h4>
                         <p className="text-sm text-white/60 line-clamp-3">
-                          {stream.currentSession.description}
+                          {activeSession.description}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-3 mt-2 text-sm text-[var(--color-turquoise)] font-medium">
                         <div className="px-3 py-1.5 rounded-lg bg-[var(--color-turquoise)]/10 border border-[var(--color-turquoise)]/20">
-                          {new Date(stream.currentSession.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} 
+                          {new Date(activeSession.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} 
                           {" - "}
-                          {new Date(stream.currentSession.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {new Date(activeSession.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </div>
-                        {stream.currentSession.type && (
-                          <span className="uppercase text-xs tracking-wider opacity-80">{stream.currentSession.type}</span>
+                        {activeSession.type && (
+                          <span className="uppercase text-xs tracking-wider opacity-80">{activeSession.type}</span>
                         )}
                       </div>
 
-                      {stream.currentSession.speakers && stream.currentSession.speakers.length > 0 && (
+                      {/* Subtitle / Lower Third */}
+                      <AnimatePresence>
+                        {liveState?.subtitle_text && (
+                          <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="bg-black/40 border-l-2 border-[var(--color-turquoise)] p-3 rounded-r-lg mt-2"
+                          >
+                            <p className="text-white text-sm italic">"{liveState.subtitle_text}"</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Speakers */}
+                      {activeSession.speakers && activeSession.speakers.length > 0 && (
                         <div className="mt-4 pt-4 border-t border-white/10">
-                          <h5 className="text-xs uppercase tracking-wider text-white/40 mb-3">Speakers</h5>
+                          <h5 className="text-xs uppercase tracking-wider text-white/40 mb-3">
+                            {activeSpeaker ? "Currently On Stage" : "Speakers"}
+                          </h5>
                           <div className="flex flex-col gap-3">
-                            {stream.currentSession.speakers.map((speaker: any) => (
+                            {(activeSpeaker ? [activeSpeaker] : activeSession.speakers).map((speaker: any) => (
                               <div key={speaker.id} className="flex items-center gap-3 bg-white/5 p-2.5 rounded-xl border border-white/5">
                                 {speaker.image_url ? (
-                                  <Image src={speaker.image_url} alt={speaker.name} width={40} height={40} className="rounded-full object-cover w-10 h-10 border border-white/20" />
+                                  <Image src={speaker.image_url} alt={speaker.name} width={40} height={40} className="rounded-full object-cover w-10 h-10 border border-[var(--color-turquoise)] shadow-[0_0_10px_var(--color-turquoise)]" />
                                 ) : (
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-turquoise)] flex items-center justify-center text-white font-bold border border-white/20">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-turquoise)] flex items-center justify-center text-white font-bold border border-[var(--color-turquoise)] shadow-[0_0_10px_var(--color-turquoise)]">
                                     {speaker.name.charAt(0)}
                                   </div>
                                 )}
                                 <div>
                                   <p className="text-sm font-bold text-white">{speaker.name}</p>
-                                  <p className="text-xs text-white/50">{speaker.title}</p>
+                                  <p className="text-xs text-[var(--color-turquoise)]">{speaker.title || "Speaker"}</p>
                                 </div>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
+
+                      {/* Document Push */}
+                      <AnimatePresence>
+                        {liveState?.document_url && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="mt-auto pt-4"
+                          >
+                            <Link
+                              href={liveState.document_url}
+                              target="_blank"
+                              className="w-full flex items-center justify-between p-3 bg-[var(--color-turquoise)]/20 hover:bg-[var(--color-turquoise)]/40 border border-[var(--color-turquoise)] rounded-xl backdrop-blur-md transition-colors group/doc"
+                            >
+                              <div className="flex items-center gap-2 text-white">
+                                <FileText className="w-4 h-4" />
+                                <span className="text-sm font-semibold">Live Resource</span>
+                              </div>
+                              <ExternalLink className="w-4 h-4 text-white/70 group-hover/doc:text-white group-hover/doc:translate-x-1 transition-all" />
+                            </Link>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center opacity-60">

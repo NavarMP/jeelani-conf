@@ -11,6 +11,7 @@ import { haptic } from "@/lib/haptics";
 import { useSectionEnterHaptic } from "@/hooks/useHaptics";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { Mic } from "lucide-react";
+import { LiveEventHero } from "@/components/sections/LiveEventHero";
 
 function SessionCard({ session, index, t }: { session: Session; index: number; t: (key: string) => string }) {
   const speakerList = session.speakers || [];
@@ -221,6 +222,9 @@ export function Schedule({ sessions, stages = [] }: { sessions: Session[], stage
             </button>
           ))}
         </motion.div>
+
+        {/* Currently Live Hero */}
+        <LiveEventHero sessions={sessions} stage={activeStage} />
 
         {/* Session list */}
         <div className="max-w-2xl mx-auto space-y-2">

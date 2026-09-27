@@ -46,7 +46,7 @@ INSERT INTO public.speakers (id, name, name_ml, slug, title, bio, description, f
 
 -- Step 3: Insert Sessions — Stage 1
 INSERT INTO public.sessions (id, slug, title, title_ml, description, start_time, end_time, stage, type, is_paid, external_url) VALUES
-  ('b1000000-0000-0000-0000-000000000001', 'grand-assembly', 'Grand Assembly', 'അസ്-സനദുൽ മുത്തസ്വിൽ', 'The grand opening assembly. Registration is handled on the external portal.', '2026-09-27T10:00:00+05:30', '2026-09-27T11:00:00+05:30', 'stage1', 'external_redirect', false, 'https://grand-jeelani-conference-2026.web.app/'),
+  ('b1000000-0000-0000-0000-000000000001', 'grand-assembly', 'Grand Assembly', 'അസ്-സനദുൽ മുത്തസ്വിൽ', 'The grand assembly of 1000 students from 41 SUFFA dars.', '2026-09-27T10:00:00+05:30', '2026-09-27T11:00:00+05:30', 'stage1', 'external_redirect', false, 'https://grand-jeelani-conference-2026.web.app/'),
   ('b1000000-0000-0000-0000-000000000002', 'inaugural-ceremony', 'Inaugural Ceremony', 'ഉദ്ഘാടന ചടങ്ങ്', 'Topic: The Aesthetics of Self-Purification (Tazkiyatun Nafs)', '2026-09-27T11:00:00+05:30', '2026-09-27T12:00:00+05:30', 'stage1', 'ceremony', false, NULL),
   ('b1000000-0000-0000-0000-000000000003', 'shaykh-jilani-talk', 'Shaykh Jilani: Spirituality, Life & Philosophy', 'ശൈഖ് ജീലാനി : ആത്മീയത, ജീവിതം, ദർശനം', 'A scholarly discourse on the life, spiritual teachings, and philosophy of Shaykh Abdul Qadir Jilani.', '2026-09-27T12:00:00+05:30', '2026-09-27T14:00:00+05:30', 'stage1', 'talk', false, NULL),
   ('b1000000-0000-0000-0000-000000000004', 'lunch-break', 'Lunch & Prayer Break', 'ഭക്ഷണം, നമസ്കാരം', 'Lunch and Dhuhr prayer break.', '2026-09-27T14:00:00+05:30', '2026-09-27T15:00:00+05:30', 'stage1', 'meal', false, NULL),

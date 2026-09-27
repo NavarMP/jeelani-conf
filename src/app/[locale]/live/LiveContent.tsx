@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { LiveEventHero } from "@/components/sections/LiveEventHero";
+import { Zap } from "lucide-react";
 
-export function LiveContent({ liveStreams }: { liveStreams: any }) {
+export function LiveContent({ liveStreams, sessions }: { liveStreams: any; sessions: any[] }) {
   const stageKeys = Object.keys(liveStreams).sort();
   const [activeStage, setActiveStage] = useState<string>(stageKeys[0] || "stage1");
   const stream = liveStreams[activeStage] || {};
@@ -53,55 +55,29 @@ export function LiveContent({ liveStreams }: { liveStreams: any }) {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-4xl mx-auto mb-10"
         >
-          <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+          <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black">
             {stream?.youtubeVideoId ? (
               <iframe
-                src={`https://www.youtube.com/embed/${stream.youtubeVideoId}?rel=0&modestbranding=1`}
+                src={`https://www.youtube.com/embed/${stream.youtubeVideoId}?rel=0&modestbranding=1&autoplay=1`}
                 title={`Live Stream - ${stream.name || activeStage.replace("stage", "Stage ")}`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 w-full h-full"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-white/50">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white/50">
+                <Zap className="w-12 h-12 mb-4 text-white/20" />
                 Stream not available yet
               </div>
             )}
           </div>
         </motion.div>
 
-        {/* Stage descriptions */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
-          {stageKeys.map(key => {
-            const currentSession = liveStreams[key]?.currentSession;
-            return (
-              <div key={key} className={`p-5 rounded-xl border transition-all ${
-                activeStage === key
-                  ? "border-[var(--color-turquoise)]/30 bg-[var(--color-turquoise)]/5"
-                  : "border-white/5 bg-white/[0.02]"
-              }`}>
-                <h3 className="font-semibold text-[var(--color-ivory)] text-sm mb-1 capitalize">
-                  {liveStreams[key]?.name || key.replace("stage", "Stage ")}
-                </h3>
-                {currentSession ? (
-                  <>
-                    <p className="text-sm text-white/90 font-medium mt-2">{currentSession.title}</p>
-                    <p className="text-xs text-[var(--color-turquoise)] mt-1">
-                      {new Date(currentSession.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      {" - "}
-                      {new Date(currentSession.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-xs text-[var(--color-ivory)]/50 leading-relaxed mt-2">
-                    Live stream for {liveStreams[key]?.name || key.replace("stage", "Stage ")}. Join to watch the sessions happening right now.
-                  </p>
-                )}
-              </div>
-            );
-          })}
+        {/* Live Event Hero (Premium Now Playing Section) */}
+        <div className="max-w-4xl mx-auto">
+          <LiveEventHero sessions={sessions} stage={activeStage} />
         </div>
       </div>
     </div>
