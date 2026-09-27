@@ -100,7 +100,7 @@ export async function getSpeakerBySlug(slug: string): Promise<Speaker | null> {
 
 export async function getSessions(): Promise<Session[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('sessions').select('*, speakers(*)').order('start_time', { ascending: true });
+  const { data, error } = await supabase.from('sessions').select('*, speakers!session_speakers(*)').order('start_time', { ascending: true });
   if (error) {
     console.error("Error fetching sessions:", error);
     return [];
@@ -123,7 +123,7 @@ export async function getSessions(): Promise<Session[]> {
 /** Returns ALL sessions as a flat array (no nesting). Used by admin. */
 export async function getAllSessionsFlat(): Promise<Session[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('sessions').select('*, speakers(*)').order('start_time', { ascending: true });
+  const { data, error } = await supabase.from('sessions').select('*, speakers!session_speakers(*)').order('start_time', { ascending: true });
   if (error) {
     console.error("Error fetching all sessions flat:", error);
     return [];
@@ -133,12 +133,12 @@ export async function getAllSessionsFlat(): Promise<Session[]> {
 
 export async function getSessionBySlug(slug: string): Promise<Session | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('sessions').select('*, speakers(*)').eq('slug', slug).single();
+  const { data, error } = await supabase.from('sessions').select('*, speakers!session_speakers(*)').eq('slug', slug).single();
   if (error || !data) return null;
 
   const { data: childPrograms } = await supabase
     .from('sessions')
-    .select('*, speakers(*)')
+    .select('*, speakers!session_speakers(*)')
     .eq('parent_id', data.id)
     .order('start_time', { ascending: true });
 
@@ -150,7 +150,7 @@ export async function getSessionBySlug(slug: string): Promise<Session | null> {
 
 export async function getSessionsByStage(stage: string): Promise<Session[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('sessions').select('*, speakers(*)').eq('stage', stage).order('start_time', { ascending: true });
+  const { data, error } = await supabase.from('sessions').select('*, speakers!session_speakers(*)').eq('stage', stage).order('start_time', { ascending: true });
   if (error) {
     console.error("Error fetching sessions by stage:", error);
     return [];
@@ -222,7 +222,7 @@ export async function getStages(): Promise<{ slug: string; name: string; name_ml
 export async function getLiveStreams(): Promise<any> {
   const supabase = await createClient();
   const [{ data, error }, stages] = await Promise.all([
-    supabase.from('live_streams').select('*, current_session:sessions(*, speakers(*))'),
+    supabase.from('live_streams').select('*, current_session:sessions(*, speakers!session_speakers(*))'),
     getStages()
   ]);
   
