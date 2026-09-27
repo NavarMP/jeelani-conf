@@ -11,17 +11,17 @@ export function LiveContent({ liveStreams, sessions }: { liveStreams: any; sessi
   const stream = liveStreams[activeStage] || {};
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-black)] pt-20">
+    <div className="min-h-[100dvh] bg-background pt-20">
       <div className="container-site py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1
-            className="text-3xl md:text-4xl font-bold text-[var(--color-ivory)]"
+            className="text-3xl md:text-4xl font-bold text-foreground"
             style={{ fontFamily: "var(--font-bodoni-moda)" }}
           >
             Watch Live
           </h1>
-          <p className="text-[var(--color-ivory)]/60 text-sm mt-2">
+          <p className="text-text-muted text-sm mt-2">
             From Baghdad to Malabar — streaming live on YouTube
           </p>
         </div>
@@ -35,7 +35,7 @@ export function LiveContent({ liveStreams, sessions }: { liveStreams: any; sessi
               className={`relative px-6 py-2.5 rounded-full text-sm font-semibold transition-all capitalize ${
                 activeStage === key
                   ? "bg-[var(--color-turquoise)] text-white shadow-lg"
-                  : "bg-white/5 text-[var(--color-ivory)]/60 border border-white/10 hover:bg-white/10"
+                  : "bg-surface text-text-secondary border border-border hover:bg-surface-elevated"
               }`}
             >
               {liveStreams[key]?.name || key.replace("stage", "Stage ")}
@@ -57,7 +57,7 @@ export function LiveContent({ liveStreams, sessions }: { liveStreams: any; sessi
           transition={{ duration: 0.3 }}
           className="max-w-4xl mx-auto mb-10"
         >
-          <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+          <div className="relative aspect-video rounded-3xl overflow-hidden border border-border shadow-2xl bg-black">
             {stream?.youtubeVideoId ? (
               <iframe
                 src={`https://www.youtube.com/embed/${stream.youtubeVideoId}?rel=0&modestbranding=1&autoplay=1`}

@@ -48,7 +48,7 @@ export function LiveEventHero({ sessions, stage }: LiveEventHeroProps) {
       className="relative mb-12 rounded-3xl overflow-hidden shadow-2xl border border-[var(--color-turquoise)]/30 group"
     >
       {/* Background with animated gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-navy)] via-[var(--surface)] to-[var(--color-turquoise)]/20 opacity-90 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-surface-elevated via-background to-[var(--color-turquoise)]/10 opacity-90 z-0"></div>
       <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay z-0"></div>
 
       <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center md:items-stretch">
@@ -66,7 +66,7 @@ export function LiveEventHero({ sessions, stage }: LiveEventHeroProps) {
             </span>
           </div>
 
-          <h3 className="text-2xl md:text-4xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
+          <h3 className="text-2xl md:text-4xl font-bold text-foreground mb-2" style={{ fontFamily: "var(--font-bodoni-moda)" }}>
             {currentSession.title}
           </h3>
           
@@ -76,7 +76,7 @@ export function LiveEventHero({ sessions, stage }: LiveEventHeroProps) {
             </p>
           )}
 
-          <p className="text-gray-300 mb-6 line-clamp-3">
+          <p className="text-text-secondary mb-6 line-clamp-3">
             {currentSession.description}
           </p>
 
@@ -88,9 +88,9 @@ export function LiveEventHero({ sessions, stage }: LiveEventHeroProps) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="mt-auto bg-black/40 backdrop-blur-md border-l-4 border-[var(--color-turquoise)] p-4 rounded-r-xl"
+                className="mt-auto bg-surface/80 backdrop-blur-md border-l-4 border-[var(--color-turquoise)] p-4 rounded-r-xl"
               >
-                <p className="text-white font-medium text-lg italic">"{liveState.subtitle_text}"</p>
+                <p className="text-foreground font-medium text-lg italic">"{liveState.subtitle_text}"</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -106,7 +106,7 @@ export function LiveEventHero({ sessions, stage }: LiveEventHeroProps) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-black/20 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center text-center border border-white/10"
+                className="bg-surface-elevated/80 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center text-center border border-border"
               >
                 <div className="w-24 h-24 rounded-full overflow-hidden mb-3 border-2 border-[var(--color-turquoise)] shadow-[0_0_15px_var(--color-turquoise)]">
                   {currentSpeaker.image_url ? (
@@ -120,15 +120,15 @@ export function LiveEventHero({ sessions, stage }: LiveEventHeroProps) {
                 <p className="text-xs text-[var(--color-turquoise)] uppercase tracking-wider font-semibold mb-1">
                   On Stage
                 </p>
-                <h4 className="text-white font-bold text-lg leading-tight">{currentSpeaker.name}</h4>
+                <h4 className="text-foreground font-bold text-lg leading-tight">{currentSpeaker.name}</h4>
                 {currentSpeaker.title && (
-                  <p className="text-[10px] text-gray-400 mt-1">{currentSpeaker.title}</p>
+                  <p className="text-[10px] text-text-muted mt-1">{currentSpeaker.title}</p>
                 )}
               </motion.div>
             ) : (
-              <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-white/10 h-full min-h-[160px]">
-                <PlayCircle className="w-12 h-12 text-white/20 mb-2" />
-                <p className="text-white/50 text-sm">Event in Progress</p>
+              <div className="bg-surface-elevated/80 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-border h-full min-h-[160px]">
+                <PlayCircle className="w-12 h-12 text-text-muted/50 mb-2" />
+                <p className="text-text-muted text-sm">Event in Progress</p>
               </div>
             )}
           </AnimatePresence>
@@ -147,11 +147,11 @@ export function LiveEventHero({ sessions, stage }: LiveEventHeroProps) {
                   onClick={() => haptic("success")}
                   className="w-full flex items-center justify-between p-3 bg-[var(--color-turquoise)]/20 hover:bg-[var(--color-turquoise)]/40 border border-[var(--color-turquoise)] rounded-xl backdrop-blur-md transition-colors group/doc"
                 >
-                  <div className="flex items-center gap-2 text-white">
+                  <div className="flex items-center gap-2 text-foreground">
                     <FileText className="w-5 h-5" />
                     <span className="text-sm font-semibold">Live Resource</span>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-white/70 group-hover/doc:text-white group-hover/doc:translate-x-1 transition-all" />
+                  <ExternalLink className="w-4 h-4 text-foreground/70 group-hover/doc:text-foreground group-hover/doc:translate-x-1 transition-all" />
                 </Link>
               </motion.div>
             )}

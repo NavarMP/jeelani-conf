@@ -94,11 +94,11 @@ export function OnEventPhase({ props }: { props: any }) {
       />
 
       {/* Live Experience Section */}
-      <section id="live-experience" className="bg-[#020617] text-white relative flex-1 flex flex-col py-24">
+      <section id="live-experience" className="bg-background text-foreground relative flex-1 flex flex-col py-24">
         {/* Dynamic Aurora Background for Live Experience */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-navy)]/20 rounded-full blur-[120px] mix-blend-screen" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[var(--color-brass)]/10 rounded-full blur-[150px] mix-blend-screen" />
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-navy)]/10 rounded-full blur-[120px] mix-blend-normal" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[var(--color-brass)]/10 rounded-full blur-[150px] mix-blend-normal" />
         </div>
         
         <div className="container-site relative z-10 flex-1 flex flex-col">
@@ -108,10 +108,10 @@ export function OnEventPhase({ props }: { props: any }) {
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-turquoise)] to-[var(--color-brass)]">
               Live Experience
             </h1>
-            <p className="text-white/60 text-sm">You are watching the Grand Jeelani Conference live.</p>
+            <p className="text-text-secondary text-sm">You are watching the Grand Jeelani Conference live.</p>
           </div>
           
-          <div className="flex items-center gap-2 bg-white/5 p-1 rounded-full border border-white/10 backdrop-blur-md">
+          <div className="flex items-center gap-2 bg-surface p-1 rounded-full border border-border backdrop-blur-md">
             {stageKeys.map((key) => (
               <button
                 key={key}
@@ -119,7 +119,7 @@ export function OnEventPhase({ props }: { props: any }) {
                 className={`relative px-6 py-2 rounded-full text-sm font-semibold transition-all capitalize ${
                   activeStage === key
                     ? "bg-gradient-to-r from-[var(--color-navy)] to-[var(--color-turquoise)] text-white shadow-lg"
-                    : "text-white/60 hover:text-white"
+                    : "text-text-secondary hover:text-foreground"
                 }`}
               >
                 {liveStreams[key]?.name || key.replace("stage", "Stage ")}
@@ -135,7 +135,7 @@ export function OnEventPhase({ props }: { props: any }) {
         <div className="flex flex-col lg:flex-row gap-6 flex-1">
           {/* Left: Video Player */}
           <div className="flex-1 flex flex-col">
-            <div className="relative w-full aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black ring-1 ring-white/5">
+            <div className="relative w-full aspect-video rounded-3xl overflow-hidden border border-border shadow-[0_0_50px_rgba(0,0,0,0.1)] bg-black ring-1 ring-border">
               {stream?.youtubeVideoId ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${stream.youtubeVideoId}?rel=0&modestbranding=1&autoplay=1`}
@@ -145,8 +145,8 @@ export function OnEventPhase({ props }: { props: any }) {
                   className="absolute inset-0 w-full h-full"
                 />
               ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-white/50 bg-white/5">
-                  <div className="w-16 h-16 border-4 border-white/20 border-t-[var(--color-turquoise)] rounded-full animate-spin mb-4" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-text-muted bg-surface-elevated/50">
+                  <div className="w-16 h-16 border-4 border-border border-t-[var(--color-turquoise)] rounded-full animate-spin mb-4" />
                   Stream starting soon...
                 </div>
               )}
@@ -170,23 +170,23 @@ export function OnEventPhase({ props }: { props: any }) {
             </div>
             
             {/* Action Bar */}
-            <div className="flex items-center justify-between mt-6 bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-xl">
+            <div className="flex items-center justify-between mt-6 bg-surface-elevated border border-border rounded-2xl p-4 backdrop-blur-xl">
               <div className="flex gap-3">
                 <button 
                   onClick={() => triggerReaction('heart')}
-                  className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/5 transition-transform hover:scale-110 active:scale-95"
+                  className="w-12 h-12 rounded-full bg-surface hover:bg-surface-elevated flex items-center justify-center border border-border transition-transform hover:scale-110 active:scale-95"
                 >
                   <Heart className="w-5 h-5 text-[var(--color-rose)]" />
                 </button>
                 <button 
                   onClick={() => triggerReaction('thumb')}
-                  className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/5 transition-transform hover:scale-110 active:scale-95"
+                  className="w-12 h-12 rounded-full bg-surface hover:bg-surface-elevated flex items-center justify-center border border-border transition-transform hover:scale-110 active:scale-95"
                 >
                   <ThumbsUp className="w-5 h-5 text-[var(--color-turquoise)]" />
                 </button>
                 <button 
                   onClick={() => triggerReaction('star')}
-                  className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/5 transition-transform hover:scale-110 active:scale-95"
+                  className="w-12 h-12 rounded-full bg-surface hover:bg-surface-elevated flex items-center justify-center border border-border transition-transform hover:scale-110 active:scale-95"
                 >
                   <Star className="w-5 h-5 text-[var(--color-brass)]" />
                 </button>
@@ -199,15 +199,15 @@ export function OnEventPhase({ props }: { props: any }) {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full lg:w-[400px] h-auto bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl flex flex-col relative overflow-hidden"
+                className="w-full lg:w-[400px] h-auto bg-surface-elevated border border-border rounded-3xl p-6 backdrop-blur-xl flex flex-col relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-turquoise)]/20 rounded-full blur-[50px]" />
                 <div className="absolute bottom-0 left-0 w-40 h-40 bg-[var(--color-brass)]/20 rounded-full blur-[60px]" />
 
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10 relative z-10">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-border relative z-10">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                    <h3 className="font-bold text-lg tracking-wide uppercase text-white/90">Now Playing</h3>
+                    <h3 className="font-bold text-lg tracking-wide uppercase text-foreground">Now Playing</h3>
                   </div>
                 </div>
                 
@@ -215,10 +215,10 @@ export function OnEventPhase({ props }: { props: any }) {
                   {activeSession ? (
                     <>
                       <div>
-                        <h4 className="text-2xl font-bold text-white mb-2 leading-tight">
+                        <h4 className="text-2xl font-bold text-foreground mb-2 leading-tight">
                           {activeSession.title}
                         </h4>
-                        <p className="text-sm text-white/60 line-clamp-3">
+                        <p className="text-sm text-text-secondary line-clamp-3">
                           {activeSession.description}
                         </p>
                       </div>
@@ -241,22 +241,22 @@ export function OnEventPhase({ props }: { props: any }) {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            className="bg-black/40 border-l-2 border-[var(--color-turquoise)] p-3 rounded-r-lg mt-2"
+                            className="bg-surface/80 border-l-2 border-[var(--color-turquoise)] p-3 rounded-r-lg mt-2"
                           >
-                            <p className="text-white text-sm italic">"{liveState.subtitle_text}"</p>
+                            <p className="text-foreground text-sm italic">"{liveState.subtitle_text}"</p>
                           </motion.div>
                         )}
                       </AnimatePresence>
 
                       {/* Speakers */}
                       {activeSession.speakers && activeSession.speakers.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-white/10">
-                          <h5 className="text-xs uppercase tracking-wider text-white/40 mb-3">
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <h5 className="text-xs uppercase tracking-wider text-text-muted mb-3">
                             {activeSpeaker ? "Currently On Stage" : "Speakers"}
                           </h5>
                           <div className="flex flex-col gap-3">
                             {(activeSpeaker ? [activeSpeaker] : activeSession.speakers).map((speaker: any) => (
-                              <div key={speaker.id} className="flex items-center gap-3 bg-white/5 p-2.5 rounded-xl border border-white/5">
+                              <div key={speaker.id} className="flex items-center gap-3 bg-surface p-2.5 rounded-xl border border-border">
                                 {speaker.image_url ? (
                                   <Image src={speaker.image_url} alt={speaker.name} width={40} height={40} className="rounded-full object-cover w-10 h-10 border border-[var(--color-turquoise)] shadow-[0_0_10px_var(--color-turquoise)]" />
                                 ) : (
@@ -265,7 +265,7 @@ export function OnEventPhase({ props }: { props: any }) {
                                   </div>
                                 )}
                                 <div>
-                                  <p className="text-sm font-bold text-white">{speaker.name}</p>
+                                  <p className="text-sm font-bold text-foreground">{speaker.name}</p>
                                   <p className="text-xs text-[var(--color-turquoise)]">{speaker.title || "Speaker"}</p>
                                 </div>
                               </div>
@@ -288,11 +288,11 @@ export function OnEventPhase({ props }: { props: any }) {
                               target="_blank"
                               className="w-full flex items-center justify-between p-3 bg-[var(--color-turquoise)]/20 hover:bg-[var(--color-turquoise)]/40 border border-[var(--color-turquoise)] rounded-xl backdrop-blur-md transition-colors group/doc"
                             >
-                              <div className="flex items-center gap-2 text-white">
+                              <div className="flex items-center gap-2 text-foreground">
                                 <FileText className="w-4 h-4" />
                                 <span className="text-sm font-semibold">Live Resource</span>
                               </div>
-                              <ExternalLink className="w-4 h-4 text-white/70 group-hover/doc:text-white group-hover/doc:translate-x-1 transition-all" />
+                              <ExternalLink className="w-4 h-4 text-foreground/70 group-hover/doc:text-foreground group-hover/doc:translate-x-1 transition-all" />
                             </Link>
                           </motion.div>
                         )}
@@ -300,9 +300,9 @@ export function OnEventPhase({ props }: { props: any }) {
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center opacity-60">
-                      <Zap className="w-12 h-12 mb-4 text-white/20" />
-                      <p className="text-lg font-medium text-white">No Event Selected</p>
-                      <p className="text-sm mt-1">Check back later or switch stages.</p>
+                      <Zap className="w-12 h-12 mb-4 text-text-muted/50" />
+                      <p className="text-lg font-medium text-foreground">No Event Selected</p>
+                      <p className="text-sm mt-1 text-text-secondary">Check back later or switch stages.</p>
                     </div>
                   )}
                 </div>
