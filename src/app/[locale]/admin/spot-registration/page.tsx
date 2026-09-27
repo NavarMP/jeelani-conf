@@ -56,6 +56,51 @@ export default function SpotRegistrationPage() {
   const [capacityInput, setCapacityInput] = useState("");
   const [feeInput, setFeeInput] = useState("");
 
+  const [copyQRSuccess, setCopyQRSuccess] = useState(false);
+
+  const handleDownloadQR = async () => {
+    try {
+      const res = await fetch("/upi-qr.png");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "upi-qr.png";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Failed to download QR code:", err);
+      const a = document.createElement("a");
+      a.href = "/upi-qr.png";
+      a.download = "upi-qr.png";
+      a.target = "_blank";
+      a.click();
+    }
+  };
+
+  const handleCopyQR = async () => {
+    try {
+      const res = await fetch("/upi-qr.png");
+      const blob = await res.blob();
+      if (typeof window !== "undefined" && navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "image/png": blob,
+          }),
+        ]);
+        setCopyQRSuccess(true);
+        setTimeout(() => setCopyQRSuccess(false), 2000);
+      } else {
+        throw new Error("ClipboardItem API not supported");
+      }
+    } catch (err) {
+      console.error("Failed to copy QR code image:", err);
+      alert("Direct image copying is not supported on this browser. Please use 'Download QR' instead.");
+    }
+  };
+
   const loadStats = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -238,25 +283,117 @@ export default function SpotRegistrationPage() {
 
           {/* Payment (if paid session) */}
           {selectedSession && sessions.find(s => s.slug === selectedSession)?.spotFee! > 0 && (
-            <div>
-              <label className="block text-xs font-semibold text-[var(--admin-text)] mb-1.5">
-                Payment — ₹{sessions.find(s => s.slug === selectedSession)?.spotFee}
-              </label>
-              <div className="flex gap-2">
-                {(["cash", "upi", "waived"] as const).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setPaymentMethod(m)}
-                    className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${
-                      paymentMethod === m
-                        ? "border-amber-500 bg-amber-500/10 text-amber-700"
-                        : "border-[var(--admin-border)] text-[var(--admin-text-secondary)]"
-                    }`}
-                  >
-                    {m === "cash" ? "💵 Cash" : m === "upi" ? "📱 UPI" : "🎟️ Waived"}
-                  </button>
-                ))}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--admin-text)] mb-1.5">
+                  Payment — ₹{sessions.find(s => s.slug === selectedSession)?.spotFee}
+                </label>
+                <div className="flex gap-2">
+                  {(["cash", "upi", "waived"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setPaymentMethod(m)}
+                      className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${
+                        paymentMethod === m
+                          ? "border-amber-500 bg-amber-500/10 text-amber-700"
+                          : "border-[var(--admin-border)] text-[var(--admin-text-secondary)]"
+                      }`}
+                    >
+                      {m === "cash" ? "💵 Cash" : m === "upi" ? "📱 UPI" : "🎟️ Waived"}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {paymentMethod === "upi" && (
+                <div className="p-4 bg-white dark:bg-[var(--admin-card)] rounded-xl border border-[var(--admin-border)] shadow-sm flex flex-col items-center">
+                  <div className="w-32 h-32 mb-3 bg-white p-1 rounded-lg border border-gray-200">
+                    <img src="/upi-qr.png" alt="UPI QR Code" className="w-full h-full object-contain" />
+                  </div>
+
+                  {/* QR Action Buttons */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={handleDownloadQR}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] hover:bg-[var(--admin-hover)] text-xs font-semibold text-[var(--admin-text-secondary)] shadow-sm transition-all active:scale-95 cursor-pointer"
+                      title="Download QR code as PNG"
+                    >
+                      <svg className="w-3.5 h-3.5 text-[var(--admin-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download QR
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyQR}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] hover:bg-[var(--admin-hover)] text-xs font-semibold text-[var(--admin-text-secondary)] shadow-sm transition-all active:scale-95 cursor-pointer"
+                      title="Copy QR code image to clipboard"
+                    >
+                      {copyQRSuccess ? (
+                        <>
+                          <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="text-emerald-500 font-medium">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3.5 h-3.5 text-[var(--admin-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Copy QR
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="w-full space-y-2 text-center text-xs">
+                    <div
+                      className="bg-[var(--admin-bg)] px-3 py-2 rounded-lg border border-[var(--admin-border)] shadow-sm flex justify-between items-center cursor-pointer hover:bg-[var(--admin-hover)] transition-colors"
+                      onClick={() => {
+                        const fee = sessions.find(s => s.slug === selectedSession)?.spotFee;
+                        if (fee) {
+                          navigator.clipboard.writeText(fee.toString());
+                          alert("Amount copied!");
+                        }
+                      }}
+                    >
+                      <span className="text-[var(--admin-text-secondary)]">Amount: <span className="font-bold text-[var(--admin-text)]">₹{sessions.find(s => s.slug === selectedSession)?.spotFee}</span></span>
+                      <svg className="w-3.5 h-3.5 text-[var(--admin-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="bg-[var(--admin-bg)] px-3 py-2 rounded-lg border border-[var(--admin-border)] shadow-sm flex justify-between items-center">
+                      <span className="text-[var(--admin-text-secondary)]">Name: <span className="font-bold text-[var(--admin-text)]">Muhammed Sinan</span></span>
+                    </div>
+                    <div
+                      className="bg-[var(--admin-bg)] px-3 py-2 rounded-lg border border-[var(--admin-border)] shadow-sm flex justify-between items-center cursor-pointer hover:bg-[var(--admin-hover)] transition-colors"
+                      onClick={() => {
+                        navigator.clipboard.writeText("sinanvettam@okicici");
+                        alert("UPI ID copied!");
+                      }}
+                    >
+                      <span className="text-[var(--admin-text-secondary)]">UPI ID: <span className="font-mono text-[var(--admin-text)]">sinanvettam@okicici</span></span>
+                      <svg className="w-3.5 h-3.5 text-[var(--admin-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div
+                      className="bg-[var(--admin-bg)] px-3 py-2 rounded-lg border border-[var(--admin-border)] shadow-sm flex justify-between items-center cursor-pointer hover:bg-[var(--admin-hover)] transition-colors"
+                      onClick={() => {
+                        navigator.clipboard.writeText("7034585359");
+                        alert("Phone number copied!");
+                      }}
+                    >
+                      <span className="text-[var(--admin-text-secondary)]">Phone: <span className="font-mono text-[var(--admin-text)]">7034585359</span></span>
+                      <svg className="w-3.5 h-3.5 text-[var(--admin-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
